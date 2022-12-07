@@ -1,14 +1,25 @@
-const http = require('http');
+const express = require('express')
+const cors = require('cors')
+const path = require('path')
+const configParser = require('./js/configParser')
+const db = require('./js/db');
 
-const hostname = '127.0.0.1';
-const port = 8000;
+const app = express()
+const config = configParser.read()
 
-const server = http.createServer((req, res) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    res.end('Hello World\n');
-});
+db.init()
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+app.use(cors())
+
+app.get("/api/track/:id", (req, res) => {
+    if (req.params.id == '1') {
+        let filepath = path.join(__dirname, '/library/sample.flac')
+        res.sendFile(filepath)
+        return
+    }
+    res.send({ "chunk": "Hello World!" })
+})
+
+app.listen(config.port, config.host, () => {
+    console.log(`Server:    http://${config.host + ':' + config.port}/`)
 });
