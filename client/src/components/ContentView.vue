@@ -1,19 +1,4 @@
 <template>
-    <div class="card text-bg-dark">
-        <div class="card-body d-flex flex-column">
-            <div class="progress mb-2">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                    aria-label="Animated striped example" aria-valuemin="0" aria-valuemax="100"
-                    :style="('width:' + progress)"></div>
-            </div>
-            <div class="btn-group" role="group" aria-label="Basic example">
-                <button type="button" class="btn btn-outline-light bi-skip-start-fill"></button>
-                <button type="button" class="btn btn-outline-light bi"
-                    :class="{ 'bi-play-fill': !is_playing, 'bi-pause-fill': is_playing }" @click="play"></button>
-                <button type="button" class="btn btn-outline-light bi-skip-end-fill"></button>
-            </div>
-        </div>
-    </div>
 </template>
 
 <script setup>
