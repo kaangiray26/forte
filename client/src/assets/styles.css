@@ -45,5 +45,19 @@ a {
 }
 
 .progress {
-    height: 4px;
+    height: 10px;
+}
+
+.placeholder-img {
+    background-image: linear-gradient(to bottom right, grey, var(--bs-dark));
+}
+
+.search-link {
+    color: var(--bs-dark);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.search-link:hover {
+    color: var(--bs-danger);
 }

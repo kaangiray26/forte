@@ -4,6 +4,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { Howl, Howler } from 'howler';
+import { server } from '/js/api.js';
 
 const sound = ref(null);
 const progress = ref(null);
@@ -12,7 +13,7 @@ const duration = ref(0);
 
 async function load_track(id) {
     sound.value.unload();
-    sound.value._src = [`http://localhost:3000/api/track/${id}`];
+    sound.value._src = [server + '/' + id];
     sound.value.load();
     duration.value = sound.value.duration();
 }

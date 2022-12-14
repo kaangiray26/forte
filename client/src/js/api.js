@@ -10,4 +10,10 @@ async function API(query) {
     return response;
 }
 
-export { API }
+async function playTrack(result) {
+    window.dispatchEvent(new CustomEvent('playTrack', {
+        detail: result
+    }))
+}
+
+export { server, API, playTrack }

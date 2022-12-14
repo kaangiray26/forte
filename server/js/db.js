@@ -17,6 +17,7 @@ var config = configParser.read();
 module.exports = {
     init: _init,
     search: _search,
+    get_track: _get_track,
 }
 
 async function _init(args) {
@@ -129,7 +130,7 @@ async function check_files_for_metadata(files, folderpath) {
 
             let album_cover = null;
             let artist_cover = null;
-            let data = await axios.get(`https://api.deezer.com/search/track?q=${metadata.common.artist, metadata.common.album, metadata.common.title}`);
+            let data = await axios.get(`https://api.deezer.com/search/track?q=${metadata.common.album.toLowerCase() + ' ' + metadata.common.title.toLowerCase()}`);
 
             if (typeof data.data.data[0] !== "undefined") {
                 album_cover = data.data.data[0].album.cover_medium
@@ -216,10 +217,24 @@ async function _search(req, res, next) {
     }
     console.log("Query:", query);
 
-    // db.any("SELECT * FROM artists WHERE (title % $1) ORDER BY similarity(title, $1) DESC LIMIT 10", [query])
-    db.any("SELECT * FROM fuzzy WHERE (title % $1) ORDER BY similarity(title, $1) DESC LIMIT 10", [query])
+    db.any("SELECT * FROM fuzzy WHERE (title % $1) ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
         .then(function (data) {
             res.status(200)
                 .json({ "data": data })
+        })
+}
+
+async function _get_track(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.sendStatus(400);
+        return;
+    }
+    console.log("Get Track:", id);
+
+    db.oneOrNone("SELECT path FROM tracks WHERE id = $1", [id])
+        .then(function (data) {
+            res.status(200)
+                .sendFile(data.path)
         })
 }
