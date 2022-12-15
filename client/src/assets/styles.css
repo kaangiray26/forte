@@ -61,3 +61,29 @@ a {
 .search-link:hover {
     color: var(--bs-danger);
 }
+
+.hide-on-mobile {
+    display: none !important;
+}
+
+@media (min-width: 576px) {
+    .hide-on-mobile {
+        display: flex !important;
+    }
+}
+
+@media (min-width: 576px) {
+    .hide-on-desktop {
+        display: none !important;
+    }
+}
+
+.artist-title {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.album-title {
+    font-size: 32px;
+    font-weight: 700;
+}

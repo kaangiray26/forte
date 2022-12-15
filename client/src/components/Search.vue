@@ -1,10 +1,12 @@
 <template>
-    <ul class="list-group">
+    <ul class="list-group shadow-lg mx-4">
         <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="result in results">
             <div class="d-flex">
-                <img :src="result.cover" class="img-fluid placeholder-img" width="40" height="40" />
-                <button class="btn btn-link search-link" :content_id="result.id" :content_type="result.type"
-                    @click="openResult(result)">{{ result.title }}</button>
+                <div class="ratio-1x1">
+                    <img :src="result.cover" class="img-fluid placeholder-img" width="56" height="56" />
+                    <button class="btn btn-link search-link" :content_id="result.id" :content_type="result.type"
+                        @click="openResult(result)">{{ result.title }}</button>
+                </div>
             </div>
             <span>{{ result.type }}</span>
         </li>

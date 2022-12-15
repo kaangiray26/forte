@@ -18,6 +18,8 @@ module.exports = {
     init: _init,
     search: _search,
     get_track: _get_track,
+    get_artist: _get_artist,
+    get_album: _get_album,
 }
 
 async function _init(args) {
@@ -30,9 +32,9 @@ async function _init(args) {
     db.tx('creating_tables', t => {
         console.log("Checking tables...");
         return t.batch([
-            t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title VARCHAR NOT NULL, cover VARCHAR, UNIQUE(title))"),
-            t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title VARCHAR NOT NULL, cover VARCHAR, artist SERIAL, nb_tracks SMALLINT, UNIQUE(title, artist))"),
-            t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title VARCHAR NOT NULL, cover VARCHAR, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path VARCHAR NOT NULL, UNIQUE(title, artist, album))"),
+            t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, UNIQUE(title))"),
+            t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, UNIQUE(title, artist))"),
+            t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks;")
         ])
@@ -75,7 +77,7 @@ async function refresh_library() {
 
 async function walk_folders(folders) {
     let cs_artists = new pgp.helpers.ColumnSet(['title', 'cover'], { table: 'artists' });
-    let cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'nb_tracks'], { table: 'albums' });
+    let cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'nb_tracks', 'genre', 'year', 'date'], { table: 'albums' });
     let cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
 
     for (let i = 0; i < folders.length; i++) {
@@ -93,7 +95,7 @@ async function walk_folders(folders) {
         let artist_id = await db.one(pgp.helpers.insert(artist, cs_artists) + ' ON CONFLICT (title) DO UPDATE SET id = artists.id RETURNING id');
 
         // Insert album records
-        let album = await get_album(tags.album, artist_id.id, tracks.length, tags.album_cover);
+        let album = await get_album(tags.album, artist_id.id, tracks.length, tags.album_cover, tags.genre, tags.year, tags.date);
         let album_id = await db.one(pgp.helpers.insert(album, cs_albums) + ' ON CONFLICT (title, artist) DO UPDATE SET id = albums.id RETURNING id');
 
         // Insert track records
@@ -142,7 +144,7 @@ async function check_files_for_metadata(files, folderpath) {
                 "album": metadata.common.album,
                 "genre": metadata.common.genre,
                 "year": metadata.common.year,
-                "date": metadata.common.date,
+                "date": format_date(metadata.common.date),
                 "album_cover": album_cover,
                 "artist_cover": artist_cover
             })
@@ -163,8 +165,8 @@ async function get_artist(artist_title, cover) {
     return { "title": artist_title, "cover": cover }
 }
 
-async function get_album(album_title, artist_id, nb_tracks, cover) {
-    return { "title": album_title, "artist": artist_id, "nb_tracks": nb_tracks, "cover": cover }
+async function get_album(album_title, artist_id, nb_tracks, cover, genre, year, date) {
+    return { "title": album_title, "artist": artist_id, "nb_tracks": nb_tracks, "cover": cover, "genre": genre, "year": year, "date": date }
 }
 
 async function get_tracks(folderpath, cover) {
@@ -208,6 +210,20 @@ async function get_tracks_from(files, tracks, folderpath, cover) {
         }
     }
 }
+/**
+ * Formats a year string into the DATE format.
+ * @example
+ * // returns 2022-01-01
+ * format_date(2022)
+ * @param {string} dt A string representing a year or a DATE
+ * @returns {string} DATE
+ */
+function format_date(dt) {
+    if (new RegExp('^[0-9]{4}$').test(dt)) {
+        return dt + "-01-01"
+    }
+    return dt
+}
 
 async function _search(req, res, next) {
     let query = req.params.query;
@@ -217,7 +233,7 @@ async function _search(req, res, next) {
     }
     console.log("Query:", query);
 
-    db.any("SELECT * FROM fuzzy WHERE (title % $1) ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
+    db.any("SELECT * FROM fuzzy WHERE (title % $1) AND similarity(title, $1) > 0.2 ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
         .then(function (data) {
             res.status(200)
                 .json({ "data": data })
@@ -237,4 +253,42 @@ async function _get_track(req, res, next) {
             res.status(200)
                 .sendFile(data.path)
         })
+}
+
+async function _get_artist(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.sendStatus(400);
+        return;
+    }
+    console.log("Get Artist:", id);
+    db.task(async t => {
+        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+        let albums = await t.manyOrNone("SELECT * FROM albums wHERE artist = $1", [id]);
+        res.status(200)
+            .send(JSON.stringify({
+                "artist": artist,
+                "albums": albums
+            }))
+    })
+}
+
+async function _get_album(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.sendStatus(400);
+        return;
+    }
+    console.log("Get Album:", id);
+    db.task(async t => {
+        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [album.artist]);
+        let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [id]);
+        res.status(200)
+            .send(JSON.stringify({
+                "album": album,
+                "artist": artist,
+                "tracks": tracks
+            }))
+    })
 }
