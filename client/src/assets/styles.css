@@ -18,6 +18,10 @@ a {
     color: unset;
 }
 
+img {
+    pointer-events: none;
+}
+
 .btn-white {
     --bs-btn-color: #000;
     --bs-btn-bg: #fff;
@@ -46,6 +50,7 @@ a {
 
 .progress {
     height: 10px;
+    cursor: pointer;
 }
 
 .placeholder-img {
@@ -86,4 +91,16 @@ a {
 .album-title {
     font-size: 32px;
     font-weight: 700;
+}
+
+.dropdown-menu {
+    padding: 0.25rem !important;
+}
+
+.now-playing {
+    background-color: #FFF3CD;
+}
+
+.clickable {
+    cursor: pointer;
 }

@@ -17,9 +17,12 @@ var config = configParser.read();
 module.exports = {
     init: _init,
     search: _search,
+    stream: _stream,
     get_track: _get_track,
+    get_track_basic: _get_track_basic,
     get_artist: _get_artist,
     get_album: _get_album,
+    get_album_tracks: _get_album_tracks
 }
 
 async function _init(args) {
@@ -68,7 +71,7 @@ async function refresh_library() {
             }
 
             await walk_folders(changes);
-            await db.none("INSERT INTO library(folders) VALUES ($1)", [folders])
+            await db.none("UPDATE library SET folders = $1", [folders])
             console.log("\n==> Added a new total of " + changes.length + " folders.");
             console.log("==> Ready.");
         })
@@ -231,8 +234,6 @@ async function _search(req, res, next) {
         res.sendStatus(400);
         return;
     }
-    console.log("Query:", query);
-
     db.any("SELECT * FROM fuzzy WHERE (title % $1) AND similarity(title, $1) > 0.2 ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
         .then(function (data) {
             res.status(200)
@@ -240,14 +241,12 @@ async function _search(req, res, next) {
         })
 }
 
-async function _get_track(req, res, next) {
+async function _stream(req, res, next) {
     let id = req.params.id;
     if (!id) {
         res.sendStatus(400);
         return;
     }
-    console.log("Get Track:", id);
-
     db.oneOrNone("SELECT path FROM tracks WHERE id = $1", [id])
         .then(function (data) {
             res.status(200)
@@ -261,7 +260,6 @@ async function _get_artist(req, res, next) {
         res.sendStatus(400);
         return;
     }
-    console.log("Get Artist:", id);
     db.task(async t => {
         let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
         let albums = await t.manyOrNone("SELECT * FROM albums wHERE artist = $1", [id]);
@@ -279,7 +277,6 @@ async function _get_album(req, res, next) {
         res.sendStatus(400);
         return;
     }
-    console.log("Get Album:", id);
     db.task(async t => {
         let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
         let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [album.artist]);
@@ -289,6 +286,55 @@ async function _get_album(req, res, next) {
                 "album": album,
                 "artist": artist,
                 "tracks": tracks
+            }))
+    })
+}
+
+async function _get_album_tracks(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.sendStatus(400);
+        return;
+    }
+    db.task(async t => {
+        let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [id]);
+        res.status(200)
+            .send(JSON.stringify({
+                "tracks": tracks
+            }))
+    })
+}
+
+async function _get_track(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.sendStatus(400);
+        return;
+    }
+    db.task(async t => {
+        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [track.artist]);
+        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [track.album]);
+        res.status(200)
+            .send(JSON.stringify({
+                "track": track,
+                "artist": artist,
+                "album": album
+            }))
+    })
+}
+
+async function _get_track_basic(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.sendStatus(400);
+        return;
+    }
+    db.task(async t => {
+        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+        res.status(200)
+            .send(JSON.stringify({
+                "track": track
             }))
     })
 }

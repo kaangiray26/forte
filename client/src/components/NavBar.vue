@@ -1,9 +1,9 @@
 <template>
     <nav class="card rounded-0 border-0">
-        <div class="card-body mx-4 px-0">
+        <div class="card-body pt-2 mx-2 px-0">
             <div class="d-flex flex-row align-items-center">
-                <div>
-                    <router-link to="/" class="me-2 hide-on-mobile">
+                <div class="me-2">
+                    <router-link to="/">
                         <button class="btn btn-dark bi bi-music-note-beamed flex-nowrap"></button>
                     </router-link>
                 </div>

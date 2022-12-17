@@ -18,27 +18,39 @@
                         }" @click="play"></button>
                         <button type="button" class="btn btn-light bi bi-skip-end-fill"></button>
                     </div>
+                    <div class="d-flex align-items-center font-monospace me-2">
+                        <small>{{ formatTime(seek) }}</small>
+                    </div>
                     <div class="progress flex-fill me-2" @click="seekProgress($event)">
                         <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
                             aria-valuemax="100" :style="{ 'width': progress + '%' }">
                         </div>
                     </div>
+                    <div class="d-flex align-items-center font-monospace me-2">
+                        <small>{{ formatTime(store.playing.duration) }}</small>
+                    </div>
                     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+                        <button type="button" class="btn btn-light bi bi-soundwave"></button>
                         <button ref="volumeButton" type="button" class="btn btn-light bi" :class="volume_icon"
                             data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="100"
                             @wheel.prevent="changeVolume($event)" :volume="setVolume" @click="muteVolume"></button>
+                        <button type="button" class="btn btn-light bi bi-collection-fill"
+                            @click="queueEl.show"></button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <Queue ref="queueEl" />
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { Tooltip } from "bootstrap"
-import { Howl } from 'howler';
 import { store } from '/js/store.js';
+import Queue from './Queue.vue';
+
+const queueEl = ref(null);
 
 const sound = ref(null);
 const track = ref(null);
@@ -52,7 +64,7 @@ const volumeTooltip = ref(null);
 
 async function muteVolume() {
     muted.value = !muted.value;
-    sound.value.mute(muted.value);
+    ft.player.mute(muted.value);
 }
 
 const volume_icon = computed(() => {
@@ -70,6 +82,28 @@ const volume_icon = computed(() => {
     }
     return 'bi-volume-mute-fill';
 });
+
+function formatTime(secs) {
+    let seconds = parseInt(secs);
+    let minutes = Math.floor(seconds / 60);
+    seconds = seconds % 60;
+    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+}
+
+async function seekProgress(ev) {
+    let src = null;
+
+    if (ev.target.classList.contains('progress')) {
+        src = ev.target;
+    } else {
+        src = ev.target.parentElement;
+    }
+
+    const rect = src.getBoundingClientRect();
+    const x = ev.clientX - rect.left;
+    const percent = x / rect.width;
+    ft.player.seek(ft.player.duration() * percent);
+}
 
 async function initTooltips() {
     volumeTooltip.value = new Tooltip(volumeButton.value, {
@@ -104,7 +138,7 @@ async function raiseVolume() {
         volume.value = 100;
         return;
     }
-    sound.value.volume(volume.value / 100);
+    ft.player.volume(volume.value / 100);
 }
 
 async function lowerVolume() {
@@ -113,36 +147,15 @@ async function lowerVolume() {
         volume.value = 0;
         return;
     }
-    sound.value.volume(volume.value / 100);
+    ft.player.volume(volume.value / 100);
 }
 
 async function get_progress() {
     if (!store.playing.is_playing) {
         return;
     }
-    seek.value = sound.value.seek();
+    seek.value = ft.player.seek();
     progress.value = (seek.value / store.playing.duration) * 100;
-}
-
-async function play_track(obj) {
-    track.value = obj;
-    console.log("Loading track:", obj.id);
-
-    sound.value.unload();
-    sound.value._src = [`http://localhost:3000/api/track/${obj.id}`];
-    sound.value.load();
-}
-
-async function track_loaded() {
-    store.playing.id = track.value.id;
-    store.playing.loaded = true;
-    store.playing.type = track.value.type;
-    store.playing.title = track.value.title;
-    store.playing.cover = track.value.cover;
-    store.playing.duration = sound.value.duration();
-
-    sound.value.play();
-    store.playing.is_playing = true;
 }
 
 async function play() {
@@ -151,31 +164,17 @@ async function play() {
     }
 
     if (store.playing.is_playing) {
-        sound.value.pause();
+        ft.player.pause();
         store.playing.is_playing = false;
         return;
     }
 
-    sound.value.play();
+    ft.player.play();
     store.playing.is_playing = true;
 }
 
 onMounted(() => {
     initTooltips();
-
-    sound.value = new Howl({
-        src: [''],
-        format: ['flac'],
-        preload: true,
-        html5: true,
-        volume: 0.5,
-    });
-
-    sound.value.on('load', track_loaded)
-
-    window.addEventListener('playTrack', event => {
-        play_track(event.detail);
-    })
     setInterval(get_progress, 1000);
 })
 </script>

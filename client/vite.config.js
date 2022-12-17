@@ -9,6 +9,7 @@ const path = require('path')
 export default defineConfig({
     root: path.resolve(__dirname, 'src'),
     server: {
+        host: '192.168.178.20',
         port: 8000,
         hot: true,
     },

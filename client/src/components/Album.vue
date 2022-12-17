@@ -29,7 +29,8 @@
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item list-group-item-action d-flex" v-for="track in tracks">
+                        <li class="list-group-item list-group-item-action d-flex" v-for="track in tracks"
+                            @contextmenu="right_click({ item: track, event: $event })">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex ratio-1x1 align-items-center">
@@ -38,7 +39,7 @@
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-link search-link d-flex text-start"
-                                            style="display:contents;" @click="playTrack(track)">
+                                            style="display:contents;" @click="play_track(track.id)">
                                             <span class="text-muted me-2">{{ track.track_position }}.</span>
                                             <span>{{ track.title }}</span>
                                         </button>
@@ -56,7 +57,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { API, playTrack } from '/js/api.js';
+import { right_click } from '/js/events.js';
 
 const album = ref({});
 const artist = ref({});
@@ -65,8 +66,12 @@ const loaded = ref(false);
 
 const router = useRouter();
 
+async function play_track(id) {
+    ft.playTrack(id);
+}
+
 async function get_album(id) {
-    let data = await API(`/album/${id}`);
+    let data = await ft.API(`/album/${id}`);
     artist.value = data.artist;
     album.value = data.album;
     tracks.value = data.tracks;

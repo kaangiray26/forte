@@ -14,6 +14,7 @@
                 </div>
                 <div class="col">
                     <h1 class="artist-title">{{ artist.title }}</h1>
+                    <small class="text-muted">{{ albums.length }} albums</small>
                     <hr />
                     <ul class="list-group">
                         <li class="list-group-item bg-dark text-light d-flex">
@@ -26,7 +27,8 @@
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item list-group-item-action d-flex" v-for="album in albums">
+                        <li class="list-group-item list-group-item-action d-flex" v-for="album in albums"
+                            @contextmenu="right_click({ item: album, event: $event })">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex ratio-1x1 align-items-center">
@@ -60,7 +62,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { API } from '/js/api.js';
+import { right_click } from '/js/events.js';
 
 const artist = ref({});
 const albums = ref([]);
@@ -72,12 +74,8 @@ function year_sort(a, b) {
     return b.year - a.year;
 }
 
-async function openAlbum(album) {
-    router.push("/album/" + album.id);
-}
-
 async function get_artist(id) {
-    let data = await API(`/artist/${id}`);
+    let data = await ft.API(`/artist/${id}`);
     artist.value = data.artist;
     albums.value = data.albums;
     albums.value.sort(year_sort);
