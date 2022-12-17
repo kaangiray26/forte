@@ -7,7 +7,6 @@
 <script setup>
 import { ref, nextTick, onMounted } from "vue";
 import { useRouter } from 'vue-router'
-import { playTrack } from "/js/events.js";
 
 import ArtistContextMenu from "./context_menu/ArtistContextMenu.vue";
 import AlbumContextMenu from "./context_menu/AlbumContextMenu.vue";
@@ -117,6 +116,17 @@ async function contextMenuEvent(event) {
 
     if (event == 'addAlbumToQueue') {
         ft.queueAlbum(selectedItem.value.id);
+        return
+    }
+
+    // Play Next Events
+    if (event == 'playTrackNext') {
+        ft.playTrackNext(selectedItem.value.id);
+        return
+    }
+
+    if (event == 'playAlbumNext') {
+        ft.playAlbumNext(selectedItem.value.id);
         return
     }
 }

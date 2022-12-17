@@ -1,5 +1,5 @@
 <template>
-    <div ref="offcanvasEl" class="offcanvas offcanvas-bottom vh-100 vw-100" tabindex="-1" id="offcanvasBottom"
+    <div ref="offcanvasEl" class="offcanvas offcanvas-bottom border-0 vh-100 vw-100" tabindex="-1" id="offcanvasBottom"
         aria-labelledby="offcanvasBottomLabel">
         <div class="offcanvas-header d-flex bg-dark text-white justify-content-end">
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
@@ -24,7 +24,8 @@
                             <img :src="track.cover" class="placeholder-img" width="56" height="56" />
                         </div>
                         <div class="d-flex align-items-center">
-                            <button class="btn btn-link search-link" :content_id="track.id" style="display:contents;">
+                            <button class="btn btn-link search-link" :content_id="track.id" style="display:contents;"
+                                @click="play_queue_track(index)">
                                 <span class="text-muted me-2">{{ index + 1 }}.</span>{{ track.title
                                 }}
                             </button>
@@ -54,6 +55,11 @@ function _show() {
 async function clear_queue() {
     store.queue = [];
     queue.value = store.queue;
+}
+
+async function play_queue_track(index) {
+    store.queue_index = index;
+    ft.load_track(store.queue[store.queue_index]);
 }
 
 defineExpose({
