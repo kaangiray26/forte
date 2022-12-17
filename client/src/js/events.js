@@ -6,10 +6,4 @@ async function right_click(obj) {
     }));
 }
 
-async function playTrack(result) {
-    window.dispatchEvent(new CustomEvent('playTrack', {
-        detail: result
-    }))
-}
-
-export { right_click, playTrack }
+export { right_click }
