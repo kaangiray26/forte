@@ -28,7 +28,8 @@ module.exports = {
     get_users: _get_users,
     add_user: _add_user,
     remove_user: _remove_user,
-    auth: _auth
+    auth: _auth,
+    is_authenticated: _is_authenticated
 }
 
 async function _init(args) {
@@ -242,12 +243,28 @@ function format_date(dt) {
     return dt
 }
 
+// API Methods
+
+async function _is_authenticated(headers) {
+    if (!headers.hasOwnProperty('token')) {
+        return false
+    }
+
+    let user = await db.oneOrNone("SELECT * from users WHERE token = $1", [headers.token]);
+    if (!user) {
+        return false;
+    }
+
+    return true;
+}
+
 async function _search(req, res, next) {
     let query = req.params.query;
     if (!query) {
-        res.sendStatus(400);
+        res.status(400).json({ "error": "Query parameter not given." });
         return;
     }
+
     db.any("SELECT * FROM fuzzy WHERE (title % $1) AND similarity(title, $1) > 0.2 ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
         .then(function (data) {
             res.status(200)
@@ -258,7 +275,7 @@ async function _search(req, res, next) {
 async function _stream(req, res, next) {
     let id = req.params.id;
     if (!id) {
-        res.sendStatus(400);
+        res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
     db.oneOrNone("SELECT path FROM tracks WHERE id = $1", [id])
@@ -271,7 +288,7 @@ async function _stream(req, res, next) {
 async function _get_artist(req, res, next) {
     let id = req.params.id;
     if (!id) {
-        res.sendStatus(400);
+        res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
     db.task(async t => {
@@ -288,7 +305,7 @@ async function _get_artist(req, res, next) {
 async function _get_album(req, res, next) {
     let id = req.params.id;
     if (!id) {
-        res.sendStatus(400);
+        res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
     db.task(async t => {
@@ -307,7 +324,7 @@ async function _get_album(req, res, next) {
 async function _get_album_tracks(req, res, next) {
     let id = req.params.id;
     if (!id) {
-        res.sendStatus(400);
+        res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
     db.task(async t => {
@@ -322,7 +339,7 @@ async function _get_album_tracks(req, res, next) {
 async function _get_track(req, res, next) {
     let id = req.params.id;
     if (!id) {
-        res.sendStatus(400);
+        res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
     db.task(async t => {
@@ -341,7 +358,7 @@ async function _get_track(req, res, next) {
 async function _get_track_basic(req, res, next) {
     let id = req.params.id;
     if (!id) {
-        res.sendStatus(400);
+        res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
     db.task(async t => {
@@ -466,7 +483,6 @@ async function _auth(req, res, next) {
                 }));
             return;
         }
-        req.session.logged_in = true;
         res.status(200)
             .send(JSON.stringify({
                 "success": "Authorization successful."

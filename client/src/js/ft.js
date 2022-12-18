@@ -6,10 +6,9 @@ import { store } from './store'
 
 class Forte {
     constructor() {
-        this.server = "http://192.168.178.20:3000";
+        this.server = null;
+        this.token = null;
         this.track = null;
-
-        this.init();
 
         this.player = new Howl({
             src: [null],
@@ -29,16 +28,23 @@ class Forte {
 
     init() {
         let token = localStorage.getItem('token');
-        if (!token) {
+        let server = localStorage.getItem('server');
+        if (!token || !server) {
             console.log("Not authorized.")
             window.dispatchEvent(new CustomEvent('login', { detail: null }));
-            return;
+            return false;
         }
+        this.server = server;
+        this.token = token;
+        return true;
     }
 
     async API(query) {
         let response = await fetch(this.server + '/api' + query, {
             method: 'GET',
+            headers: {
+                'Token': this.token
+            }
         }).then((response) => {
             return response.json();
         });
@@ -60,6 +66,7 @@ class Forte {
             localStorage.setItem('server', server);
             localStorage.setItem('username', username);
             localStorage.setItem('token', token);
+            localStorage.setItem('volume', '0.5');
             return true
         }
 

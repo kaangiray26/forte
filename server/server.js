@@ -29,9 +29,11 @@ function isAdmin(req, res, next) {
     else next('route')
 }
 
-function isLoggedIn(req, res, next) {
-    if (req.session.logged_in) next()
-    else next('route')
+function isAuthenticated(req, res, next) {
+    db.is_authenticated(req.headers).then((ok) => {
+        if (ok) next()
+        else next('route')
+    })
 }
 
 app.get("/", isAdmin, (req, res, next) => {
@@ -57,17 +59,17 @@ app.post("/remove_user", isAdmin, db.remove_user)
 
 // API
 
-app.get("/api/search/:query", db.search)
-app.get("/api/stream/:id", db.stream)
+app.get("/api/search/:query", isAuthenticated, db.search)
+app.get("/api/stream/:id", isAuthenticated, db.stream)
 app.get("/api/auth", db.auth)
 
-app.get("/api/track/:id", db.get_track)
-app.get("/api/track/:id/basic", db.get_track_basic)
+app.get("/api/track/:id", isAuthenticated, db.get_track)
+app.get("/api/track/:id/basic", isAuthenticated, db.get_track_basic)
 
-app.get("/api/artist/:id", db.get_artist)
+app.get("/api/artist/:id", isAuthenticated, db.get_artist)
 
-app.get("/api/album/:id", db.get_album)
-app.get("/api/album/:id/tracks", db.get_album_tracks)
+app.get("/api/album/:id", isAuthenticated, db.get_album)
+app.get("/api/album/:id/tracks", isAuthenticated, db.get_album_tracks)
 
 app.listen(config.port, config.host, () => {
     db.init(process.argv.slice(2))

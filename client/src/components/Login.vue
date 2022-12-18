@@ -74,7 +74,7 @@ async function connect() {
         server.value.value, username.value.value, token.value.value
     ).then((logged) => {
         if (logged) {
-            window.location.reload();
+            window.location.replace("/");
             return;
         };
         fail_invisible.value = false;
@@ -86,9 +86,9 @@ onMounted(() => {
         keyboard: false
     });
 
-    window.addEventListener('login', () => {
-        console.log("Showing login modal");
+    let initialized = ft.init();
+    if (!initialized) {
         loginModal.show();
-    })
+    }
 })
 </script>

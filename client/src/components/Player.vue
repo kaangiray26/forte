@@ -52,8 +52,6 @@ import Queue from './Queue.vue';
 
 const queueEl = ref(null);
 
-const sound = ref(null);
-const track = ref(null);
 const progress = ref(0);
 const volume = ref(50);
 const muted = ref(null);
@@ -139,6 +137,7 @@ async function raiseVolume() {
         return;
     }
     ft.player.volume(volume.value / 100);
+    localStorage.setItem('volume', volume.value / 100);
 }
 
 async function lowerVolume() {
@@ -148,6 +147,7 @@ async function lowerVolume() {
         return;
     }
     ft.player.volume(volume.value / 100);
+    localStorage.setItem('volume', volume.value / 100);
 }
 
 async function get_progress() {
@@ -174,6 +174,7 @@ async function play() {
 }
 
 onMounted(() => {
+    volume.value = parseInt(parseFloat(localStorage.getItem('volume')) * 100);
     initTooltips();
     setInterval(get_progress, 1000);
 })
