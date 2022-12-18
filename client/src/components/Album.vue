@@ -10,7 +10,7 @@
         <div class="card-body">
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
-                    <div class="position-relative">
+                    <div class="d-inline-flex position-relative">
                         <img class="img-fluid rounded placeholder-img" :src="album.cover" width="250" height="250" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light bi bi-play shadow m-2" type="button" style="opacity: 0.90;"
