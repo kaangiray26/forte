@@ -1,7 +1,8 @@
 // db.js
 const path = require('path')
 const fs = require('fs')
-const axios = require('axios');
+const axios = require('axios')
+const crypto = require('crypto')
 
 const configParser = require('./configParser')
 const mime = require('mime-types')
@@ -16,20 +17,25 @@ var config = configParser.read();
 
 module.exports = {
     init: _init,
+    login: _login,
     search: _search,
     stream: _stream,
     get_track: _get_track,
     get_track_basic: _get_track_basic,
     get_artist: _get_artist,
     get_album: _get_album,
-    get_album_tracks: _get_album_tracks
+    get_album_tracks: _get_album_tracks,
+    get_users: _get_users,
+    add_user: _add_user,
+    remove_user: _remove_user,
+    auth: _auth
 }
 
 async function _init(args) {
     if (args.includes('--reset')) {
         console.log("Resetting tables...");
         await db.none("DROP VIEW IF EXISTS fuzzy");
-        await db.none("DROP TABLE IF EXISTS artists, albums, tracks, library");
+        await db.none("DROP TABLE IF EXISTS artists, albums, tracks, library, auth");
     }
 
     db.tx('creating_tables', t => {
@@ -39,7 +45,9 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, UNIQUE(title, artist))"),
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
-            t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks;")
+            t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, UNIQUE(username))"),
+            t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks;"),
         ])
     }).then(() => {
         refresh_library()
@@ -53,6 +61,12 @@ async function _init(args) {
 async function refresh_library() {
     console.log("Checking for any changes...\n");
     let folders = fs.readdirSync(config.library_path);
+    db.oneOrNone("SELECT username from auth")
+        .then(async function (data) {
+            if (!data) {
+                await db.none("INSERT INTO auth(username, hash) VALUES ('forte', 'a04fe4e390a7c7d5d4583f85d24e164d')")
+            }
+        })
     db.oneOrNone("SELECT folders from library")
         .then(async function (data) {
             if (!data) {
@@ -335,6 +349,127 @@ async function _get_track_basic(req, res, next) {
         res.status(200)
             .send(JSON.stringify({
                 "track": track
+            }))
+    })
+}
+
+async function _login(req, res, next) {
+    if (!['username', 'password'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Not authorized."
+            }));
+        return;
+    }
+    let username = req.body.username;
+    let hash = crypto.createHash('md5').update(req.body.password).digest("hex")
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT * FROM auth WHERE username = $1 AND hash = $2", [username, hash]);
+        if (!user) {
+            res.status(400)
+                .send(JSON.stringify({
+                    "error": "Not authorized."
+                }));
+            return;
+        }
+        req.session.user = username;
+        res.status(200)
+            .send(JSON.stringify({
+                "success": username
+            }));
+    })
+}
+
+async function _get_users(req, res, next) {
+    db.task(async t => {
+        let users = await t.manyOrNone("SELECT username FROM users");
+        res.status(200)
+            .send(JSON.stringify({
+                "users": users
+            }));
+    })
+}
+
+async function _add_user(req, res, next) {
+    if (!['username'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Username not given."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT username FROM users WHERE username = $1", [req.body.username]);
+        if (user) {
+            res.send(JSON.stringify({
+                "error": "Username exists."
+            }))
+            return
+        }
+
+        let token = crypto.randomBytes(16).toString('hex');
+        await db.oneOrNone("INSERT INTO users(username, token) VALUES ($1, $2)", [req.body.username, token])
+        res.status(200)
+            .send(JSON.stringify({
+                "success": token
+            }))
+    })
+}
+
+async function _remove_user(req, res, next) {
+    if (!['username'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Username not given."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT username FROM users WHERE username = $1", [req.body.username]);
+        if (!user) {
+            res.status(400)
+                .send(JSON.stringify({
+                    "error": "Username not found."
+                }));
+            return;
+        }
+
+        await db.none("DELETE FROM users WHERE username = $1", [req.body.username])
+        res.status(200)
+            .send(JSON.stringify({
+                "success": ""
+            }))
+    })
+}
+
+async function _auth(req, res, next) {
+    if (!['authorization'].every(key => req.headers.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Basic authorization not given."
+            }));
+        return;
+    }
+    console.log("Auth request.");
+    let data = req.headers.authorization.split("Basic ")[1];
+    let buff = Buffer.from(data, "base64").toString("ascii").split(":");
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT * FROM users WHERE username = $1 AND token = $2", buff);
+        if (!user) {
+            res.status(400)
+                .send(JSON.stringify({
+                    "error": "Authorization failed."
+                }));
+            return;
+        }
+        req.session.logged_in = true;
+        res.status(200)
+            .send(JSON.stringify({
+                "success": "Authorization successful."
             }))
     })
 }

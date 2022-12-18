@@ -9,6 +9,8 @@ class Forte {
         this.server = "http://192.168.178.20:3000";
         this.track = null;
 
+        this.init();
+
         this.player = new Howl({
             src: [null],
             format: ['flac'],
@@ -25,6 +27,15 @@ class Forte {
         })
     }
 
+    init() {
+        let token = localStorage.getItem('token');
+        if (!token) {
+            console.log("Not authorized.")
+            window.dispatchEvent(new CustomEvent('login', { detail: null }));
+            return;
+        }
+    }
+
     async API(query) {
         let response = await fetch(this.server + '/api' + query, {
             method: 'GET',
@@ -32,6 +43,27 @@ class Forte {
             return response.json();
         });
         return response;
+    }
+
+    async connect(server, username, token) {
+        let auth = btoa(username + ":" + token);
+        let response = await fetch(server + '/api/auth', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + auth
+            }
+        }).then((response) => {
+            return response.json();
+        })
+
+        if (response.hasOwnProperty('success')) {
+            localStorage.setItem('server', server);
+            localStorage.setItem('username', username);
+            localStorage.setItem('token', token);
+            return true
+        }
+
+        return false
     }
 
     async load_track(track) {

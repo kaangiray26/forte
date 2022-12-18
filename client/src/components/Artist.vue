@@ -36,13 +36,11 @@
                                             height="56" />
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <router-link :to="'/album/' + album.id" class="search-link">
-                                            <button class="btn btn-link search-link d-flex flex-column text-start"
-                                                style="display:contents;">
-                                                <span>{{ album.title }}</span>
-                                                <span class="text-muted">{{ album.year }}</span>
-                                            </button>
-                                        </router-link>
+                                        <button class="btn btn-link search-link d-flex flex-column text-start"
+                                            style="display:contents;" @click="openAlbum(album.id)">
+                                            <span>{{ album.title }}</span>
+                                            <span class="text-muted">{{ album.year }}</span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
@@ -80,6 +78,10 @@ async function get_artist(id) {
     albums.value = data.albums;
     albums.value.sort(year_sort);
     loaded.value = true;
+}
+
+async function openAlbum(id) {
+    router.push("/album/" + id);
 }
 
 onMounted(() => {

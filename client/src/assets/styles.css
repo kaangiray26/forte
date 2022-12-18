@@ -104,3 +104,7 @@ img {
 .clickable {
     cursor: pointer;
 }
+
+.invisible {
+    opacity: 0;
+}

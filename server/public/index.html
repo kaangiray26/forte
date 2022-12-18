@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/forte.svg">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, user-scalable=0" />
+    <meta name="author" content="kaangiray26">
+    <title>Forte Dashboard</title>
+
+    <meta property="og:title" content="Forte Dashboard">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/forte.svg">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <div class="vh-100 vw-100 p-2">
+        <div class="row gx-0 justify-content-center">
+            <div class="col-11">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <a href="/">
+                                <img src="/forte.svg" class="img-fluid bg-dark rounded" width="56" height="56">
+                            </a>
+                            <div>
+                                <h5 class="card-title m-0">Forte Dashboard</h5>
+                                <span id="welcome" class="text-muted">> Welcome back</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-dark" onclick="log_off()">Log off</button>
+                            </div>
+                        </div>
+                        <ul id="user_group" class="list-group">
+                            <li
+                                class="d-flex justify-content-between align-items-center list-group-item bg-dark text-white">
+                                <span>Users</span>
+                                <button class="btn btn-light" data-bs-toggle="modal"
+                                    data-bs-target="#addUserModal">Add</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="addUserModal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add a new user</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <div class="input-group flex-nowrap">
+                            <span class="input-group-text" id="addon-wrapping">@</span>
+                            <input id="username" type="text" class="form-control" placeholder="Username"
+                                aria-label="Username" aria-describedby="addon-wrapping">
+                            <button class="btn btn-dark" onclick="add_user()">Add</button>
+                        </div>
+                        <div id="user_add_alert" class="alert alert-primary invisible mt-2" role="alert"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+        crossorigin="anonymous"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>
