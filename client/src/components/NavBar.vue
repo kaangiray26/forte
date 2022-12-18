@@ -12,11 +12,11 @@
                         @keyup.enter="search">
                 </div>
                 <div>
-                    <router-link to="/settings" class="hide-on-mobile">
-                        <button class="btn btn-dark">Settings</button>
+                    <router-link to="/profile" class="hide-on-mobile search-link">
+                        <button class="btn btn-dark">Profile</button>
                     </router-link>
-                    <router-link to="/settings" class="hide-on-desktop">
-                        <button class="btn btn-dark bi bi-gear-wide-connected"></button>
+                    <router-link to="/profile" class="hide-on-desktop search-link">
+                        <button class="btn btn-dark bi bi-person-circle"></button>
                     </router-link>
                 </div>
             </div>

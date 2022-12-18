@@ -52,11 +52,22 @@ class Forte {
 
     async API(query) {
         let response = await fetch(this.server + '/api' + query, {
-            method: 'GET',
+            method: "GET",
             credentials: "include"
         }).then((response) => {
             return response.json();
         });
+        return response;
+    }
+
+    async upload_cover(data) {
+        let response = await fetch(this.server + '/api/cover', {
+            method: "POST",
+            credentials: "include",
+            body: data
+        }).then((response) => {
+            return response.json();
+        })
         return response;
     }
 
@@ -102,9 +113,11 @@ class Forte {
         store.playing.title = track.title;
         store.playing.cover = track.cover;
         store.playing.loaded = true;
+
         this.player.unload();
         this.player._src = [ft.server + '/api/stream/' + track.id];
         this.player.load();
+        document.title = track.title;
     }
 
     async track_loaded() {

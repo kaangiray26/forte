@@ -108,3 +108,12 @@ img {
 .invisible {
     opacity: 0;
 }
+
+.right-0 {
+    right: 0 !important;
+}
+
+.img-profile {
+    max-width: 100%;
+    object-fit: cover;
+}

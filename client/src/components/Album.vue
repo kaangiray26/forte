@@ -10,7 +10,14 @@
         <div class="card-body">
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
-                    <img class="img-fluid rounded placeholder-img" :src="album.cover" width="250" height="250" />
+                    <div class="position-relative">
+                        <img class="img-fluid rounded placeholder-img" :src="album.cover" width="250" height="250" />
+                        <div class="position-absolute bottom-0 right-0">
+                            <button class="btn btn-light bi bi-play shadow m-2" type="button" style="opacity: 0.90;"
+                                @click="play_album(album.id)">
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="col">
                     <h1 class="album-title mb-4">{{ album.title }}</h1>
@@ -59,12 +66,12 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
+const router = useRouter();
+
 const album = ref({});
 const artist = ref({});
 const tracks = ref([]);
 const loaded = ref(false);
-
-const router = useRouter();
 
 async function play_track(id) {
     ft.playTrack(id);
@@ -76,6 +83,10 @@ async function get_album(id) {
     album.value = data.album;
     tracks.value = data.tracks;
     loaded.value = true;
+}
+
+async function play_album(id) {
+    ft.playAlbum(id);
 }
 
 onMounted(() => {

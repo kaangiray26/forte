@@ -26,10 +26,13 @@ module.exports = {
     get_album: _get_album,
     get_album_tracks: _get_album_tracks,
     get_users: _get_users,
+    get_user: _get_users,
+    get_profile: _get_profile,
     add_user: _add_user,
     remove_user: _remove_user,
     auth: _auth,
     is_authenticated: _is_authenticated,
+    upload_cover: _upload_cover,
 }
 
 async function _init(args) {
@@ -47,7 +50,7 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
-            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', UNIQUE(username))"),
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], UNIQUE(username, token, session))"),
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks;"),
         ])
     }).then(() => {
@@ -485,5 +488,36 @@ async function _auth(req, res, next) {
             .send(JSON.stringify({
                 "success": "Authorization successful."
             }))
+    })
+}
+
+async function _get_profile(req, res, next) {
+    db.task(async t => {
+        let profile = await t.oneOrNone("SELECT * FROM users WHERE session = $1", [req.session.id]);
+        if (!profile) {
+            res.status(400)
+                .json({
+                    "error": "User session not up to date."
+                });
+            return;
+        }
+        res.status(200)
+            .json({
+                "profile": profile
+            })
+    })
+}
+
+async function _get_user(req, res, next) {
+    //
+}
+
+async function _upload_cover(req, res, next) {
+    db.task(async t => {
+        await t.none("UPDATE users SET cover = $1 WHERE session = $2", [req.file.filename, req.session.id]);
+        res.status(200)
+            .json({
+                "cover": req.file.filename
+            })
     })
 }

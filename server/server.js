@@ -1,5 +1,7 @@
 const express = require('express')
 const session = require('express-session')
+const multer = require('multer')
+const upload = multer({ dest: 'uploads/' })
 
 const cors = require('cors')
 const path = require('path')
@@ -23,6 +25,7 @@ app.use(session({
 }))
 
 app.use(express.static('public/assets'))
+app.use(express.static('uploads'))
 
 function isAdmin(req, res, next) {
     if (req.session.user && req.session.user == 'forte') next()
@@ -63,11 +66,16 @@ app.get("/api/test", isAuthenticated, (req, res, next) => {
     res.status(200).json({ "success": "session up to date." })
 })
 
+app.get("/api/auth", db.auth)
+app.get("/api/save_session", db.auth)
+
+app.post("/api/cover", isAuthenticated, upload.single('cover'), db.upload_cover)
+
 app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
 
-app.get("/api/auth", db.auth)
-app.get("/api/save_session", db.auth)
+app.get("/api/profile/", isAuthenticated, db.get_profile)
+app.get("/api/user/:id", isAuthenticated, db.get_user)
 
 app.get("/api/track/:id", isAuthenticated, db.get_track)
 app.get("/api/track/:id/basic", isAuthenticated, db.get_track_basic)
