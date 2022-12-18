@@ -11,7 +11,7 @@ const db = require('./js/db.js')
 const app = express()
 const config = configParser.read()
 
-app.use(cors())
+app.use(cors({ credentials: true, origin: true }))
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(session({
     secret: crypto.randomBytes(64).toString('hex'),
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
 }))
 
 app.use(express.static('public/assets'))
@@ -30,7 +30,7 @@ function isAdmin(req, res, next) {
 }
 
 function isAuthenticated(req, res, next) {
-    db.is_authenticated(req.headers).then((ok) => {
+    db.is_authenticated(req.session.id).then((ok) => {
         if (ok) next()
         else next('route')
     })
@@ -61,6 +61,7 @@ app.post("/remove_user", isAdmin, db.remove_user)
 
 app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
+
 app.get("/api/auth", db.auth)
 
 app.get("/api/track/:id", isAuthenticated, db.get_track)

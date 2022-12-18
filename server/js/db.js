@@ -29,14 +29,14 @@ module.exports = {
     add_user: _add_user,
     remove_user: _remove_user,
     auth: _auth,
-    is_authenticated: _is_authenticated
+    is_authenticated: _is_authenticated,
 }
 
 async function _init(args) {
     if (args.includes('--reset')) {
         console.log("Resetting tables...");
         await db.none("DROP VIEW IF EXISTS fuzzy");
-        await db.none("DROP TABLE IF EXISTS artists, albums, tracks, library, auth");
+        await db.none("DROP TABLE IF EXISTS artists, albums, tracks, library, auth, users");
     }
 
     db.tx('creating_tables', t => {
@@ -47,7 +47,7 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
-            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, UNIQUE(username))"),
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', UNIQUE(username))"),
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks;"),
         ])
     }).then(() => {
@@ -60,7 +60,8 @@ async function _init(args) {
 }
 
 async function refresh_library() {
-    console.log("Checking for any changes...\n");
+    console.log("Checking for any changes...");
+    console.log("This may take a while.\n")
     let folders = fs.readdirSync(config.library_path);
     db.oneOrNone("SELECT username from auth")
         .then(async function (data) {
@@ -245,12 +246,8 @@ function format_date(dt) {
 
 // API Methods
 
-async function _is_authenticated(headers) {
-    if (!headers.hasOwnProperty('token')) {
-        return false
-    }
-
-    let user = await db.oneOrNone("SELECT * from users WHERE token = $1", [headers.token]);
+async function _is_authenticated(session) {
+    let user = await db.oneOrNone("SELECT * from users WHERE session = $1", [session]);
     if (!user) {
         return false;
     }
@@ -470,7 +467,7 @@ async function _auth(req, res, next) {
             }));
         return;
     }
-    console.log("Auth request.");
+    console.log("Auth request.", req.session.id);
     let data = req.headers.authorization.split("Basic ")[1];
     let buff = Buffer.from(data, "base64").toString("ascii").split(":");
 
@@ -483,6 +480,7 @@ async function _auth(req, res, next) {
                 }));
             return;
         }
+        await t.none("UPDATE users SET session = $1 WHERE username = $2", [req.session.id, buff[0]]);
         res.status(200)
             .send(JSON.stringify({
                 "success": "Authorization successful."
