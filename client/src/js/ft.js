@@ -125,6 +125,56 @@ class Forte {
         this.load_track(store.queue[store.queue_index]);
     }
 
+    async mute() {
+        store.playing.muted = !store.playing.muted;
+        ft.player.mute(store.playing.muted);
+    }
+
+    async play() {
+        if (!store.playing.loaded) {
+            return;
+        }
+
+        if (store.playing.is_playing) {
+            this.player.pause();
+            store.playing.is_playing = false;
+            return;
+        }
+
+        this.player.play();
+        store.playing.is_playing = true;
+    }
+
+    async play_previous() {
+        if (!store.playing.loaded) {
+            return;
+        }
+
+        // At the start of the queue
+        if (store.queue_index == 0) {
+            return;
+        }
+
+        // Somewhere in the queue
+        store.queue_index -= 1;
+        this.load_track(store.queue[store.queue_index]);
+    }
+
+    async play_next() {
+        if (!store.playing.loaded) {
+            return;
+        }
+
+        // At the end of the queue
+        if (store.queue_index + 1 == store.queue.length) {
+            return;
+        }
+
+        // Somewhere in the queue
+        store.queue_index += 1;
+        this.load_track(store.queue[store.queue_index]);
+    }
+
     async addToQueueStart(tracks) {
         store.queue.unshift(...tracks);
     }

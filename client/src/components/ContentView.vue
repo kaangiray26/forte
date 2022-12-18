@@ -1,7 +1,7 @@
 <template>
+    <Login />
     <router-view />
     <ContextMenu />
-    <Login />
 </template>
 
 <script setup>

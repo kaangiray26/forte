@@ -31,6 +31,10 @@ import { useRouter } from 'vue-router'
 const router = useRouter();
 const search_field = ref(null);
 
+async function focus_search() {
+    search_field.value.focus();
+}
+
 async function search(event) {
     event.preventDefault();
     let query = search_field.value.value;
@@ -40,4 +44,8 @@ async function search(event) {
     }
     router.push('/search/' + query);
 }
+
+defineExpose({
+    focus_search,
+})
 </script>

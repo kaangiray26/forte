@@ -12,11 +12,12 @@
                 </div>
                 <div class="d-flex align-items-center p-2">
                     <div class="btn-group btn-group-sm me-2" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-light bi bi-skip-start-fill"></button>
+                        <button type="button" class="btn btn-light bi bi-skip-start-fill"
+                            @click="play_previous"></button>
                         <button type="button" class="btn btn-light bi" :class="{
                             'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
                         }" @click="play"></button>
-                        <button type="button" class="btn btn-light bi bi-skip-end-fill"></button>
+                        <button type="button" class="btn btn-light bi bi-skip-end-fill" @click="play_next"></button>
                     </div>
                     <div class="d-flex align-items-center font-monospace me-2">
                         <small>{{ formatTime(seek) }}</small>
@@ -34,8 +35,7 @@
                         <button ref="volumeButton" type="button" class="btn btn-light bi" :class="volume_icon"
                             data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="100"
                             @wheel.prevent="changeVolume($event)" :volume="setVolume" @click="muteVolume"></button>
-                        <button type="button" class="btn btn-light bi bi-collection-fill"
-                            @click="queueEl.show"></button>
+                        <button type="button" class="btn btn-light bi bi-collection-fill" @click="show_queue"></button>
                     </div>
                 </div>
             </div>
@@ -54,19 +54,17 @@ const queueEl = ref(null);
 
 const progress = ref(0);
 const volume = ref(50);
-const muted = ref(null);
 const seek = ref(0);
 
 const volumeButton = ref(null);
 const volumeTooltip = ref(null);
 
 async function muteVolume() {
-    muted.value = !muted.value;
-    ft.player.mute(muted.value);
+    ft.mute();
 }
 
 const volume_icon = computed(() => {
-    if (muted.value) {
+    if (store.playing.muted) {
         return 'bi-volume-mute-fill';
     }
     if (volume.value > 75) {
@@ -159,19 +157,24 @@ async function get_progress() {
 }
 
 async function play() {
-    if (!store.playing.loaded) {
-        return;
-    }
-
-    if (store.playing.is_playing) {
-        ft.player.pause();
-        store.playing.is_playing = false;
-        return;
-    }
-
-    ft.player.play();
-    store.playing.is_playing = true;
+    ft.play();
 }
+
+async function play_previous() {
+    ft.play_previous();
+}
+
+async function play_next() {
+    ft.play_next();
+}
+
+async function show_queue() {
+    queueEl.value.show();
+}
+
+defineExpose({
+    show_queue
+})
 
 onMounted(() => {
     volume.value = parseInt(parseFloat(localStorage.getItem('volume')) * 100);

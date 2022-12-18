@@ -10,12 +10,13 @@ const store = reactive({
     playing: {
         loaded: false,
         is_playing: false,
+        muted: false,
         id: null,
         title: null,
         artist: null,
         album: null,
         cover: null,
-        duration: 0
+        duration: 0,
     },
     queue: [],
     queue_index: 0
