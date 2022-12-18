@@ -9,6 +9,8 @@ require('greenlock-express')
         // where to look for configuration
         configDir: './greenlock.d',
 
+        maintainerEmail: 'maintain@example.com',
+
         // whether or not to run at cloudscale
         cluster: false
     })
