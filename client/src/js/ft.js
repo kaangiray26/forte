@@ -2,6 +2,7 @@
 // Forte Javascript Library
 
 import { Howl } from 'howler';
+import { getTransitionRawChildren } from 'vue';
 import { store } from './store'
 
 class Forte {
@@ -41,6 +42,11 @@ class Forte {
         this.token = token;
         this.server = server;
         this.username = username;
+
+        let test = await ft.API("/test");
+        if (test.hasOwnProperty("error")) {
+            await this.reconnect();
+        }
         return true;
     }
 
@@ -52,6 +58,19 @@ class Forte {
             return response.json();
         });
         return response;
+    }
+
+    async reconnect() {
+        let auth = btoa(this.username + ":" + this.token);
+        await fetch(this.server + '/api/save_session', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + auth
+            },
+            credentials: "include"
+        })
+
+        return false
     }
 
     async connect(server, username, token) {

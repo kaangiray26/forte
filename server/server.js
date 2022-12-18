@@ -32,7 +32,7 @@ function isAdmin(req, res, next) {
 function isAuthenticated(req, res, next) {
     db.is_authenticated(req.session.id).then((ok) => {
         if (ok) next()
-        else next('route')
+        else res.status(401).json({ "error": "session expired." })
     })
 }
 
@@ -59,10 +59,15 @@ app.post("/remove_user", isAdmin, db.remove_user)
 
 // API
 
+app.get("/api/test", isAuthenticated, (req, res, next) => {
+    res.status(200).json({ "success": "session up to date." })
+})
+
 app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
 
 app.get("/api/auth", db.auth)
+app.get("/api/save_session", db.auth)
 
 app.get("/api/track/:id", isAuthenticated, db.get_track)
 app.get("/api/track/:id/basic", isAuthenticated, db.get_track_basic)
