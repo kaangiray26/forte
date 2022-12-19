@@ -276,6 +276,18 @@ class Forte {
             this.addToQueue([response.track]);
         })
     }
+
+    async downloadTrack(track_id) {
+        if (!this.ready) return null;
+
+        let response = await fetch(this.server + '/api/stream/' + track_id, {
+            method: "GET",
+            credentials: "include"
+        }).then((response) => {
+            return response.blob();
+        });
+        return response;
+    }
 }
 
 export { Forte }

@@ -87,8 +87,6 @@ async function get_album(id) {
     let data = await ft.API(`/album/${id}`);
     if (!data) return;
 
-    console.log(data.tracks);
-
     artist.value = data.artist;
     album.value = data.album;
     tracks.value = data.tracks;

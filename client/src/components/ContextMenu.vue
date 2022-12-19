@@ -2,6 +2,7 @@
     <component ref="contextMenu" id="contextMenu" v-show="isContextMenuVisible" :is="contextMenus[currentSearchField]"
         :style="{'bottom':posY+'px', 'right':posX+'px'}" @context-menu-event="contextMenuEvent">
     </component>
+    <a ref="downloadLink" class="visually-hidden" href=""></a>
 </template>
 
 <script setup>
@@ -20,6 +21,8 @@ const selectedItem = ref(null);
 
 const currentSearchField = ref("");
 const isContextMenuVisible = ref(false);
+
+const downloadLink = ref(null);
 
 const contextMenu = ref(null);
 const contextMenus = {
@@ -127,6 +130,16 @@ async function contextMenuEvent(event) {
 
     if (event == 'playAlbumNext') {
         ft.playAlbumNext(selectedItem.value.id);
+        return
+    }
+
+    // Download Events
+    if (event == 'downloadTrack') {
+        let data = await ft.API("/track/" + selectedItem.value.id + "/basic");
+        let response = await ft.downloadTrack(selectedItem.value.id);
+        downloadLink.value.href = window.URL.createObjectURL(response);
+        downloadLink.value.download = `${data.track.disc_number} - ${data.track.track_position} - ${data.track.title}.flac`;
+        downloadLink.value.click();
         return
     }
 }

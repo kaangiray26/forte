@@ -28,6 +28,10 @@
             <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'shareAlbum')"><span
                     class="bi bi-share-fill me-1"></span>Share</button>
         </li>
+        <li>
+            <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'downloadTrack')"><span
+                    class="bi bi-download me-1"></span>Download</button>
+        </li>
     </ul>
 </template>
 
