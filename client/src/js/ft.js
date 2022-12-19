@@ -101,17 +101,24 @@ class Forte {
     }
 
     async session() {
-        let auth = btoa(this.username + ":" + this.token);
-        let response = await fetch(this.server + '/api/session', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + auth
-            },
-            credentials: "include"
-        }).then((response) => {
-            return response.json();
-        });
-        return response;
+        try {
+            let auth = btoa(this.username + ":" + this.token);
+            let response = await fetch(this.server + '/api/session', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Basic ' + auth
+                },
+                credentials: "include"
+            }).then((response) => {
+                return response.json();
+            });
+            return response;
+        } catch (error) {
+            if (error.message.startsWith('NetworkError')) {
+                localStorage.setItem('offline', 'true');
+                return { "error": "Server is down." }
+            }
+        }
     }
 
     async connect(server, username, token) {
