@@ -63,6 +63,9 @@ const friends = ref([]);
 const friend_name = ref(null);
 
 function get_cover(cover) {
+    if (!cover) {
+        return null;
+    }
     return ft.server + '/' + cover;
 }
 

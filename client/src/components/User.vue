@@ -29,6 +29,9 @@ const user = ref({});
 const loaded = ref(false);
 
 function get_cover() {
+    if (!user.value.cover) {
+        return null;
+    }
     return ft.server + '/' + user.value.cover;
 }
 
