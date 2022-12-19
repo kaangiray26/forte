@@ -154,7 +154,7 @@ async function contextMenuEvent(event) {
 
     // Share Events
     if (event == 'shareArtist') {
-        navigator.clipboard.writeText(ft.server + "/artist/" + selectedItem.value.id).then(function () {
+        navigator.clipboard.writeText("https://forte.buzl.uk/artist/" + selectedItem.value.id).then(function () {
             notify({
                 "title": "Copied to clipboard.",
             })
@@ -165,7 +165,7 @@ async function contextMenuEvent(event) {
     }
 
     if (event == 'shareAlbum') {
-        navigator.clipboard.writeText(ft.server + "/album/" + selectedItem.value.id).then(function () {
+        navigator.clipboard.writeText("https://forte.buzl.uk/album/" + selectedItem.value.id).then(function () {
             notify({
                 "title": "Copied to clipboard.",
             })
@@ -176,7 +176,7 @@ async function contextMenuEvent(event) {
     }
 
     if (event == 'shareTrack') {
-        navigator.clipboard.writeText(ft.server + "/track/" + selectedItem.value.id).then(function () {
+        navigator.clipboard.writeText("https://forte.buzl.uk/track/" + selectedItem.value.id).then(function () {
             notify({
                 "title": "Copied to clipboard",
             })
