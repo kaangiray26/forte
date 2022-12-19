@@ -1,0 +1,40 @@
+{
+    "manifest_version": 2,
+    "version": "0.1",
+    "name": "Forte: Self-hosted, music streaming platform",
+    "short_name": "Forte",
+    "icons": [
+        {
+            "src": "/images/forte_50x50.png",
+            "sizes": "50x50",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/forte_44x44.png",
+            "sizes": "44x44",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/forte_96x96.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/forte_192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/forte_512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "id": "/",
+    "start_url": "/",
+    "description": "Self-hosted, music streaming platform",
+    "orientation": "portrait",
+    "display": "standalone",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FFFFFF"
+}
