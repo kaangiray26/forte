@@ -14,3 +14,11 @@
 6. Change the library path in `server/config.json`
 7. Install and start a postgresql database with a database named `forte` with a user named `forte` on `localhost:5432`
 8. `sudo node start`
+
+## Screenshots
+
+![image_1](images/image_1.png)
+
+![image_2](images/image_2.png)
+
+![image_3](images/image_3.png)
