@@ -178,7 +178,8 @@ async function show_queue() {
 }
 
 async function openAlbum() {
-    router.push("/album/" + store.playing.album + "?t=" + store.playing.id)
+    store.selected_track_id = store.playing.id;
+    router.push("/album/" + store.playing.album);
 }
 
 defineExpose({

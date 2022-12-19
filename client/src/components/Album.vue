@@ -67,6 +67,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { store } from '../js/store';
 import { right_click } from '/js/events.js';
 
 const router = useRouter();
@@ -102,8 +103,9 @@ async function play_album(id) {
 
 onMounted(() => {
     let id = router.currentRoute.value.params.id;
-    if (router.currentRoute.value.query.hasOwnProperty('t')) {
-        selected_track.value = router.currentRoute.value.query.t;
+    if (store.selected_track_id) {
+        selected_track.value = store.selected_track_id;
+        store.selected_track_id = null;
     }
     get_album(id);
 })

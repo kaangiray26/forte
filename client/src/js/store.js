@@ -19,7 +19,8 @@ const store = reactive({
         duration: 0,
     },
     queue: [],
-    queue_index: 0
+    queue_index: 0,
+    selected_track_id: null,
 });
 
 export { store, isFav }
