@@ -96,7 +96,7 @@ const mobileViewEl = ref(null);
 const mobilePlayer = ref(null);
 
 const progress = ref(0);
-const volume = ref(50);
+const volume = ref(100);
 const seek = ref(0);
 
 const volumeButton = ref(null);

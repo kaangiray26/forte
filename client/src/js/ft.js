@@ -17,7 +17,7 @@ class Forte {
             format: ['flac'],
             preload: true,
             html5: true,
-            volume: 0.5,
+            volume: 1,
         });
 
         this.player.on('load', () => {
@@ -143,7 +143,7 @@ class Forte {
             localStorage.setItem('server', server);
             localStorage.setItem('username', username);
             localStorage.setItem('token', token);
-            localStorage.setItem('volume', '0.5');
+            localStorage.setItem('volume', '1');
             localStorage.setItem('init', 'true');
             return true
         }
