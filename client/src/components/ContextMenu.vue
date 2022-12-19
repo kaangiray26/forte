@@ -176,9 +176,6 @@ async function contextMenuEvent(event) {
     }
 
     if (event == 'shareTrack') {
-        notify({
-            "title": "Copied to clipboard.",
-        })
         navigator.clipboard.writeText(ft.server + "/track/" + selectedItem.value.id).then(function () {
             notify({
                 "title": "Copied to clipboard",
