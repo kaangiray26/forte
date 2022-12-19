@@ -167,6 +167,8 @@ class Forte {
     }
 
     async track_loaded() {
+        // window.dispatchEvent(new Event('track_loaded'));
+
         store.playing.duration = this.player.duration();
         this.player.play();
         store.playing.is_playing = true;

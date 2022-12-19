@@ -131,3 +131,7 @@ img {
 .red-on-hover:hover {
     color: var(--bs-danger);
 }
+
+.smooth-scroll {
+    scroll-behavior: smooth;
+}
