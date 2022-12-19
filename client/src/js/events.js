@@ -6,4 +6,10 @@ async function right_click(obj) {
     }));
 }
 
-export { right_click }
+async function notify(obj) {
+    window.dispatchEvent(new CustomEvent('notify', {
+        detail: obj
+    }));
+}
+
+export { right_click, notify }

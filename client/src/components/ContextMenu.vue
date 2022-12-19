@@ -7,6 +7,7 @@
 
 <script setup>
 import { ref, nextTick, onMounted } from "vue";
+import { notify } from "/js/events.js";
 import { useRouter } from 'vue-router'
 
 import ArtistContextMenu from "./context_menu/ArtistContextMenu.vue";
@@ -113,12 +114,20 @@ async function contextMenuEvent(event) {
 
     // Add To Queue Events
     if (event == 'addTrackToQueue') {
-        ft.queueTrack(selectedItem.value.id);
+        ft.queueTrack(selectedItem.value.id).then(() => {
+            notify({
+                "title": "Added to the queue.",
+            })
+        });;
         return
     }
 
     if (event == 'addAlbumToQueue') {
-        ft.queueAlbum(selectedItem.value.id);
+        ft.queueAlbum(selectedItem.value.id).then(() => {
+            notify({
+                "title": "Added to the queue.",
+            })
+        });;
         return
     }
 
@@ -140,6 +149,43 @@ async function contextMenuEvent(event) {
         downloadLink.value.href = window.URL.createObjectURL(response);
         downloadLink.value.download = `${data.track.disc_number} - ${data.track.track_position} - ${data.track.title}.flac`;
         downloadLink.value.click();
+        return
+    }
+
+    // Share Events
+    if (event == 'shareArtist') {
+        navigator.clipboard.writeText(ft.server + "/artist/" + selectedItem.value.id).then(function () {
+            notify({
+                "title": "Copied to clipboard.",
+            })
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+        return
+    }
+
+    if (event == 'shareAlbum') {
+        navigator.clipboard.writeText(ft.server + "/album/" + selectedItem.value.id).then(function () {
+            notify({
+                "title": "Copied to clipboard.",
+            })
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+        return
+    }
+
+    if (event == 'shareTrack') {
+        notify({
+            "title": "Copied to clipboard.",
+        })
+        navigator.clipboard.writeText(ft.server + "/track/" + selectedItem.value.id).then(function () {
+            notify({
+                "title": "Copied to clipboard",
+            })
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
         return
     }
 }

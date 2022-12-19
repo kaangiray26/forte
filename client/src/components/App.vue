@@ -1,5 +1,6 @@
 <template>
     <div class="complete-view d-flex flex-column vh-100 vw-100">
+        <Toasts />
         <div class="content-view pb-4" style="flex: 1 1 auto;">
             <NavBar ref="thisNavBar" />
             <ContentView ref="thisContentView" />
@@ -15,6 +16,7 @@ import { ref, onMounted } from 'vue';
 import NavBar from './NavBar.vue';
 import ContentView from './ContentView.vue';
 import Player from './Player.vue';
+import Toasts from './Toasts.vue';
 
 const thisNavBar = ref(null);
 const thisContentView = ref(null);
