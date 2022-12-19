@@ -117,6 +117,7 @@ class Forte {
             }).then((response) => {
                 return response.json();
             });
+            localStorage.setItem('offline', 'false');
             return response;
         } catch (error) {
             if (error.message.startsWith('NetworkError')) {
