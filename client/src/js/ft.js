@@ -2,7 +2,6 @@
 // Forte Javascript Library
 
 import { Howl } from 'howler';
-import { getTransitionRawChildren } from 'vue';
 import { store } from './store'
 
 class Forte {
@@ -35,19 +34,20 @@ class Forte {
 
         if (!token || !server || !username) {
             console.log("Not authorized.")
-            window.dispatchEvent(new CustomEvent('login', { detail: null }));
-            return false;
+            localStorage.setItem('init', 'false');
+            return
         }
 
         this.token = token;
         this.server = server;
         this.username = username;
 
-        let test = await ft.API("/test");
-        if (test.hasOwnProperty("error")) {
-            await this.reconnect();
+        let session = await this.session();
+
+        if (session.hasOwnProperty('success')) {
+            localStorage.setItem('init', 'true');
+            return
         }
-        return true;
     }
 
     async API(query) {
@@ -60,28 +60,58 @@ class Forte {
         return response;
     }
 
+    async add_friend(username) {
+        let response = await fetch(this.server + '/api/friends/add', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "username": username
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
+    async get_all_albums(offset) {
+        let response = await fetch(this.server + '/api/all/albums', {
+            method: "GET",
+            headers: {
+                "offset": offset
+            },
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
     async upload_cover(data) {
         let response = await fetch(this.server + '/api/cover', {
             method: "POST",
-            credentials: "include",
-            body: data
+            body: data,
+            credentials: "include"
         }).then((response) => {
             return response.json();
         })
         return response;
     }
 
-    async reconnect() {
+    async session() {
         let auth = btoa(this.username + ":" + this.token);
-        await fetch(this.server + '/api/save_session', {
+        let response = await fetch(this.server + '/api/session', {
             method: 'GET',
             headers: {
                 'Authorization': 'Basic ' + auth
             },
             credentials: "include"
-        })
-
-        return false
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
     }
 
     async connect(server, username, token) {
@@ -101,6 +131,7 @@ class Forte {
             localStorage.setItem('username', username);
             localStorage.setItem('token', token);
             localStorage.setItem('volume', '0.5');
+            localStorage.setItem('init', 'true');
             return true
         }
 
@@ -233,4 +264,4 @@ class Forte {
     }
 }
 
-window.ft = new Forte()
+export { Forte }

@@ -82,6 +82,7 @@ async function get_album(id) {
     artist.value = data.artist;
     album.value = data.album;
     tracks.value = data.tracks;
+    tracks.value.sort((a, b) => a.track_position - b.track_position);
     loaded.value = true;
 }
 

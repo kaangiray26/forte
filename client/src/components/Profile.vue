@@ -1,10 +1,10 @@
 <template>
-    <div class="card border-0 mx-4 shadow-lg" v-show="loaded">
+    <div class="card border-0 mx-4 shadow-lg" v-if="loaded">
         <div class="card-body">
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile rounded placeholder-img" :src="get_cover" width="250" height="250" />
+                        <img class="img-profile rounded placeholder-img" :src="get_cover()" width="250" height="250" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light bi bi-pencil-square shadow m-2" type="button"
                                 style="opacity: 0.90;" @click="change_cover">
@@ -33,12 +33,9 @@ const profile = ref({});
 const cover_upload = ref(null);
 const loaded = ref(false);
 
-const get_cover = computed(() => {
-    if (profile.value.cover) {
-        return ft.server + '/' + profile.value.cover;
-    }
-    return null;
-});
+function get_cover() {
+    return ft.server + '/' + profile.value.cover;
+}
 
 async function get_profile() {
     let data = await ft.API('/profile');

@@ -87,10 +87,9 @@ onMounted(() => {
         keyboard: false
     });
 
-    ft.init().then((initialized) => {
-        if (!initialized) {
-            loginModal.show();
-        }
-    })
+    let initialized = JSON.parse(localStorage.getItem('init'));
+    if (!initialized) {
+        loginModal.show();
+    }
 })
 </script>

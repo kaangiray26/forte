@@ -89,6 +89,7 @@ app.get("/api/random/tracks", isAuthenticated, db.get_random_tracks)
 app.get("/api/friends", isAuthenticated, db.get_friends)
 app.post("/api/friends/add", isAuthenticated, db.add_friend)
 
-//
-
-module.exports = app;
+app.listen(3000, 'localhost', () => {
+    db.init(process.argv.slice(2))
+    console.log(`Server:    http://localhost:3000/`)
+});

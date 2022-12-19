@@ -11,7 +11,7 @@
                     <input ref="search_field" type="text" class="form-control" placeholder="Search" aria-label="Search"
                         @keyup.enter="search">
                 </div>
-                <div>
+                <div @contextmenu="reset_menu">
                     <router-link to="/profile" class="hide-on-mobile search-link">
                         <button class="btn btn-dark">Profile</button>
                     </router-link>
@@ -22,17 +22,26 @@
             </div>
         </div>
     </nav>
+    <Reset ref="resetModal" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router'
 
+import Reset from './Reset.vue';
+const resetModal = ref(null);
+
 const router = useRouter();
 const search_field = ref(null);
 
 async function focus_search() {
     search_field.value.focus();
+}
+
+async function reset_menu(ev) {
+    ev.preventDefault();
+    resetModal.value.show();
 }
 
 async function search(event) {

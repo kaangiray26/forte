@@ -26,13 +26,18 @@ module.exports = {
     get_album: _get_album,
     get_album_tracks: _get_album_tracks,
     get_users: _get_users,
-    get_user: _get_users,
+    get_user: _get_user,
     get_profile: _get_profile,
     add_user: _add_user,
     remove_user: _remove_user,
     auth: _auth,
+    session: _session,
     is_authenticated: _is_authenticated,
     upload_cover: _upload_cover,
+    get_all_albums: _get_all_albums,
+    get_random_tracks: _get_random_tracks,
+    get_friends: _get_friends,
+    add_friend: _add_friend,
 }
 
 async function _init(args) {
@@ -50,7 +55,7 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
-            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], UNIQUE(username, token, session))"),
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends INTEGER[], UNIQUE(username, token, session))"),
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks;"),
         ])
     }).then(() => {
@@ -470,7 +475,7 @@ async function _auth(req, res, next) {
             }));
         return;
     }
-    console.log("Auth request.", req.session.id);
+    console.log(req.session.id, "Auth request.");
     let data = req.headers.authorization.split("Basic ")[1];
     let buff = Buffer.from(data, "base64").toString("ascii").split(":");
 
@@ -487,6 +492,33 @@ async function _auth(req, res, next) {
         res.status(200)
             .send(JSON.stringify({
                 "success": "Authorization successful."
+            }))
+    })
+}
+
+async function _session(req, res, next) {
+    let auth = await _is_authenticated(req.session.id);
+    if (auth) {
+        res.status(200).json({ "success": "session up to date." })
+        return;
+    }
+
+    if (!['authorization'].every(key => req.headers.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Basic authorization not given."
+            }));
+        return;
+    }
+    console.log(req.session.id, "Session request.");
+    let data = req.headers.authorization.split("Basic ")[1];
+    let buff = Buffer.from(data, "base64").toString("ascii").split(':');
+
+    db.task(async t => {
+        await t.none("UPDATE users SET session = $1 WHERE username = $2 AND token = $3", [req.session.id, buff[0], buff[1]]);
+        res.status(200)
+            .send(JSON.stringify({
+                "success": "Session refreshed."
             }))
     })
 }
@@ -509,7 +541,21 @@ async function _get_profile(req, res, next) {
 }
 
 async function _get_user(req, res, next) {
-    //
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT username, cover FROM users WHERE id = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." });
+            return
+        }
+        res.status(200).json({
+            "user": user
+        })
+    })
 }
 
 async function _upload_cover(req, res, next) {
@@ -519,5 +565,56 @@ async function _upload_cover(req, res, next) {
             .json({
                 "cover": req.file.filename
             })
+    })
+}
+
+async function _get_all_albums(req, res, next) {
+    let offset = parseInt(req.headers.offset);
+    db.task(async t => {
+        let albums = await t.manyOrNone("SELECT * FROM albums ORDER BY random() LIMIT 24");
+        res.status(200)
+            .json({
+                "albums": albums
+            })
+    })
+}
+
+async function _get_random_tracks(req, res, next) {
+    db.task(async t => {
+        let tracks = await t.manyOrNone("SELECT * FROM tracks ORDER BY random() LIMIT 24");
+        res.status(200)
+            .json({
+                "tracks": tracks
+            })
+    })
+}
+
+async function _get_friends(req, res, next) {
+    db.task(async t => {
+        let data = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.session.id]);
+        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE id = ANY($1)", [data.friends]);
+        res.status(200).json({
+            "friends": friends
+        })
+    })
+}
+
+async function _add_friend(req, res, next) {
+    if (!['username'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Username not given."
+            });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [user.id, req.session.id]);
+        res.status(200).json({ "success": "Friend addded." })
     })
 }

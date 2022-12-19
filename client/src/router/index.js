@@ -17,6 +17,16 @@ import Settings from "/components/profile_section/Settings.vue";
 import Stations from "/components/profile_section/Stations.vue";
 import Tracks from "/components/profile_section/Tracks.vue";
 
+import User from "/components/User.vue";
+import User_Albums from "/components/user_section/Albums.vue";
+import User_Artists from "/components/user_section/Artists.vue";
+import User_Friends from "/components/user_section/Friends.vue";
+import User_History from "/components/user_section/History.vue";
+import User_Playlists from "/components/user_section/Playlists.vue";
+import UserPage from "/components/user_section/UserPage.vue";
+import User_Stations from "/components/user_section/Stations.vue";
+import User_Tracks from "/components/user_section/Tracks.vue";
+
 const routes = [
     {
         path: "/",
@@ -74,6 +84,44 @@ const routes = [
             {
                 path: 'tracks',
                 component: Tracks
+            },
+        ]
+    },
+    {
+        path: "/user/:id",
+        component: User,
+        children: [
+            {
+                path: '',
+                component: UserPage
+            },
+            {
+                path: 'albums',
+                component: User_Albums
+            },
+            {
+                path: 'artists',
+                component: User_Artists
+            },
+            {
+                path: 'friends',
+                component: User_Friends
+            },
+            {
+                path: 'history',
+                component: User_History
+            },
+            {
+                path: 'playlists',
+                component: User_Playlists
+            },
+            {
+                path: 'stations',
+                component: User_Stations
+            },
+            {
+                path: 'tracks',
+                component: User_Tracks
             },
         ]
     }
