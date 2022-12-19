@@ -187,7 +187,13 @@ defineExpose({
 })
 
 onMounted(() => {
-    volume.value = parseInt(parseFloat(localStorage.getItem('volume')) * 100);
+    let vol = localStorage.getItem('volume');
+    if (vol) {
+        volume.value = parseInt(parseFloat(vol) * 100);
+        ft.player.volume(volume.value / 100);
+    } else {
+        localStorage.setItem('volume', volume.value / 100);
+    }
     initTooltips();
     setInterval(get_progress, 1000);
 })
