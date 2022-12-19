@@ -121,3 +121,13 @@ img {
 .figure-img {
     margin: 0px;
 }
+
+.red-on-hover {
+    color: var(--bs-white);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.red-on-hover:hover {
+    color: var(--bs-danger);
+}

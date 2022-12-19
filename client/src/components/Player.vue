@@ -3,10 +3,12 @@
         <div class="card-body p-0">
             <div class="d-flex flex-column">
                 <div v-show="store.playing.loaded">
-                    <div class="d-flex flex-row p-2 pb-0 rounded m-0">
+                    <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
                         <img class="img-fluid placeholder-img me-2" :src="store.playing.cover" width="56" height="56" />
-                        <div class="d-flex align-items-center">
-                            <span class="fw-bold">{{ store.playing.title }}</span>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold text-wrap clickable red-on-hover" @click="openAlbum">{{
+                                    store.playing.title
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -46,9 +48,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { Tooltip } from "bootstrap"
 import { store } from '/js/store.js';
 import Queue from './Queue.vue';
+
+const router = useRouter();
 
 const queueEl = ref(null);
 
@@ -170,6 +175,10 @@ async function play_next() {
 
 async function show_queue() {
     queueEl.value.show();
+}
+
+async function openAlbum() {
+    router.push("/album/" + store.playing.album + "?t=" + store.playing.id)
 }
 
 defineExpose({

@@ -29,31 +29,34 @@
                     </router-link>
                     <hr />
                     <ul class="list-group">
-                        <li class="list-group-item bg-dark text-light d-flex">
-                            <div class="d-flex w-100 justify-content-between">
-                                <div>
-                                    <span class="fw-bold">Track</span>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="list-group-item list-group-item-action d-flex" v-for="track in tracks"
-                            @contextmenu="right_click({ item: track, event: $event })">
-                            <div class="d-flex w-100 justify-content-between">
-                                <div class="d-flex">
-                                    <div class="d-flex ratio-1x1 align-items-center">
-                                        <img :src="album.cover" class="placeholder-img rounded" width="56"
-                                            height="56" />
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <button class="btn btn-link search-link d-flex text-start"
-                                            style="display:contents;" @click="play_track(track.id)">
-                                            <span class="text-muted me-2">{{ track.track_position }}.</span>
-                                            <span>{{ track.title }}</span>
-                                        </button>
+                        <div v-for="track in tracks">
+                            <li class="list-group-item bg-dark text-light d-flex" v-if="track.track_position == 1">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <div>
+                                        <span class="fw-bold">Disc {{ track.disc_number }}</span>
                                     </div>
                                 </div>
-                            </div>
-                        </li>
+                            </li>
+                            <li class="list-group-item list-group-item-action d-flex"
+                                :class="{ 'now-playing': selected_track == track.id }"
+                                @contextmenu="right_click({ item: track, event: $event })">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <div class="d-flex">
+                                        <div class="d-flex ratio-1x1 align-items-center">
+                                            <img :src="album.cover" class="placeholder-img rounded" width="56"
+                                                height="56" />
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <button class="btn btn-link search-link d-flex text-start"
+                                                style="display:contents;" @click="play_track(track.id)">
+                                                <span class="text-muted me-2">{{ track.track_position }}.</span>
+                                                <span>{{ track.title }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </div>
                     </ul>
                 </div>
             </div>
@@ -73,6 +76,8 @@ const artist = ref({});
 const tracks = ref([]);
 const loaded = ref(false);
 
+const selected_track = ref(null);
+
 async function play_track(id) {
     ft.playTrack(id);
 }
@@ -81,10 +86,13 @@ async function get_album(id) {
     let data = await ft.API(`/album/${id}`);
     if (!data) return;
 
+    console.log(data.tracks);
+
     artist.value = data.artist;
     album.value = data.album;
     tracks.value = data.tracks;
     tracks.value.sort((a, b) => a.track_position - b.track_position);
+    tracks.value.sort((a, b) => a.disc_number - b.disc_number);
     loaded.value = true;
 }
 
@@ -94,6 +102,9 @@ async function play_album(id) {
 
 onMounted(() => {
     let id = router.currentRoute.value.params.id;
+    if (router.currentRoute.value.query.hasOwnProperty('t')) {
+        selected_track.value = router.currentRoute.value.query.t;
+    }
     get_album(id);
 })
 </script>

@@ -155,6 +155,8 @@ class Forte {
         store.playing.type = track.type;
         store.playing.title = track.title;
         store.playing.cover = track.cover;
+        store.playing.album = track.album;
+        store.playing.artist = track.artist;
         store.playing.loaded = true;
 
         this.player.unload();

@@ -30,7 +30,7 @@ function get_cover(cover) {
 }
 
 async function openTrack() {
-    router.push("/album/" + props.track.album);
+    router.push("/album/" + props.track.album + "?t=" + props.track.id);
 }
 
 async function play(id) {
