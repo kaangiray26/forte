@@ -37,6 +37,8 @@ function get_cover() {
 
 async function get_user(id) {
     let data = await ft.API('/user/' + id);
+    if (!data) return;
+
     user.value = data.user;
     loaded.value = true;
 }

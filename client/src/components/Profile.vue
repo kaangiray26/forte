@@ -39,6 +39,8 @@ function get_cover() {
 
 async function get_profile() {
     let data = await ft.API('/profile');
+    if (!data) return;
+
     profile.value = data.profile;
     loaded.value = true;
 }

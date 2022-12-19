@@ -14,6 +14,8 @@ const tracks = ref([]);
 
 async function get_random_tracks() {
     let data = await ft.API("/random/tracks");
+    if (!data) return;
+
     tracks.value = tracks.value.concat(data.tracks);
 }
 

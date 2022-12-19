@@ -6,6 +6,7 @@ import { store } from './store'
 
 class Forte {
     constructor() {
+        this.ready = null;
         this.token = null;
         this.server = null;
         this.username = null;
@@ -34,6 +35,7 @@ class Forte {
 
         if (!token || !server || !username) {
             console.log("Not authorized.")
+            this.ready = false;
             localStorage.setItem('init', 'false');
             return
         }
@@ -45,12 +47,15 @@ class Forte {
         let session = await this.session();
 
         if (session.hasOwnProperty('success')) {
+            this.ready = true;
             localStorage.setItem('init', 'true');
             return
         }
     }
 
     async API(query) {
+        if (!this.ready) return null;
+
         let response = await fetch(this.server + '/api' + query, {
             method: "GET",
             credentials: "include"

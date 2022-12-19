@@ -74,6 +74,8 @@ function year_sort(a, b) {
 
 async function get_artist(id) {
     let data = await ft.API(`/artist/${id}`);
+    if (!data) return;
+
     artist.value = data.artist;
     albums.value = data.albums;
     albums.value.sort(year_sort);

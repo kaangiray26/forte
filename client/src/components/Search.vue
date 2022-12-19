@@ -36,6 +36,8 @@ async function get_search_results() {
         router.push('/');
     }
     let response = await ft.API('/search/' + query);
+    if (!response) return;
+
     results.value = response.data;
 }
 
