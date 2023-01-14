@@ -37,9 +37,10 @@
     </div>
     <div class="row g-2">
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
-            <div class="card h-100 w-100 border-0 shadow-lg">
+            <div class="card h-100 w-100 border-0">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative ratio ratio-1x1">
+                    <div class="d-inline-flex position-relative ratio ratio-1x1 clickable-shadow"
+                        @click="openProfile(friend.id)">
                         <img class="img-profile rounded placeholder-img" :src="get_cover(friend.cover)" width="250"
                             height="250" />
                     </div>
@@ -63,10 +64,10 @@ const friends = ref([]);
 const friend_name = ref(null);
 
 function get_cover(cover) {
-    if (!cover) {
-        return null;
+    if (cover) {
+        return ft.server + '/' + cover;
     }
-    return ft.server + '/' + cover;
+    return "/images/default_profile.svg"
 }
 
 async function openProfile(id) {

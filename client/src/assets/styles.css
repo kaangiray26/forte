@@ -105,6 +105,12 @@ img {
     cursor: pointer;
 }
 
+.clickable-shadow:hover {
+    cursor: pointer;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    opacity: 0.75 !important;
+}
+
 .invisible {
     opacity: 0;
 }

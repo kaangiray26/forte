@@ -73,6 +73,9 @@ app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
 
 app.get("/api/profile/", isAuthenticated, db.get_profile)
+app.get("/api/profile/playlists", isAuthenticated, db.get_profile_playlists)
+app.post("/api/profile/create_playlist", isAuthenticated, upload.single('cover'), db.create_playlist)
+
 app.get("/api/user/:id", isAuthenticated, db.get_user)
 
 app.get("/api/track/:id", isAuthenticated, db.get_track)
@@ -88,6 +91,8 @@ app.get("/api/random/tracks", isAuthenticated, db.get_random_tracks)
 
 app.get("/api/friends", isAuthenticated, db.get_friends)
 app.post("/api/friends/add", isAuthenticated, db.add_friend)
+
+app.get("/api/playlist/:id", isAuthenticated, db.get_playlist)
 
 app.listen(3000, 'localhost', () => {
     db.init(process.argv.slice(2))

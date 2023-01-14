@@ -38,6 +38,9 @@ module.exports = {
     get_random_tracks: _get_random_tracks,
     get_friends: _get_friends,
     add_friend: _add_friend,
+    get_playlist: _get_playlist,
+    get_profile_playlists: _get_profile_playlists,
+    create_playlist: _create_playlist
 }
 
 async function _init(args) {
@@ -52,6 +55,7 @@ async function _init(args) {
         return t.batch([
             t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, UNIQUE(title))"),
             t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, UNIQUE(title, artist))"),
+            t.none("CREATE TABLE IF NOT EXISTS playlists(id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'playlist', title TEXT NOT NULL, cover TEXT, author SERIAL, tracks INTEGER[], UNIQUE(title, author))"),
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
@@ -616,5 +620,51 @@ async function _add_friend(req, res, next) {
         }
         await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [user.id, req.session.id]);
         res.status(200).json({ "success": "Friend addded." })
+    })
+}
+
+async function _get_playlist(req, res, next) {
+    //
+}
+
+async function _get_profile_playlists(req, res, next) {
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT id FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1", [user.id]);
+        res.status(200).json({ "playlists": playlists })
+    })
+}
+
+async function _create_playlist(req, res, next) {
+    let body = JSON.parse(JSON.stringify(req.body));
+    let cover = req.file ? req.file.filename : null;
+
+    if (!['title'].every(key => body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Playlist name not given."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT id FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        let playlist = await t.oneOrNone("SELECT id FROM playlists WHERE title = $1 AND author = $2", [body.title, user.id]);
+        if (playlist) {
+            res.status(400).json({ "error": "Playlist exists." })
+            return;
+        }
+
+        let response = await t.oneOrNone("INSERT INTO playlists (title, cover, author) VALUES ($1, $2, $3) RETURNING id", [body.title, cover, user.id]);
+        res.status(200).json({ "playlist_id": response.id })
     })
 }

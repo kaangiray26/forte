@@ -32,8 +32,8 @@
                                     <button type="button" class="btn btn-dark rounded bi bi-skip-start-fill mx-1"
                                         @click="play_previous"></button>
                                     <button type="button" class="btn btn-dark rounded bi mx-1" :class="{
-                                        'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
-                                    }" @click="play"></button>
+    'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
+}" @click="play"></button>
                                     <button type="button" class="btn btn-dark rounded bi bi-skip-end-fill mx-1"
                                         @click="play_next"></button>
                                 </div>

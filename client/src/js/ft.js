@@ -81,6 +81,17 @@ class Forte {
         return response;
     }
 
+    async create_playlist(data) {
+        let response = await fetch(this.server + '/api/profile/create_playlist', {
+            method: "POST",
+            body: data,
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
     async get_all_albums(offset) {
         let response = await fetch(this.server + '/api/all/albums', {
             method: "GET",
