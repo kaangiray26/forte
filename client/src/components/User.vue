@@ -4,7 +4,7 @@
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile rounded placeholder-img" :src="get_cover()" width="250" height="250" />
+                        <img class="img-profile rounded img-thumbnail" :src="get_cover()" width="250" height="250" />
                         <div class="position-absolute bottom-0 right-0">
                         </div>
                     </div>
@@ -29,10 +29,10 @@ const user = ref({});
 const loaded = ref(false);
 
 function get_cover() {
-    if (!user.value.cover) {
-        return null;
+    if (user.value.cover) {
+        return ft.server + '/' + user.value.cover;
     }
-    return ft.server + '/' + user.value.cover;
+    return "/images/default_profile.svg";
 }
 
 async function get_user(id) {

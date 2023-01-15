@@ -13,8 +13,12 @@
                     class="bi bi-music-note-list me-1"></span>Add to queue</button>
         </li>
         <li>
+            <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'addTrackToPlaylist')"><span
+                    class="bi bi-music-note-beamed me-1"></span>Add to playlist</button>
+        </li>
+        <li>
             <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'openTrackPage')"><span
-                    class="bi bi-music-note-beamed me-1"></span>Show Track in Album</button>
+                    class="bi bi-music-note me-1"></span>Show Track in Album</button>
         </li>
         <li>
             <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'openAlbumPage')"><span

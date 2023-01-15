@@ -120,8 +120,8 @@ img {
 }
 
 .img-profile {
-    max-width: 100%;
     object-fit: cover;
+    max-width: 100% !important;
 }
 
 .figure-img {
@@ -140,4 +140,20 @@ img {
 
 .smooth-scroll {
     scroll-behavior: smooth;
+}
+
+.playlist-img {
+    object-fit: cover;
+    width: 100%;
+    height: auto;
+    max-width: 250px;
+    aspect-ratio: 1 / 1;
+}
+
+.playlist-selection-img {
+    object-fit: cover;
+    width: 100%;
+    height: auto;
+    max-width: 56px;
+    aspect-ratio: 1 / 1;
 }

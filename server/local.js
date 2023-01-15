@@ -93,6 +93,8 @@ app.get("/api/friends", isAuthenticated, db.get_friends)
 app.post("/api/friends/add", isAuthenticated, db.add_friend)
 
 app.get("/api/playlist/:id", isAuthenticated, db.get_playlist)
+app.get("/api/playlist/:id/tracks", isAuthenticated, db.get_playlist_tracks)
+app.post("/api/playlist/:id/add_track", isAuthenticated, db.add_track_to_playlist)
 
 app.listen(3000, 'localhost', () => {
     db.init(process.argv.slice(2))

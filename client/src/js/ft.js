@@ -259,6 +259,22 @@ class Forte {
         store.queue.push(...tracks);
     }
 
+    async addTrackToPlaylist(track_id, playlist_id) {
+        let response = await fetch(this.server + `/api/playlist/${playlist_id}/add_track`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "track": track_id
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
     async playTrack(track_id) {
         this.API(`/track/${track_id}/basic`).then((response) => {
             this.load_track(response.track);
@@ -274,6 +290,13 @@ class Forte {
 
     async playAlbum(album_id) {
         this.API(`/album/${album_id}/tracks`).then((response) => {
+            this.load_track(response.tracks[0]);
+            this.addToQueueStart(response.tracks);
+        })
+    }
+
+    async playPlaylist(playlist_id) {
+        this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
             this.load_track(response.tracks[0]);
             this.addToQueueStart(response.tracks);
         })

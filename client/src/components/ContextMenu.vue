@@ -3,6 +3,7 @@
         :style="{'bottom':posY+'px', 'right':posX+'px'}" @context-menu-event="contextMenuEvent">
     </component>
     <a ref="downloadLink" class="visually-hidden" href=""></a>
+    <PlaylistSelection ref="playlistSelection" />
 </template>
 
 <script setup>
@@ -13,6 +14,7 @@ import { useRouter } from 'vue-router'
 import ArtistContextMenu from "./context_menu/ArtistContextMenu.vue";
 import AlbumContextMenu from "./context_menu/AlbumContextMenu.vue";
 import TrackContextMenu from "./context_menu/TrackContextMenu.vue";
+import PlaylistSelection from "./PlaylistSelection.vue";
 
 const router = useRouter();
 
@@ -31,6 +33,8 @@ const contextMenus = {
     "album": AlbumContextMenu,
     "track": TrackContextMenu
 };
+
+const playlistSelection = ref(null);
 
 async function _right_click(obj) {
     selectedItem.value = obj.item;
@@ -118,7 +122,7 @@ async function contextMenuEvent(event) {
             notify({
                 "title": "Added to the queue.",
             })
-        });;
+        });
         return
     }
 
@@ -127,7 +131,13 @@ async function contextMenuEvent(event) {
             notify({
                 "title": "Added to the queue.",
             })
-        });;
+        });
+        return
+    }
+
+    // Add to Playlist Events
+    if (event == 'addTrackToPlaylist') {
+        playlistSelection.value.show(selectedItem.value.id);
         return
     }
 

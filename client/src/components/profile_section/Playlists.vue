@@ -87,7 +87,6 @@ async function openPlaylist(id) {
 
 async function get_playlists() {
     let data = await ft.API('/profile/playlists');
-    console.log(data.playlists);
     playlists.value = data.playlists;
 }
 

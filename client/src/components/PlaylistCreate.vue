@@ -10,19 +10,21 @@
                         <h3 class="fw-bold">Create playlist</h3>
                     </div>
                     <div class="container">
-                        <div class="row row-cols-1 row-cols-md-2">
+                        <div class="row row-cols-1 row-cols-md-2 g-2">
                             <div class="col">
-                                <figure class="figure position-relative">
-                                    <img ref="playlist_cover" src="/images/playlist.png"
-                                        class="figure-img img-fluid rounded">
+                                <div class="position-relative">
+                                    <div class="d-flex ratio ratio-1x1">
+                                        <img ref="playlist_cover" src="/images/playlist.png"
+                                            class="figure-img img-fluid rounded img-profile">
+                                        <input ref="cover_upload" type="file" class="visually-hidden"
+                                            @change="handle_cover" />
+                                    </div>
                                     <div class="position-absolute bottom-0 right-0">
                                         <button class="btn btn-light bi bi-pencil-square shadow m-2" type="button"
                                             style="opacity: 0.90;" @click="add_cover">
                                         </button>
                                     </div>
-                                    <input ref="cover_upload" type="file" class="visually-hidden"
-                                        @change="handle_cover" />
-                                </figure>
+                                </div>
                             </div>
                             <div class="col d-flex flex-column justify-content-between">
                                 <div class="form-floating mb-3">
@@ -39,7 +41,6 @@
             </div>
         </div>
     </div>
-
 </template>
 
 <script setup>
@@ -71,6 +72,7 @@ async function create_playlist() {
 
     let response = await ft.create_playlist(formData);
     if (response.hasOwnProperty('playlist_id')) {
+        _hide();
         router.push(`/playlist/${response.playlist_id}`);
     }
 }
