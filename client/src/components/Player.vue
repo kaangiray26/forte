@@ -4,10 +4,11 @@
             <div class="d-flex flex-column">
                 <div v-show="store.playing.loaded">
                     <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
-                        <img class="img-fluid placeholder-img me-2" :src="store.playing.cover" width="56" height="56" />
+                        <img class="img-fluid placeholder-img-lite me-2" :src="store.playing.cover" width="56"
+                            height="56" />
                         <div class="d-flex flex-column">
                             <span class="fw-bold text-wrap clickable red-on-hover" @click="openAlbum">{{
-                                    store.playing.title
+                                store.playing.title
                             }}</span>
                         </div>
                     </div>
@@ -49,10 +50,11 @@
                 :class="{ 'justify-content-between': store.playing.loaded, 'justify-content-end': !store.playing.loaded }">
                 <div v-show="store.playing.loaded" class="overflow-hidden">
                     <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
-                        <img class="img-fluid placeholder-img me-2" :src="store.playing.cover" width="56" height="56" />
+                        <img class="img-fluid placeholder-img-lite me-2" :src="store.playing.cover" width="56"
+                            height="56" />
                         <div class="overflow-hidden">
                             <div class="fw-bold text-nowrap clickable red-on-hover" @click="openAlbum">{{
-                                    store.playing.title
+                                store.playing.title
                             }}</div>
                         </div>
                     </div>
@@ -68,7 +70,7 @@
                     </div>
                 </div>
             </div>
-            <div class="progress flex-fill mt-2" @click="seekProgress($event)">
+            <div class="progress flex-fill m-2" @click="seekProgress($event)">
                 <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
                     aria-valuemax="100" :style="{ 'width': progress + '%' }">
                 </div>

@@ -43,6 +43,7 @@ module.exports = {
     stream: _stream,
     upload_cover: _upload_cover,
     add_track_to_playlist: _add_track_to_playlist,
+    delete_playlist: _delete_playlist,
 }
 
 async function _init(args) {
@@ -726,6 +727,7 @@ async function _get_playlist_tracks(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
     db.task(async t => {
         let playlist = await t.oneOrNone("SELECT * from playlists WHERE id = $1", [id]);
         if (!playlist) {
@@ -737,5 +739,26 @@ async function _get_playlist_tracks(req, res, next) {
             .send(JSON.stringify({
                 "tracks": tracks
             }))
+    })
+}
+
+async function _delete_playlist(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Delete playlist
+        await t.none("DELETE FROM playlists WHERE id = $1 AND author = $2", [id, user.username]);
+        res.status(200).json({ "success": "Playlist deleted." })
     })
 }

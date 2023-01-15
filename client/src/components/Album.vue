@@ -13,7 +13,7 @@
                     <div class="d-inline-flex position-relative">
                         <img class="img-fluid rounded placeholder-img" :src="album.cover" width="250" height="250" />
                         <div class="position-absolute bottom-0 right-0">
-                            <button class="btn btn-light bi bi-play shadow m-2" type="button" style="opacity: 0.90;"
+                            <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_album(album.id)">
                             </button>
                         </div>

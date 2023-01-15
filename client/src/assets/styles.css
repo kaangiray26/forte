@@ -54,6 +54,11 @@ img {
 }
 
 .placeholder-img {
+    width: 100%;
+    background-image: linear-gradient(to bottom right, grey, var(--bs-dark));
+}
+
+.placeholder-img-lite {
     background-image: linear-gradient(to bottom right, grey, var(--bs-dark));
 }
 
@@ -107,7 +112,10 @@ img {
 
 .clickable-shadow:hover {
     cursor: pointer;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35) !important;
+}
+
+.clickable-shadow:hover img {
     opacity: 0.75 !important;
 }
 
@@ -156,4 +164,10 @@ img {
     height: auto;
     max-width: 56px;
     aspect-ratio: 1 / 1;
+}
+
+.action-btn {
+    aspect-ratio: 1 / 1;
+    border-radius: 50% !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }

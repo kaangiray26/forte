@@ -31,9 +31,8 @@
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2">
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative ratio ratio-1x1 clickable-shadow"
-                        @click="showPlaylistCreate">
-                        <img class="img-profile rounded" src="/images/add.png" width="250" height="250" />
+                    <div class="d-inline-flex position-relative clickable-shadow" @click="showPlaylistCreate">
+                        <img class="playlist-img" src="/images/add.png" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
@@ -43,11 +42,26 @@
             </div>
         </div>
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="playlist in playlists">
-            <div class="card h-100 w-100 border-0">
+            <div class="card h-100 w-100 border-0" @contextmenu="right_click({ item: playlist, event: $event })">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative ratio ratio-1x1 clickable-shadow"
-                        @click="openPlaylist(playlist.id)">
-                        <img class="img-profile rounded" :src="get_cover(playlist.cover)" width="250" height="250" />
+                    <div class="d-inline-flex position-relative clickable-shadow">
+                        <img class="playlist-img pe-auto" :src="get_cover(playlist.cover)"
+                            @click="openPlaylist(playlist.id)" />
+                        <div class="d-flex position-absolute bottom-0 right-0 flex-nowrap">
+                            <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
+                                @click="play_playlist(playlist.id)">
+                            </button>
+                            <button class="btn btn-light action-btn bi bi-three-dots ms-0 m-2" type="button"
+                                data-bs-toggle="dropdown">
+                                <ul class="dropdown-menu shadow-lg context-menu">
+                                    <li>
+                                        <button class="dropdown-item" type="button"
+                                            @click="delete_playlist(playlist.id)">
+                                            <span class="bi bi-trash-fill me-1"></span>Delete playlist</button>
+                                    </li>
+                                </ul>
+                            </button>
+                        </div>
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
@@ -63,6 +77,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { right_click } from '/js/events.js';
 import PlaylistCreate from '../PlaylistCreate.vue';
 
 const router = useRouter();
@@ -72,6 +87,11 @@ const playlistCreate = ref(null);
 
 async function showPlaylistCreate() {
     playlistCreate.value.show();
+}
+
+async function delete_playlist(playlist_id) {
+    await ft.deletePlaylist(playlist_id);
+    get_playlists();
 }
 
 function get_cover(cover) {

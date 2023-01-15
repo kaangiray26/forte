@@ -13,7 +13,7 @@
                     <div class="d-inline-flex position-relative">
                         <img class="playlist-img rounded" :src="get_cover(playlist.cover)" />
                         <div class="position-absolute bottom-0 right-0">
-                            <button class="btn btn-light bi bi-play shadow m-2" type="button" style="opacity: 0.90;"
+                            <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_playlist(playlist.id)">
                             </button>
                         </div>

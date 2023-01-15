@@ -224,6 +224,7 @@ class Forte {
 
         // At the start of the queue
         if (store.queue_index == 0) {
+            this.player.seek(0);
             return;
         }
 
@@ -295,6 +296,12 @@ class Forte {
         })
     }
 
+    async playAlbumNext(album_id) {
+        this.API(`/album/${album_id}/tracks`).then((response) => {
+            this.addToQueueNext(response.tracks);
+        })
+    }
+
     async playPlaylist(playlist_id) {
         this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
             this.load_track(response.tracks[0]);
@@ -302,8 +309,8 @@ class Forte {
         })
     }
 
-    async playAlbumNext(album_id) {
-        this.API(`/album/${album_id}/tracks`).then((response) => {
+    async playPlaylistNext(playlist_id) {
+        this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
             this.addToQueueNext(response.tracks);
         })
     }
@@ -311,6 +318,18 @@ class Forte {
     async queueTrack(track_id) {
         this.API(`/track/${track_id}/basic`).then((response) => {
             this.addToQueue([response.track]);
+        })
+    }
+
+    async queueAlbum(album_id) {
+        this.API(`/album/${album_id}/tracks`).then((response) => {
+            this.addToQueue(response.tracks);
+        })
+    }
+
+    async queuePlaylist(playlist_id) {
+        this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
+            this.addToQueue(response.tracks);
         })
     }
 
@@ -322,6 +341,19 @@ class Forte {
             credentials: "include"
         }).then((response) => {
             return response.blob();
+        });
+        return response;
+    }
+
+    async deletePlaylist(playlist_id) {
+        let response = await fetch(this.server + `/api/playlist/${playlist_id}/delete`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
         });
         return response;
     }

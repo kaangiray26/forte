@@ -14,6 +14,7 @@ import { useRouter } from 'vue-router'
 import ArtistContextMenu from "./context_menu/ArtistContextMenu.vue";
 import AlbumContextMenu from "./context_menu/AlbumContextMenu.vue";
 import TrackContextMenu from "./context_menu/TrackContextMenu.vue";
+import PlaylistContextMenu from "./context_menu/PlaylistContextMenu.vue";
 import PlaylistSelection from "./PlaylistSelection.vue";
 
 const router = useRouter();
@@ -31,7 +32,8 @@ const contextMenu = ref(null);
 const contextMenus = {
     "artist": ArtistContextMenu,
     "album": AlbumContextMenu,
-    "track": TrackContextMenu
+    "track": TrackContextMenu,
+    "playlist": PlaylistContextMenu
 };
 
 const playlistSelection = ref(null);
@@ -74,6 +76,10 @@ async function contextMenuEvent(event) {
         router.push(`/track/${selectedItem.value.id}`);
         return
     }
+    if (event == 'openPlaylistPage') {
+        router.push(`/playlist/${selectedItem.value.id}`);
+        return
+    }
     if (event == 'openAlbumPage') {
         if (selectedItem.value.type == 'album') {
             router.push(`/album/${selectedItem.value.id}`);
@@ -104,15 +110,22 @@ async function contextMenuEvent(event) {
         }
         return
     }
+    if (event == 'openAuthorPage') {
+        router.push(`/user/${selectedItem.value.author}`);
+        return
+    }
 
     // Play Events
     if (event == 'playTrack') {
         ft.playTrack(selectedItem.value.id);
         return
     }
-
     if (event == 'playAlbum') {
         ft.playAlbum(selectedItem.value.id);
+        return
+    }
+    if (event == 'playPlaylist') {
+        ft.playPlaylist(selectedItem.value.id);
         return
     }
 
@@ -135,6 +148,15 @@ async function contextMenuEvent(event) {
         return
     }
 
+    if (event == 'addPlaylistToQueue') {
+        ft.queuePlaylist(selectedItem.value.id).then(() => {
+            notify({
+                "title": "Added to the queue.",
+            })
+        });
+        return
+    }
+
     // Add to Playlist Events
     if (event == 'addTrackToPlaylist') {
         playlistSelection.value.show(selectedItem.value.id);
@@ -149,6 +171,10 @@ async function contextMenuEvent(event) {
 
     if (event == 'playAlbumNext') {
         ft.playAlbumNext(selectedItem.value.id);
+        return
+    }
+    if (event == 'playPlaylistNext') {
+        ft.playPlaylistNext(selectedItem.value.id);
         return
     }
 
@@ -187,6 +213,17 @@ async function contextMenuEvent(event) {
 
     if (event == 'shareTrack') {
         navigator.clipboard.writeText("https://forte.buzl.uk/track/" + selectedItem.value.id).then(function () {
+            notify({
+                "title": "Copied to clipboard",
+            })
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+        return
+    }
+
+    if (event == 'sharePlaylist') {
+        navigator.clipboard.writeText("https://forte.buzl.uk/playlist/" + selectedItem.value.id).then(function () {
             notify({
                 "title": "Copied to clipboard",
             })

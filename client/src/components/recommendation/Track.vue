@@ -1,18 +1,18 @@
 <template>
-    <div class="card h-100 w-100 border-0 shadow-lg" @contextmenu="right_click({ item: props.track, event: $event })">
+    <div class="card h-100 w-100 border-0" @contextmenu="right_click({ item: props.track, event: $event })">
         <div class="p-3">
-            <div class="position-relative mb-2">
-                <img class="card-img-top img-fluid rounded placeholder-img" :src="props.track.cover" height="250"
-                    width="250" />
+            <div class="position-relative clickable-shadow">
+                <img class="img-fluid placeholder-img pe-auto" :src="get_cover(props.track.cover)" height="250"
+                    width="250" @click="openTrack" />
                 <div class="position-absolute bottom-0 right-0">
-                    <button class="btn btn-light bi bi-play shadow m-2" type="button" style="opacity: 0.90;"
+                    <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                         @click="play(props.track.id)">
                     </button>
                 </div>
             </div>
             <div class="d-flex flex-fill">
                 <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0" @click="openTrack">{{
-                        track.title
+                    track.title
                 }}</h6>
             </div>
         </div>
@@ -27,7 +27,10 @@ import { right_click } from '/js/events.js';
 const router = useRouter();
 
 function get_cover(cover) {
-    return ft.server + '/' + cover;
+    if (cover) {
+        return cover;
+    }
+    return "/images/playlist.png"
 }
 
 async function openTrack() {

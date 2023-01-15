@@ -39,10 +39,8 @@
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative ratio ratio-1x1 clickable-shadow"
-                        @click="openProfile(friend.id)">
-                        <img class="img-profile rounded placeholder-img" :src="get_cover(friend.cover)" width="250"
-                            height="250" />
+                    <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.id)">
+                        <img class="playlist-img" :src="get_cover(friend.cover)" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"

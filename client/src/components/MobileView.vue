@@ -6,15 +6,13 @@
                 <div class="col h-100">
                     <div ref="cardView" class="card h-100">
                         <img :src="store.playing.cover" class="card-img-top image-stable p-2">
-                        <div class="card-body d-flex align-items-center p-2">
+                        <div class="overflow-hidden text-center">
+                            <div class="text-wrap">
+                                <h5 class="fw-bold">{{ store.playing.title }}</h5>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex align-items-end p-2">
                             <div class="d-flex flex-fill flex-column">
-                                <div class="progress mb-2" @click="props.seekProgress($event)">
-                                    <div class="progress-bar bg-dark progress-bar-striped progress-bar-animated"
-                                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
-                                        :style="{ 'width': props.progress + '%' }">
-                                        <span class="visually-hidden"></span>
-                                    </div>
-                                </div>
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center font-monospace me-2">
                                         <small>{{ formatTime(seek) }}</small>
@@ -23,17 +21,19 @@
                                         <small>{{ formatTime(store.playing.duration) }}</small>
                                     </div>
                                 </div>
-                                <div class="overflow-hidden text-center">
-                                    <div class="text-wrap">
-                                        <h5 class="fw-bold">{{ store.playing.title }}</h5>
+                                <div class="progress mb-4" @click="props.seekProgress($event)">
+                                    <div class="progress-bar bg-dark progress-bar-striped progress-bar-animated"
+                                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                                        :style="{ 'width': props.progress + '%' }">
+                                        <span class="visually-hidden"></span>
                                     </div>
                                 </div>
                                 <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Basic example">
                                     <button type="button" class="btn btn-dark rounded bi bi-skip-start-fill mx-1"
                                         @click="play_previous"></button>
                                     <button type="button" class="btn btn-dark rounded bi mx-1" :class="{
-    'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
-}" @click="play"></button>
+                                        'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
+                                    }" @click="play"></button>
                                     <button type="button" class="btn btn-dark rounded bi bi-skip-end-fill mx-1"
                                         @click="play_next"></button>
                                 </div>
