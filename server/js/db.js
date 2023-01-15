@@ -638,7 +638,7 @@ async function _get_playlist(req, res, next) {
             res.status(400).json({ "error": "Playlist not found." })
             return;
         }
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1)", [playlist.tracks]);
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
         res.status(200).json({ "playlist": playlist, "tracks": tracks })
     })
 }
@@ -734,7 +734,7 @@ async function _get_playlist_tracks(req, res, next) {
             res.status(400).json({ "error": "Playlist not found." })
             return;
         }
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1)", [playlist.tracks]);
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
         res.status(200)
             .send(JSON.stringify({
                 "tracks": tracks

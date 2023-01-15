@@ -39,12 +39,12 @@
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.id)">
+                    <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.username)">
                         <img class="playlist-img" :src="get_cover(friend.cover)" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
-                            @click="openProfile(friend.id)">{{ friend.username }}</h6>
+                            @click="openProfile(friend.username)">{{ friend.username }}</h6>
                     </div>
                 </div>
             </div>
