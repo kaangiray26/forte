@@ -73,6 +73,13 @@ async function remove_user(username) {
 }
 
 // onMounted
+document.querySelector('#username').addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        add_user();
+    }
+})
+
 const user_modal = document.getElementById('addUserModal');
 user_modal.addEventListener('shown.bs.modal', (event) => {
     document.getElementById('username').focus();

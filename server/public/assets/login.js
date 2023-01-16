@@ -13,7 +13,7 @@ async function log_in() {
         return;
     }
 
-    document.getElementById('login_alert').classList.add("invisible");
+    document.getElementById('login_alert').classList.add("visually-hidden");
 
     let response = await fetch("/login", {
         method: "POST",
@@ -34,5 +34,13 @@ async function log_in() {
         return
     }
 
-    document.getElementById('login_alert').classList.remove("invisible");
+    document.getElementById('login_alert').classList.remove("visually-hidden");
 }
+
+// onMounted
+document.querySelector('#password').addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        log_in();
+    }
+})

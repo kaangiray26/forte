@@ -186,6 +186,7 @@ class Forte {
     }
 
     async track_finished() {
+        console.log("Track finished:", store.queue[store.queue_index]);
         // At the end of the queue
         if (store.queue_index + 1 == store.queue.length) {
             store.queue_index = 0;

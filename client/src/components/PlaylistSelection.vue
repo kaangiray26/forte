@@ -56,6 +56,7 @@ async function add_to_playlist(playlist_id) {
 
 async function get_playlists() {
     let data = await ft.API('/profile/playlists');
+    if (!data) return;
     playlists.value = data.playlists;
 }
 

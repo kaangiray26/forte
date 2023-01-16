@@ -1,5 +1,12 @@
 <template>
     <ul class="list-group shadow-lg mx-4">
+        <li v-if="results.length == 0" class="list-group-item bg-dark text-light d-flex">
+            <div class="d-flex w-100 justify-content-between">
+                <div>
+                    <span class="fw-bold">No results</span>
+                </div>
+            </div>
+        </li>
         <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="result in results"
             @contextmenu="right_click({ item: result, event: $event })">
             <div class="d-flex flex-fill align-items-center">

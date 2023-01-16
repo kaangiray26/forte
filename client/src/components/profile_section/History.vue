@@ -76,8 +76,8 @@ async function get_history() {
     searchFinished.value = false;
 
     let data = await ft.API(`/profile/history`);
-    console.log(data);
     if (!data) return;
+
     history.value = data.history;
     searchFinished.value = true;
 }

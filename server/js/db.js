@@ -1,6 +1,7 @@
 // db.js
 const path = require('path')
 const fs = require('fs')
+var readlineSync = require('readline-sync');
 const axios = require('axios')
 const crypto = require('crypto')
 
@@ -64,21 +65,24 @@ module.exports = {
 
 async function _init(args) {
     if (args.includes('--reset')) {
-        console.log("Resetting tables...");
-        await db.none("DROP VIEW IF EXISTS fuzzy");
-        await db.none("DROP TABLE IF EXISTS artists, albums, playlists, tracks, library, auth, users");
+        let answer = readlineSync.question("Do you really want to reset? (y/n)");
+        if (answer === 'y') {
+            console.log("Resetting tables...");
+            await db.none("DROP VIEW IF EXISTS fuzzy");
+            await db.none("DROP TABLE IF EXISTS artists, albums, playlists, tracks, library, auth, users");
 
-        console.log("Removing uploads...");
-        fs.readdir("../uploads", (err, files) => {
-            if (err) throw err;
+            console.log("\nRemoving uploads...");
+            fs.readdir(path.join(__dirname, "../uploads"), (err, files) => {
+                if (err) throw err;
 
-            for (const file of files) {
-                fs.unlink(path.join(directory, file), (err) => {
-                    if (err) throw err;
-                });
-            }
-        });
-
+                for (const file of files) {
+                    fs.unlink(path.join(__dirname, "../uploads", file), (err) => {
+                        if (err) throw err;
+                    });
+                }
+            });
+            console.log("OK\n")
+        }
     }
 
     db.tx('creating_tables', t => {
@@ -545,25 +549,24 @@ async function _add_history(req, res, next) {
         }
         await t.oneOrNone("UPDATE users SET history = array_prepend(history, $1) WHERE session = $2", [req.body.track, req.session.id]);
         res.status(200)
-            .send(JSON.stringify({
+            .json({
                 "success": "History updated."
-            }));
+            });
     })
 }
 
 async function _get_history(req, res, next) {
     db.task(async t => {
-        let history = await t.oneOrNone("SELECT history FROM users WHERE session = $1", [req.session.id]);
-        if (!history) {
+        let user = await t.oneOrNone("SELECT history FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
             res.status(400).json({
-                "error": "History not found."
+                "error": "User not found."
             });
             return;
         }
-        res.status(200)
-            .send(JSON.stringify({
-                "history": history
-            }));
+        res.status(200).json({
+            "history": user.history
+        });
     })
 }
 
