@@ -31,7 +31,7 @@
         <div class="input-group flex-nowrap">
             <span class="input-group-text" id="addon-wrapping">@</span>
             <input ref="friend_name" type="text" class="form-control" placeholder="Username" aria-label="Username"
-                aria-describedby="addon-wrapping">
+                aria-describedby="addon-wrapping" @keypress.enter="add_friend">
             <button class="btn btn-dark" @click="add_friend">Add Friend</button>
         </div>
     </div>
@@ -60,6 +60,7 @@ const router = useRouter();
 
 const friends = ref([]);
 const friend_name = ref(null);
+const searchFinished = ref(true);
 
 function get_cover(cover) {
     if (cover) {
@@ -73,13 +74,24 @@ async function openProfile(id) {
 }
 
 async function add_friend() {
-    await ft.add_friend(friend_name.value.value);
+    let name = friend_name.value.value;
+    if (!name.length) {
+        return;
+    }
+    await ft.add_friend(name);
     get_friends();
 }
 
 async function get_friends() {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
     let data = await ft.API('/friends');
     friends.value = data.friends;
+
+    searchFinished.value = true;
 }
 
 onMounted(() => {
