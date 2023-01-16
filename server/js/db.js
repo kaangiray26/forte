@@ -17,40 +17,68 @@ var config = configParser.read();
 
 module.exports = {
     add_friend: _add_friend,
+    add_history: _add_history,
+    add_track_to_playlist: _add_track_to_playlist,
     add_user: _add_user,
     auth: _auth,
     create_playlist: _create_playlist,
+    delete_playlist: _delete_playlist,
+    delete_track_to_playlist: _delete_track_to_playlist,
     get_album: _get_album,
+    get_album_loved: _get_album_loved,
     get_album_tracks: _get_album_tracks,
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
+    get_artist_loved: _get_artist_loved,
     get_friends: _get_friends,
+    get_history: _get_history,
     get_playlist: _get_playlist,
+    get_playlist_loved: _get_playlist_loved,
     get_playlist_tracks: _get_playlist_tracks,
     get_profile: _get_profile,
+    get_profile_albums: _get_profile_albums,
+    get_profile_artists: _get_profile_artists,
     get_profile_playlists: _get_profile_playlists,
+    get_profile_tracks: _get_profile_tracks,
     get_random_tracks: _get_random_tracks,
     get_track: _get_track,
     get_track_basic: _get_track_basic,
+    get_track_loved: _get_track_loved,
     get_user: _get_user,
     get_users: _get_users,
     init: _init,
     is_authenticated: _is_authenticated,
     login: _login,
+    love_album: _love_album,
+    love_artist: _love_artist,
+    love_track: _love_track,
     remove_user: _remove_user,
     search: _search,
     session: _session,
     stream: _stream,
+    unlove_album: _unlove_album,
+    unlove_artist: _unlove_artist,
+    unlove_track: _unlove_track,
     upload_cover: _upload_cover,
-    add_track_to_playlist: _add_track_to_playlist,
-    delete_playlist: _delete_playlist,
 }
 
 async function _init(args) {
     if (args.includes('--reset')) {
         console.log("Resetting tables...");
         await db.none("DROP VIEW IF EXISTS fuzzy");
-        await db.none("DROP TABLE IF EXISTS artists, albums, tracks, library, auth, users");
+        await db.none("DROP TABLE IF EXISTS artists, albums, playlists, tracks, library, auth, users");
+
+        console.log("Removing uploads...");
+        fs.readdir("../uploads", (err, files) => {
+            if (err) throw err;
+
+            for (const file of files) {
+                fs.unlink(path.join(directory, file), (err) => {
+                    if (err) throw err;
+                });
+            }
+        });
+
     }
 
     db.tx('creating_tables', t => {
@@ -62,8 +90,8 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
-            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends INTEGER[], UNIQUE(username, token, session))"),
-            t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks;"),
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history INTEGER[10], fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends INTEGER[], UNIQUE(username, token, session))"),
+            t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.type, playlists.title, playlists.cover FROM playlists;"),
         ])
     }).then(() => {
         refresh_library()
@@ -382,6 +410,86 @@ async function _get_track_basic(req, res, next) {
     })
 }
 
+async function _get_track_loved(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_tracks)", [req.session.id, id]);
+        if (!loved) {
+            res.status(200).json({
+                "loved": false
+            })
+            return;
+        }
+        res.status(200).json({
+            "loved": true
+        })
+    })
+}
+
+async function _get_artist_loved(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_artists)", [req.session.id, id]);
+        if (!loved) {
+            res.status(200).json({
+                "loved": false
+            })
+            return;
+        }
+        res.status(200).json({
+            "loved": true
+        })
+    })
+}
+
+async function _get_album_loved(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_albums)", [req.session.id, id]);
+        if (!loved) {
+            res.status(200).json({
+                "loved": false
+            })
+            return;
+        }
+        res.status(200).json({
+            "loved": true
+        })
+    })
+}
+
+async function _get_playlist_loved(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_playlists)", [req.session.id, id]);
+        if (!loved) {
+            res.status(200).json({
+                "loved": false
+            })
+            return;
+        }
+        res.status(200).json({
+            "loved": true
+        })
+    })
+}
+
 async function _login(req, res, next) {
     if (!['username', 'password'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
@@ -416,6 +524,45 @@ async function _get_users(req, res, next) {
         res.status(200)
             .send(JSON.stringify({
                 "users": users
+            }));
+    })
+}
+
+async function _add_history(req, res, next) {
+    if (!['track'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400).json({
+            "error": "Track not given."
+        });
+        return;
+    }
+    db.task(async t => {
+        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+        if (!track) {
+            res.status(400).json({
+                "error": "Track not found."
+            });
+            return;
+        }
+        await t.oneOrNone("UPDATE users SET history = array_prepend(history, $1) WHERE session = $2", [req.body.track, req.session.id]);
+        res.status(200)
+            .send(JSON.stringify({
+                "success": "History updated."
+            }));
+    })
+}
+
+async function _get_history(req, res, next) {
+    db.task(async t => {
+        let history = await t.oneOrNone("SELECT history FROM users WHERE session = $1", [req.session.id]);
+        if (!history) {
+            res.status(400).json({
+                "error": "History not found."
+            });
+            return;
+        }
+        res.status(200)
+            .send(JSON.stringify({
+                "history": history
             }));
     })
 }
@@ -655,6 +802,69 @@ async function _get_profile_playlists(req, res, next) {
     })
 }
 
+async function _get_profile_tracks(req, res, next) {
+    db.task(async t => {
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
+        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_tracks) {
+            res.status(200).json({ "tracks": [], "total": 0 })
+            return;
+        }
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_tracks, offset]);
+        res.status(200).json({ "tracks": tracks, "total": user.fav_tracks.length })
+    })
+}
+
+async function _get_profile_albums(req, res, next) {
+    db.task(async t => {
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
+        let user = await t.oneOrNone("SELECT fav_albums FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_albums) {
+            res.status(200).json({ "albums": [], "total": 0 })
+            return;
+        }
+        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_albums, offset]);
+        res.status(200).json({ "albums": albums, "total": user.fav_albums.length })
+    })
+}
+
+async function _get_profile_artists(req, res, next) {
+    db.task(async t => {
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
+        let user = await t.oneOrNone("SELECT fav_artists FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_artists) {
+            res.status(200).json({ "artists": [], "total": 0 })
+            return;
+        }
+        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_artists, offset]);
+        res.status(200).json({ "artists": artists, "total": user.fav_artists.length })
+    })
+}
+
 async function _create_playlist(req, res, next) {
     let body = JSON.parse(JSON.stringify(req.body));
     let cover = req.file ? req.file.filename : null;
@@ -721,6 +931,42 @@ async function _add_track_to_playlist(req, res, next) {
     })
 }
 
+async function _delete_track_to_playlist(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    if (!['track'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Track not given."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        // Checking if the track exists
+        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+        if (!track) {
+            res.status(400).json({ "error": "Track not found." })
+            return;
+        }
+
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Add to playlist
+        await t.none("UPDATE playlists SET tracks = array_remove(tracks, $1) WHERE id = $2 AND author = $3", [req.body.track, id, user.username]);
+        res.status(200).json({ "success": "Track removed." })
+    })
+}
+
 async function _get_playlist_tracks(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -760,5 +1006,173 @@ async function _delete_playlist(req, res, next) {
         // Delete playlist
         await t.none("DELETE FROM playlists WHERE id = $1 AND author = $2", [id, user.username]);
         res.status(200).json({ "success": "Playlist deleted." })
+    })
+}
+
+async function _love_track(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Get track
+        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+        if (!track) {
+            res.status(400).json({ "error": "Track not found." })
+            return;
+        }
+
+        // Add track to loved
+        await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1) WHERE username = $2", [id, user.username]);
+        res.status(200).json({ "success": "Track added to loved." })
+    })
+}
+
+async function _unlove_track(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Get track
+        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+        if (!track) {
+            res.status(400).json({ "error": "Track not found." })
+            return;
+        }
+
+        // Add track to loved
+        await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE username = $2", [id, user.username]);
+        res.status(200).json({ "success": "Track removed from loved." })
+    })
+}
+
+async function _love_artist(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Get artist
+        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+        if (!artist) {
+            res.status(400).json({ "error": "Artist not found." })
+            return;
+        }
+
+        // Add artist to loved
+        await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1) WHERE username = $2", [id, user.username]);
+        res.status(200).json({ "success": "Artist added to loved." })
+    })
+}
+
+async function _unlove_artist(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Get artist
+        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+        if (!artist) {
+            res.status(400).json({ "error": "Artist not found." })
+            return;
+        }
+
+        // Remove artist from loved
+        await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE username = $2", [id, user.username]);
+        res.status(200).json({ "success": "Artist removed from loved." })
+    })
+}
+
+async function _love_album(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Get album
+        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+        if (!album) {
+            res.status(400).json({ "error": "Album not found." })
+            return;
+        }
+
+        // Add album to loved
+        await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1) WHERE username = $2", [id, user.username]);
+        res.status(200).json({ "success": "Album added to loved." })
+    })
+}
+
+async function _unlove_album(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        // Get user
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+
+        // Get album
+        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+        if (!album) {
+            res.status(400).json({ "error": "Album not found." })
+            return;
+        }
+
+        // Remove album from loved
+        await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE username = $2", [id, user.username]);
+        res.status(200).json({ "success": "Album removed from loved." })
     })
 }

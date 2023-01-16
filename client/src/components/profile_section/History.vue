@@ -26,7 +26,63 @@
             <router-link to="/profile/friends" class="nav-link search-link">Friends</router-link>
         </li>
     </ul>
+    <hr />
+    <ul class="list-group">
+        <li class="list-group-item bg-dark text-light d-flex">
+            <div class="d-flex w-100 justify-content-between">
+                <div>
+                    <span class="fw-bold">Listening history</span>
+                </div>
+            </div>
+        </li>
+        <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="track in history"
+            @contextmenu="right_click({ item: track, event: $event })">
+            <div class="d-flex flex-fill align-items-center">
+                <img :src="track.cover" class="playlist-selection-img me-2" />
+                <div class="d-flex flex-column">
+                    <button class="btn btn-link search-link" :content_id="track.id" :content_type="track.type"
+                        @click="playTrack(track.id)" style="display:contents;">
+                        {{ track.title }}
+                    </button>
+                </div>
+            </div>
+        </li>
+    </ul>
+    <div class="d-flex justify-content-end mt-2">
+        <button v-show="searchFinished" type="button" class="btn btn-dark" @click="get_history">Refresh</button>
+        <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Loading...
+        </button>
+    </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
+import { right_click } from '/js/events.js';
+
+const history = ref([]);
+const searchFinished = ref(true);
+
+async function playTrack(track_id) {
+    ft.playTrack(track_id);
+    return;
+}
+
+async function get_history() {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.API(`/profile/history`);
+    console.log(data);
+    if (!data) return;
+    history.value = data.history;
+    searchFinished.value = true;
+}
+
+onMounted(() => {
+    get_history();
+})
 </script>

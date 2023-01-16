@@ -3,9 +3,7 @@
         <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="result in results"
             @contextmenu="right_click({ item: result, event: $event })">
             <div class="d-flex flex-fill align-items-center">
-                <div class="ratio-1x1 me-2">
-                    <img :src="result.cover" class="placeholder-img" width="56" height="56" />
-                </div>
+                <img :src="get_cover(result.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link" :content_id="result.id" :content_type="result.type"
                         @click="openResult(result)" style="display:contents;">
@@ -29,6 +27,16 @@ const results = ref([]);
 const query_param = computed(() => {
     return router.currentRoute.value.params.query;
 })
+
+function get_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/playlist.png"
+}
 
 async function get_search_results() {
     let query = router.currentRoute.value.params.query;

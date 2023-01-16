@@ -1,6 +1,7 @@
 <template>
     <component ref="contextMenu" id="contextMenu" v-show="isContextMenuVisible" :is="contextMenus[currentSearchField]"
-        :style="{'bottom':posY+'px', 'right':posX+'px'}" @context-menu-event="contextMenuEvent">
+        :style="{'bottom':posY+'px', 'right':posX+'px'}" @context-menu-event="contextMenuEvent"
+        :loved="selectedItemLoved">
     </component>
     <a ref="downloadLink" class="visually-hidden" href=""></a>
     <PlaylistSelection ref="playlistSelection" />
@@ -22,6 +23,7 @@ const router = useRouter();
 const posX = ref(0);
 const posY = ref(0);
 const selectedItem = ref(null);
+const selectedItemLoved = ref(false);
 
 const currentSearchField = ref("");
 const isContextMenuVisible = ref(false);
@@ -40,8 +42,9 @@ const playlistSelection = ref(null);
 
 async function _right_click(obj) {
     selectedItem.value = obj.item;
-    currentSearchField.value = selectedItem.value.type;
+    isLoved();
 
+    currentSearchField.value = selectedItem.value.type;
     isContextMenuVisible.value = true;
 
     let mouse_x = obj.event.x;
@@ -68,14 +71,16 @@ async function _right_click(obj) {
     return;
 }
 
+async function isLoved() {
+    ft.API(`/${selectedItem.value.type}/${selectedItem.value.id}/loved`).then((response) => {
+        selectedItemLoved.value = response.loved;
+    })
+}
+
 async function contextMenuEvent(event) {
     isContextMenuVisible.value = false;
 
     // Open Page Events
-    if (event == 'openTrackPage') {
-        router.push(`/track/${selectedItem.value.id}`);
-        return
-    }
     if (event == 'openPlaylistPage') {
         router.push(`/playlist/${selectedItem.value.id}`);
         return
@@ -112,6 +117,24 @@ async function contextMenuEvent(event) {
     }
     if (event == 'openAuthorPage') {
         router.push(`/user/${selectedItem.value.author}`);
+        return
+    }
+
+    // Love Events
+    if (event == 'addToLoved') {
+        ft.love(selectedItem.value.type, selectedItem.value.id).then(() => {
+            notify({
+                "title": "Added to favorites.",
+            })
+        });
+        return
+    }
+    if (event == 'removeFromLoved') {
+        ft.unlove(selectedItem.value.type, selectedItem.value.id).then(() => {
+            notify({
+                "title": "Remoed from favorites.",
+            })
+        });
         return
     }
 

@@ -105,8 +105,13 @@ async function openPlaylist(id) {
     router.push("/playlist/" + id);
 }
 
+async function play_playlist(id) {
+    ft.playPlaylist(id);
+}
+
 async function get_playlists() {
     let data = await ft.API('/profile/playlists');
+    if (!data) return;
     playlists.value = data.playlists;
 }
 

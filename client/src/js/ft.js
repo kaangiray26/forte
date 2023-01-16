@@ -357,6 +357,48 @@ class Forte {
         });
         return response;
     }
+
+    async deleteTrackFromPlaylist(playlist_id, track_id) {
+        let response = await fetch(this.server + `/api/playlist/${playlist_id}/delete_track`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "track": track_id
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
+    async love(type, id) {
+        let response = await fetch(this.server + `/api/${type}/${id}/love`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
+    async unlove(type, id) {
+        let response = await fetch(this.server + `/api/${type}/${id}/unlove`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
 }
 
 export { Forte }

@@ -100,11 +100,10 @@ async function play_album(id) {
 }
 
 onMounted(() => {
-    let id = router.currentRoute.value.params.id;
     if (store.selected_track_id) {
         selected_track.value = store.selected_track_id;
         store.selected_track_id = null;
     }
-    get_album(id);
+    get_album(router.currentRoute.value.params.id);
 })
 </script>
