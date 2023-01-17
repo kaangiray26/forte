@@ -22,8 +22,8 @@
                                     </div>
                                 </div>
                                 <div class="progress mb-4" @click="props.seekProgress($event)">
-                                    <div class="progress-bar bg-dark progress-bar-striped progress-bar-animated"
-                                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                                    <div class="progress-bar bg-dark progress-bar-animated" aria-valuenow="0"
+                                        aria-valuemin="0" aria-valuemax="100"
                                         :style="{ 'width': store.playing.progress + '%' }">
                                         <span class="visually-hidden"></span>
                                     </div>
@@ -99,7 +99,6 @@ onMounted(() => {
     let hammertime = new Hammer(offcanvasEl.value);
     hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
     hammertime.on("swipedown", function () {
-        console.log("Swipedown");
         _hide();
     });
 

@@ -236,7 +236,6 @@ onMounted(() => {
     let hammertime = new Hammer(mobilePlayer.value);
     hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
     hammertime.on("swipeup", function () {
-        console.log("Swiped up!");
         mobileViewEl.value.show();
     });
 
