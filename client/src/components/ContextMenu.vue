@@ -1,44 +1,40 @@
 <template>
-    <component ref="contextMenu" id="contextMenu" v-show="isContextMenuVisible" :is="contextMenus[currentSearchField]"
-        :style="{'bottom':posY+'px', 'right':posX+'px'}" @context-menu-event="contextMenuEvent"
-        :loved="selectedItemLoved">
-    </component>
+    <TrackContextModal ref="trackContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
+    <AlbumContextModal ref="albumContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
+    <ArtistContextModal ref="artistContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
+    <PlaylistContextModal ref="playlistContextModal" @context-menu-event="contextMenuEvent"
+        :loved="selectedItemLoved" />
+    <StationContextModal ref="stationContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
+
     <a ref="downloadLink" class="visually-hidden" href=""></a>
     <PlaylistSelection ref="playlistSelection" />
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { notify } from "/js/events.js";
 import { useRouter } from 'vue-router'
 
-import ArtistContextMenu from "./context_menu/ArtistContextMenu.vue";
-import AlbumContextMenu from "./context_menu/AlbumContextMenu.vue";
-import TrackContextMenu from "./context_menu/TrackContextMenu.vue";
-import PlaylistContextMenu from "./context_menu/PlaylistContextMenu.vue";
-import StationContextMenu from "./context_menu/StationContextMenu.vue";
+import TrackContextModal from "./context_menu/TrackContextModal.vue";
+import AlbumContextModal from "./context_menu/AlbumContextModal.vue";
+import ArtistContextModal from "./context_menu/ArtistContextModal.vue";
+import PlaylistContextModal from "./context_menu/PlaylistContextModal.vue";
+import StationContextModal from "./context_menu/StationContextModal.vue";
+
 import PlaylistSelection from "./PlaylistSelection.vue";
 
 const router = useRouter();
 
-const posX = ref(0);
-const posY = ref(0);
 const selectedItem = ref(null);
 const selectedItemLoved = ref(false);
 
-const currentSearchField = ref("");
-const isContextMenuVisible = ref(false);
-
 const downloadLink = ref(null);
 
-const contextMenu = ref(null);
-const contextMenus = {
-    "artist": ArtistContextMenu,
-    "album": AlbumContextMenu,
-    "track": TrackContextMenu,
-    "playlist": PlaylistContextMenu,
-    "station": StationContextMenu,
-};
+const trackContextModal = ref(null);
+const albumContextModal = ref(null);
+const artistContextModal = ref(null);
+const playlistContextModal = ref(null);
+const stationContextModal = ref(null);
 
 const playlistSelection = ref(null);
 
@@ -46,31 +42,26 @@ async function _right_click(obj) {
     selectedItem.value = obj.item;
     isLoved();
 
-    currentSearchField.value = selectedItem.value.type;
-    isContextMenuVisible.value = true;
-
-    let mouse_x = obj.event.x;
-    let mouse_y = obj.event.y;
-
-    await nextTick();
-
-    let context = document.getElementById('contextMenu');
-
-    let context_x = context.offsetWidth;
-    let context_y = context.offsetHeight;
-
-    if (mouse_x + context_x >= window.innerWidth) {
-        posX.value = window.innerWidth - mouse_x;
-    } else {
-        posX.value = window.innerWidth - mouse_x - context_x;
+    if (selectedItem.value.type == 'track') {
+        trackContextModal.value.show(obj.event.x, obj.event.y);
+        return;
     }
-
-    if (mouse_y + context_y >= window.innerHeight) {
-        posY.value = window.innerHeight - mouse_y;
-    } else {
-        posY.value = window.innerHeight - mouse_y - context_y;
+    if (selectedItem.value.type == 'album') {
+        albumContextModal.value.show(obj.event.x, obj.event.y);
+        return;
     }
-    return;
+    if (selectedItem.value.type == 'artist') {
+        artistContextModal.value.show(obj.event.x, obj.event.y);
+        return;
+    }
+    if (selectedItem.value.type == 'playlist') {
+        playlistContextModal.value.show(obj.event.x, obj.event.y);
+        return;
+    }
+    if (selectedItem.value.type == 'station') {
+        stationContextModal.value.show(obj.event.x, obj.event.y);
+        return;
+    }
 }
 
 async function isLoved() {
@@ -80,8 +71,6 @@ async function isLoved() {
 }
 
 async function contextMenuEvent(event) {
-    isContextMenuVisible.value = false;
-
     // Open Page Events
     if (event == 'openPlaylistPage') {
         router.push(`/playlist/${selectedItem.value.id}`);
@@ -259,12 +248,7 @@ async function contextMenuEvent(event) {
     }
 }
 
-async function _hide() {
-    isContextMenuVisible.value = false;
-}
-
 defineExpose({
-    hide: _hide,
     right_click: _right_click,
 });
 
@@ -273,10 +257,5 @@ onMounted(() => {
         event.detail.event.preventDefault();
         _right_click(event.detail);
     });
-    window.addEventListener('click', event => {
-        if (event.target.className != "dropdown-item") {
-            _hide();
-        }
-    })
 })
 </script>
