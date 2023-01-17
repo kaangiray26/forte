@@ -190,6 +190,9 @@ class Forte {
 
         // At the end of the queue
         if (store.queue_index + 1 == store.queue.length) {
+            store.playing.is_playing = false;
+            store.playing.seek = 0;
+            store.playing.progress = 0;
             this.addTrackToHistory(track);
             return;
         }

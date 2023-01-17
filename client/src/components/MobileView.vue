@@ -15,7 +15,7 @@
                             <div class="d-flex flex-fill flex-column">
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center font-monospace me-2">
-                                        <small>{{ formatTime(seek) }}</small>
+                                        <small>{{ formatTime(store.playing.seek) }}</small>
                                     </div>
                                     <div class="d-flex align-items-center font-monospace me-2">
                                         <small>{{ formatTime(store.playing.duration) }}</small>
@@ -24,7 +24,7 @@
                                 <div class="progress mb-4" @click="props.seekProgress($event)">
                                     <div class="progress-bar bg-dark progress-bar-striped progress-bar-animated"
                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
-                                        :style="{ 'width': props.progress + '%' }">
+                                        :style="{ 'width': store.playing.progress + '%' }">
                                         <span class="visually-hidden"></span>
                                     </div>
                                 </div>
@@ -77,14 +77,6 @@ defineExpose({
 })
 
 const props = defineProps({
-    progress: {
-        type: Number,
-        default: 0
-    },
-    seek: {
-        type: Number,
-        default: 0
-    },
     seekProgress: {
         type: Function,
         default: () => { }

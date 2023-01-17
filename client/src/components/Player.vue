@@ -23,11 +23,11 @@
                         <button type="button" class="btn btn-light bi bi-skip-end-fill" @click="play_next"></button>
                     </div>
                     <div class="d-flex align-items-center font-monospace me-2">
-                        <small>{{ formatTime(seek) }}</small>
+                        <small>{{ formatTime(store.playing.seek) }}</small>
                     </div>
                     <div class="progress flex-fill me-2" @click="seekProgress($event)">
                         <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
-                            aria-valuemax="100" :style="{ 'width': progress + '%' }">
+                            aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
                         </div>
                     </div>
                     <div class="d-flex align-items-center font-monospace me-2">
@@ -72,14 +72,14 @@
             </div>
             <div class="progress flex-fill m-2" @click="seekProgress($event)">
                 <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
-                    aria-valuemax="100" :style="{ 'width': progress + '%' }">
+                    aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
                 </div>
             </div>
         </div>
     </div>
     <Queue ref="queueEl" />
-    <MobileView ref="mobileViewEl" :progress="progress" :seek="seek" :seekProgress="seekProgress" :play="play"
-        :play_next="play_next" :play_previous="play_previous" />
+    <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
+        :play_previous="play_previous" />
 </template>
 
 <script setup>
@@ -96,10 +96,7 @@ const router = useRouter();
 const queueEl = ref(null);
 const mobileViewEl = ref(null);
 const mobilePlayer = ref(null);
-
-const progress = ref(0);
 const volume = ref(100);
-const seek = ref(0);
 
 const volumeButton = ref(null);
 const volumeTooltip = ref(null);
@@ -198,8 +195,8 @@ async function get_progress() {
         return;
     }
 
-    seek.value = ft.player.seek();
-    progress.value = (seek.value / store.playing.duration) * 100;
+    store.playing.seek = ft.player.seek();
+    store.playing.progress = (store.playing.seek / store.playing.duration) * 100;
 }
 
 async function play() {
