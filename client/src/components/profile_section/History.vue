@@ -31,11 +31,18 @@
         <li class="list-group-item bg-dark text-light d-flex">
             <div class="d-flex w-100 justify-content-between">
                 <div>
-                    <span class="fw-bold">Listening history</span>
+                    <span class="fw-bold">Recently played</span>
                 </div>
             </div>
         </li>
-        <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="track in history"
+        <li v-if="tracks.length == 0" class="list-group-item list-group-item-action d-flex justify-content-between">
+            <div class="d-flex flex-fill align-items-center">
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">No tracks found</span>
+                </div>
+            </div>
+        </li>
+        <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="track in tracks"
             @contextmenu="right_click({ item: track, event: $event })">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="track.cover" class="playlist-selection-img me-2" />
@@ -61,7 +68,7 @@
 import { ref, onMounted } from 'vue';
 import { right_click } from '/js/events.js';
 
-const history = ref([]);
+const tracks = ref([]);
 const searchFinished = ref(true);
 
 async function playTrack(track_id) {
@@ -78,7 +85,7 @@ async function get_history() {
     let data = await ft.API(`/profile/history`);
     if (!data) return;
 
-    history.value = data.history;
+    tracks.value = data.tracks;
     searchFinished.value = true;
 }
 

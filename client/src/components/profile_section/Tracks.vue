@@ -36,6 +36,13 @@
                 </div>
             </div>
         </li>
+        <li v-if="tracks.length == 0" class="list-group-item list-group-item-action d-flex justify-content-between">
+            <div class="d-flex flex-fill align-items-center">
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">No tracks found</span>
+                </div>
+            </div>
+        </li>
         <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="track in tracks"
             @contextmenu="right_click({ item: track, event: $event })">
             <div class="d-flex flex-fill align-items-center">

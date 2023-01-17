@@ -186,16 +186,18 @@ class Forte {
     }
 
     async track_finished() {
-        console.log("Track finished:", store.queue[store.queue_index]);
+        let track = store.playing.id;
+
         // At the end of the queue
         if (store.queue_index + 1 == store.queue.length) {
-            store.queue_index = 0;
+            this.addTrackToHistory(track);
             return;
         }
 
         // Somewhere in the queue
         store.queue_index += 1;
         this.load_track(store.queue[store.queue_index]);
+        this.addTrackToHistory(track);
     }
 
     async mute() {
@@ -269,6 +271,24 @@ class Forte {
             },
             body: JSON.stringify({
                 "track": track_id
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
+    async addTrackToHistory() {
+        console.log("Starting addTrackToHistory")
+        let track = store.queue[store.queue_index].id;
+        let response = await fetch(this.server + `/api/profile/history/add`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "track": track
             }),
             credentials: "include"
         }).then((response) => {

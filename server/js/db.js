@@ -372,7 +372,7 @@ async function _get_album_tracks(req, res, next) {
         return;
     }
     db.task(async t => {
-        let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [id]);
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE album = $1", [id]);
         res.status(200)
             .send(JSON.stringify({
                 "tracks": tracks
@@ -547,7 +547,7 @@ async function _add_history(req, res, next) {
             });
             return;
         }
-        await t.oneOrNone("UPDATE users SET history = array_prepend(history, $1) WHERE session = $2", [req.body.track, req.session.id]);
+        await t.oneOrNone("UPDATE users SET history = array_prepend($1, history[0:9]) WHERE session = $2", [req.body.track, req.session.id]);
         res.status(200)
             .json({
                 "success": "History updated."
@@ -564,8 +564,9 @@ async function _get_history(req, res, next) {
             });
             return;
         }
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [user.history]);
         res.status(200).json({
-            "history": user.history
+            "tracks": tracks
         });
     })
 }
