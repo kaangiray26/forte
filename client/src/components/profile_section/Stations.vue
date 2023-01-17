@@ -100,6 +100,12 @@ async function search_station() {
     }).then((res) => {
         return res.json()
     });
+    let stats = response.Items[1].Children;
+
+    for (let i = 0; i < stats.length; i++) {
+        let station = stats[i];
+        console.log(station);
+    }
     stations.value = response.Items[1].Children;
     searchFinished.value = true;
 }

@@ -16,6 +16,7 @@ import ArtistContextMenu from "./context_menu/ArtistContextMenu.vue";
 import AlbumContextMenu from "./context_menu/AlbumContextMenu.vue";
 import TrackContextMenu from "./context_menu/TrackContextMenu.vue";
 import PlaylistContextMenu from "./context_menu/PlaylistContextMenu.vue";
+import StationContextMenu from "./context_menu/StationContextMenu.vue";
 import PlaylistSelection from "./PlaylistSelection.vue";
 
 const router = useRouter();
@@ -35,7 +36,8 @@ const contextMenus = {
     "artist": ArtistContextMenu,
     "album": AlbumContextMenu,
     "track": TrackContextMenu,
-    "playlist": PlaylistContextMenu
+    "playlist": PlaylistContextMenu,
+    "station": StationContextMenu,
 };
 
 const playlistSelection = ref(null);
