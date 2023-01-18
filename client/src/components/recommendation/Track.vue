@@ -1,5 +1,5 @@
 <template>
-    <div class="card h-100 w-100 border-0" @contextmenu="right_click({ item: props.track, event: $event })">
+    <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.track, event: $event })">
         <div class="p-3">
             <div class="position-relative clickable-shadow">
                 <img class="img-fluid placeholder-img pe-auto" :src="get_cover(props.track.cover)" height="250"

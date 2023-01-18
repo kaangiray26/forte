@@ -40,7 +40,7 @@
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.username)">
-                        <img class="playlist-img" :src="get_cover(friend.cover)" />
+                        <img class="img-profile rounded" :src="get_cover(friend.cover)" width="250" height="250" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"

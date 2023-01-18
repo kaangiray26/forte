@@ -37,6 +37,12 @@
                                     <button type="button" class="btn btn-dark rounded bi bi-skip-end-fill mx-1"
                                         @click="play_next"></button>
                                 </div>
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn rounded bi bi-volume-up-fill mx-1">
+                                    </button>
+                                    <button type="button" class="btn rounded bi bi-collection-fill mx-1"
+                                        @click="emit('queue')"></button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -51,6 +57,8 @@ import { ref, onMounted } from 'vue'
 import { Offcanvas } from "bootstrap"
 import { store } from "/js/store.js"
 import Hammer from "hammerjs";
+
+const emit = defineEmits(['queue']);
 
 let offcanvas = null;
 const offcanvasEl = ref(null);

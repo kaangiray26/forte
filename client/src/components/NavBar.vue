@@ -11,7 +11,7 @@
                     <input ref="search_field" type="text" class="form-control" placeholder="Search" aria-label="Search"
                         @keyup.enter="search">
                 </div>
-                <div @contextmenu="reset_menu">
+                <div @contextmenu.prevent="reset_menu">
                     <router-link to="/profile" class="hide-on-mobile search-link">
                         <button class="btn btn-dark">Profile</button>
                     </router-link>

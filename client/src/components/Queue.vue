@@ -1,6 +1,6 @@
 <template>
     <div ref="offcanvasEl" class="offcanvas offcanvas-bottom border-0 vh-100 vw-100" tabindex="-1" id="offcanvasBottom"
-        aria-labelledby="offcanvasBottomLabel">
+        aria-labelledby="offcanvasBottomLabel" style="z-index: 1046;">
         <div class="offcanvas-header d-flex bg-dark text-white justify-content-end">
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
                 aria-label="Close"></button>
@@ -26,8 +26,7 @@
                         <div class="d-flex align-items-center">
                             <button class="btn btn-link search-link" :content_id="track.id" style="display:contents;"
                                 @click="play_queue_track(index)">
-                                <span class="text-muted me-2">{{ index + 1 }}.</span>{{ track.title
-                                }}
+                                <span class="text-muted me-2">{{ index + 1 }}.</span>{{ track.title }}
                             </button>
                         </div>
                     </div>

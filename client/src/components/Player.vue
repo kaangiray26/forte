@@ -79,7 +79,7 @@
     </div>
     <Queue ref="queueEl" />
     <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
-        :play_previous="play_previous" />
+        :play_previous="play_previous" @queue="show_queue" />
 </template>
 
 <script setup>

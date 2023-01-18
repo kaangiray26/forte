@@ -42,7 +42,8 @@
             </div>
         </div>
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="playlist in playlists">
-            <div class="card h-100 w-100 border-0" @contextmenu="right_click({ item: playlist, event: $event })">
+            <div class="card h-100 w-100 border-0"
+                @contextmenu.prevent="right_click({ item: playlist, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
                         <img class="playlist-img pe-auto" :src="get_cover(playlist.cover)"

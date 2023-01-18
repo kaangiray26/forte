@@ -28,7 +28,7 @@
                             </div>
                         </li>
                         <li class="list-group-item list-group-item-action d-flex" v-for="album in albums"
-                            @contextmenu="right_click({ item: album, event: $event })">
+                            @contextmenu.prevent="right_click({ item: album, event: $event })">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex ratio-1x1 align-items-center">
@@ -45,7 +45,7 @@
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <span class="search-link">{{
-                                            album.nb_tracks
+                                        album.nb_tracks
                                     }}</span>
                                 </div>
                             </div>

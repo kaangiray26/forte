@@ -130,6 +130,7 @@ img {
 .img-profile {
     object-fit: cover;
     max-width: 100% !important;
+    aspect-ratio: 1/1;
 }
 
 .figure-img {

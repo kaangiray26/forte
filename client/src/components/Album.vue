@@ -11,7 +11,7 @@
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-fluid rounded placeholder-img" :src="album.cover" width="250" height="250" />
+                        <img class="playlist-img" :src="get_cover(album.cover)" width="250" height="250" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_album(album.id)">
@@ -39,7 +39,7 @@
                             </li>
                             <li class="list-group-item list-group-item-action d-flex"
                                 :class="{ 'now-playing': selected_track == track.id }"
-                                @contextmenu="right_click({ item: track, event: $event })">
+                                @contextmenu.prevent="right_click({ item: track, event: $event })">
                                 <div class="d-flex w-100 justify-content-between">
                                     <div class="d-flex">
                                         <div class="d-flex ratio-1x1 align-items-center">
@@ -78,6 +78,16 @@ const tracks = ref([]);
 const loaded = ref(false);
 
 const selected_track = ref(null);
+
+function get_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/playlist.png"
+}
 
 async function play_track(id) {
     ft.playTrack(id);

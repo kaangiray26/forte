@@ -61,6 +61,7 @@ async function get_playlists() {
 }
 
 function _show(id) {
+    get_playlists();
     track_id.value = id;
     modal.value.show();
 }
@@ -76,6 +77,5 @@ defineExpose({
 
 onMounted(() => {
     modal.value = new Modal(document.querySelector('#playlistSelection'));
-    get_playlists();
 });
 </script>

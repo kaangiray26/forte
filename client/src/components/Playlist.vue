@@ -39,7 +39,7 @@
                             </div>
                         </li>
                         <li v-for="(track, index) in tracks" class="list-group-item list-group-item-action d-flex"
-                            @contextmenu="right_click({ item: track, event: $event })">
+                            @contextmenu.prevent="right_click({ item: track, event: $event })">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex ratio-1x1 align-items-center">

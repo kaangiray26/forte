@@ -8,7 +8,7 @@
             </div>
         </li>
         <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="result in results"
-            @contextmenu="right_click({ item: result, event: $event })">
+            @contextmenu.prevent="right_click({ item: result, event: $event })">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(result.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
