@@ -233,6 +233,10 @@ onMounted(() => {
         localStorage.setItem('volume', volume.value / 100);
     }
 
+    // Media Session API
+    // TODO: Add support for this
+
+    // Swipe events
     let hammertime = new Hammer(mobilePlayer.value);
     hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
     hammertime.on("swipeup", function () {
