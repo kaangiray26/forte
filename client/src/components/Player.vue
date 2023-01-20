@@ -4,8 +4,8 @@
             <div class="d-flex flex-column">
                 <div v-show="store.playing.loaded">
                     <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
-                        <img class="img-fluid placeholder-img-lite me-2" :src="store.playing.cover" width="56"
-                            height="56" />
+                        <img class="img-fluid placeholder-img-lite me-2" :src="get_cover(store.playing.cover)"
+                            width="56" height="56" />
                         <div class="d-flex flex-column">
                             <span class="fw-bold text-wrap clickable red-on-hover" @click="openAlbum">{{
                                 store.playing.title
@@ -100,6 +100,13 @@ const volume = ref(100);
 
 const volumeButton = ref(null);
 const volumeTooltip = ref(null);
+
+function get_cover(cover) {
+    if (cover) {
+        return cover;
+    }
+    return "/images/playlist.png"
+}
 
 async function muteVolume() {
     ft.mute();

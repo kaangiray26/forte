@@ -13,7 +13,7 @@
 5. `npx greenlock add --subject yourdomain.tld --altnames yourdomain.tld`
 6. Change the library path in `server/config.json`
 7. Install and start a postgresql database with a database named `forte` with a user named `forte` on `localhost:5432`
-8. `sudo node start`
+8. `sudo node server.js`
 
 ## Screenshots
 

@@ -16,7 +16,9 @@
                         @click="openResult(result)" style="display:contents;">
                         {{ result.title }}
                     </button>
-                    <span class="fst-italic text-capitalize text-muted">{{ result.type }}</span>
+                    <div>
+                        <span class="badge" :class="result.type">{{ result.type }}</span>
+                    </div>
                 </div>
             </div>
         </li>
