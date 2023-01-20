@@ -144,10 +144,11 @@ async function seekProgress(ev) {
         src = ev.target.parentElement;
     }
 
-    const rect = src.getBoundingClientRect();
-    const x = ev.clientX - rect.left;
-    const percent = x / rect.width;
-    ft.player.seek(ft.player.duration() * percent);
+    let rect = src.getBoundingClientRect();
+    let x = ev.clientX - rect.left;
+    let point = ft.player.duration() * (x / rect.width);
+    ft.player.seek(point);
+
 }
 
 async function initTooltips() {
@@ -197,14 +198,10 @@ async function lowerVolume() {
     localStorage.setItem('volume', volume.value / 100);
 }
 
-async function get_progress() {
-    if (!store.playing.is_playing) {
-        return;
-    }
-
-    store.playing.seek = ft.player.seek();
-    store.playing.progress = (store.playing.seek / store.playing.duration) * 100;
-}
+// async function get_progress() {
+//     store.playing.seek = ft.player.seek();
+//     store.playing.progress = (store.playing.seek / store.playing.duration) * 100;
+// }
 
 async function play() {
     ft.play();
@@ -251,6 +248,5 @@ onMounted(() => {
     });
 
     initTooltips();
-    setInterval(get_progress, 1000);
 })
 </script>

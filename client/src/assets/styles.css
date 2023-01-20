@@ -53,6 +53,10 @@ img {
     cursor: pointer;
 }
 
+.progress-bar {
+    transition: unset !important;
+}
+
 .placeholder-img {
     width: 100%;
     background-image: linear-gradient(to bottom right, grey, var(--bs-dark));

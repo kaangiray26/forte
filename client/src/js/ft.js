@@ -22,6 +22,7 @@ class Forte {
 
         this.player.on('load', () => {
             this.track_loaded()
+            this.listen_progress()
         })
         this.player.on('end', () => {
             this.track_finished()
@@ -183,6 +184,13 @@ class Forte {
         store.playing.duration = this.player.duration();
         this.player.play();
         store.playing.is_playing = true;
+    }
+
+    async listen_progress() {
+        this.player._sounds[0]._node.addEventListener('timeupdate', () => {
+            store.playing.seek = ft.player.seek();
+            store.playing.progress = (store.playing.seek / store.playing.duration) * 100;
+        });
     }
 
     async track_finished() {
