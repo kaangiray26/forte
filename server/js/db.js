@@ -33,6 +33,7 @@ module.exports = {
     get_artist_loved: _get_artist_loved,
     get_friends: _get_friends,
     get_history: _get_history,
+    get_lyrics: _get_lyrics,
     get_playlist: _get_playlist,
     get_playlist_loved: _get_playlist_loved,
     get_playlist_tracks: _get_playlist_tracks,
@@ -1178,5 +1179,44 @@ async function _unlove_album(req, res, next) {
         // Remove album from loved
         await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE username = $2", [id, user.username]);
         res.status(200).json({ "success": "Album removed from loved." })
+    })
+}
+
+async function _get_lyrics(req, res, next) {
+    if (!['artist', 'title'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Parameters not given correctly."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        // Get artist
+        let artist = await t.oneOrNone("SELECT title FROM artists WHERE id = $1", [req.body.artist]);
+        if (!artist) {
+            res.status(400).json({ "error": "Artist not found." })
+            return;
+        }
+
+        let data = await fetch(`https://api.genius.com/search/?q=${encodeURI([artist.title, req.body.title])}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + config.genius_token
+            }
+        }).then((res) => res.json());
+
+
+        if (!data.response.hits.length) {
+            res.status(400).json({ "error": "No lyrics found." });
+            return
+        }
+
+        let lyric = await fetch(data.response.hits[0].result.url, {
+            method: 'GET',
+        }).then((res) => res.text());
+
+        res.status(200).json({ "lyrics": lyric })
     })
 }

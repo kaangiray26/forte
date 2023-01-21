@@ -3,13 +3,26 @@
         <div class="card-body p-0">
             <div class="d-flex flex-column">
                 <div v-show="store.playing.loaded">
-                    <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
-                        <img class="img-fluid placeholder-img-lite me-2" :src="get_cover(store.playing.cover)"
-                            width="56" height="56" />
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold text-wrap clickable red-on-hover" @click="openAlbum">{{
-                                store.playing.title
-                            }}</span>
+                    <div class="d-flex flex-row justify-content-between align-items-center p-2 pb-0 rounded m-0">
+                        <div class="d-flex flex-row align-items-center">
+                            <img class="img-fluid placeholder-img-lite me-2" :src="get_cover(store.playing.cover)"
+                                width="56" height="56" />
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-wrap clickable red-on-hover" @click="openAlbum">{{
+                                    store.playing.title
+                                }}</span>
+                            </div>
+                        </div>
+                        <div class="dropup">
+                            <button class="btn btn-light action-btn bi bi-three-dots" type="button"
+                                data-bs-toggle="dropdown">
+                                <ul class="dropdown-menu shadow-lg context-menu">
+                                    <li>
+                                        <button class="dropdown-item" type="button" @click="show_lyrics">
+                                            <span class="bi bi-justify-left me-1"></span>Show lyrics</button>
+                                    </li>
+                                </ul>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -77,6 +90,7 @@
             </div>
         </div>
     </div>
+    <Lyrics ref="lyricsEl" />
     <Queue ref="queueEl" />
     <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
         :play_previous="play_previous" @queue="show_queue" />
@@ -89,11 +103,14 @@ import { Tooltip } from "bootstrap"
 import { store } from '/js/store.js';
 import Hammer from "hammerjs";
 import Queue from './Queue.vue';
+import Lyrics from './Lyrics.vue';
 import MobileView from './MobileView.vue';
 
 const router = useRouter();
 
 const queueEl = ref(null);
+const lyricsEl = ref(null);
+
 const mobileViewEl = ref(null);
 const mobilePlayer = ref(null);
 const volume = ref(100);
@@ -148,7 +165,6 @@ async function seekProgress(ev) {
     let x = ev.clientX - rect.left;
     let point = ft.player.duration() * (x / rect.width);
     ft.player.seek(point);
-
 }
 
 async function initTooltips() {
@@ -198,11 +214,6 @@ async function lowerVolume() {
     localStorage.setItem('volume', volume.value / 100);
 }
 
-// async function get_progress() {
-//     store.playing.seek = ft.player.seek();
-//     store.playing.progress = (store.playing.seek / store.playing.duration) * 100;
-// }
-
 async function play() {
     ft.play();
 }
@@ -222,6 +233,10 @@ async function show_queue() {
 async function openAlbum() {
     store.selected_track_id = store.playing.id;
     router.push("/album/" + store.playing.album);
+}
+
+async function show_lyrics() {
+    lyricsEl.value.get_lyrics();
 }
 
 defineExpose({

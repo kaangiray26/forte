@@ -431,6 +431,23 @@ class Forte {
         });
         return response;
     }
+
+    async lyrics(artist_id, title) {
+        let response = await fetch(this.server + '/api/lyrics', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "artist": artist_id,
+                "title": title
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
 }
 
 export { Forte }
