@@ -29,6 +29,7 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 If you know a forte server and just want to connect to use the service, go to https://forte.buzl.uk. The webpage is hosted with GitHub pages and uses the latest forte version. Therefore, this is the **recommended way** to access forte services.
 
 Once you go to the website, you will be prompted with this dialog:
+
 ![image_5](images/image_5.png)
 
 Here's an explanation for the fields:
@@ -41,6 +42,7 @@ Token       : The token given to you by the server.
 If you are wondering about how to create accounts, this will be explained in the `Creating your own server` section.
 
 Here's an example for the authorization:
+
 ![image_4](images/image_4.png)
 
 If you log in successfully, you will see the homepage of the application, where some track recommendations can be found. Now you can use the application and listen to some music.
