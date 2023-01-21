@@ -58,6 +58,12 @@ async function keyPress(event) {
         thisPlayer.value.show_queue();
         return;
     }
+
+    if (event.target.tagName != 'INPUT' && event.key == 'l') {
+        event.preventDefault();
+        thisPlayer.value.show_lyrics();
+        return;
+    }
 }
 
 onMounted(() => {

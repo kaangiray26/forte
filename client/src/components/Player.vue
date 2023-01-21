@@ -240,7 +240,8 @@ async function show_lyrics() {
 }
 
 defineExpose({
-    show_queue
+    show_queue,
+    show_lyrics
 })
 
 onMounted(() => {
