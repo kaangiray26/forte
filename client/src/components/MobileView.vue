@@ -40,6 +40,9 @@
                                 <div class="d-flex justify-content-between">
                                     <button type="button" class="btn rounded bi bi-volume-up-fill mx-1">
                                     </button>
+                                    <button type="button" class="btn rounded bi bi-chat-square-text-fill mx-1"
+                                        @click="emit('lyrics')">
+                                    </button>
                                     <button type="button" class="btn rounded bi bi-collection-fill mx-1"
                                         @click="emit('queue')"></button>
                                 </div>
@@ -58,7 +61,7 @@ import { Offcanvas } from "bootstrap"
 import { store } from "/js/store.js"
 import Hammer from "hammerjs";
 
-const emit = defineEmits(['queue']);
+const emit = defineEmits(['queue', 'lyrics']);
 
 let offcanvas = null;
 const offcanvasEl = ref(null);

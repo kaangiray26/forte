@@ -3,11 +3,10 @@
         <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Lyrics</h1>
+                    <h1 class="modal-title fs-5 fw-bold">Lyrics</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
-                <div class="modal-body pt-0">
+                <div class="modal-body">
                     <div v-show="!loaded">
                         <div class="d-flex justify-content-center text-dark p-2">
                             <div class="spinner-border" role="status">
@@ -15,7 +14,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="lyrics">
+                    <div v-show="loaded" class="lyrics">
                     </div>
                 </div>
             </div>
