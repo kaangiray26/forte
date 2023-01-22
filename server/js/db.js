@@ -86,6 +86,13 @@ async function _init(args) {
         }
     }
 
+    db.oneOrNone("SELECT username from auth")
+        .then(async function (data) {
+            if (!data) {
+                await db.none("INSERT INTO auth(username, hash) VALUES ('forte', 'a04fe4e390a7c7d5d4583f85d24e164d')")
+            }
+        })
+
     db.tx('creating_tables', t => {
         console.log("Checking tables...");
         return t.batch([
@@ -107,16 +114,8 @@ async function _init(args) {
     })
 }
 
-async function refresh_library() {
-    console.log("Checking for any changes...");
-    console.log("This may take a while.\n")
+function update_library() {
     let folders = fs.readdirSync(config.library_path);
-    db.oneOrNone("SELECT username from auth")
-        .then(async function (data) {
-            if (!data) {
-                await db.none("INSERT INTO auth(username, hash) VALUES ('forte', 'a04fe4e390a7c7d5d4583f85d24e164d')")
-            }
-        })
     db.oneOrNone("SELECT folders from library")
         .then(async function (data) {
             if (!data) {
@@ -139,7 +138,20 @@ async function refresh_library() {
             console.log("\n==> Added a new total of " + changes.length + " folders.");
             console.log("==> Ready.");
         })
-    return;
+}
+
+async function refresh_library() {
+    console.log("Checking for any changes...");
+    console.log("This may take a while.\n")
+    update_library();
+
+    // Watch for changes
+    console.log("Watching for changes...");
+    fs.watch(config.library_path, async function (event) {
+        if (event === 'rename') {
+            update_library();
+        }
+    })
 }
 
 async function walk_folders(folders) {
