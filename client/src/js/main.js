@@ -13,6 +13,19 @@ if ('serviceWorker' in navigator) {
 
 window.ft = new Forte();
 window.ft.init().then(() => {
+    navigator.mediaSession.setActionHandler('play', () => {
+        window.ft.play();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+        window.ft.play();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+        window.ft.play_next();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+        window.ft.play_previous();
+    });
+
     console.log("Forte initialized.");
     createApp(App).use(router).mount('#app');
 });
