@@ -14,6 +14,11 @@
                             </div>
                         </div>
                     </div>
+                    <div v-show="error">
+                        <div class="d-flex justify-content-center text-dark p-2">
+                            <h1 class="fs-5 fw-bold">Lyrics not found</h1>
+                        </div>
+                    </div>
                     <div v-show="loaded" class="lyrics">
                     </div>
                 </div>
@@ -30,9 +35,9 @@ import { store } from '/js/store.js';
 const modal = ref(null);
 const track_id = ref(null);
 const loaded = ref(false);
+const error = ref(false);
 
 async function _get_lyrics() {
-    loaded.value = false;
     _show();
 
     if (store.playing.id == track_id.value) {
@@ -40,13 +45,32 @@ async function _get_lyrics() {
         return
     }
 
+    loaded.value = false;
+    error.value = false;
+
     let response = await ft.lyrics(store.playing.artist, store.playing.title);
-    if (!response) return;
+
+    if (response.hasOwnProperty('error')) {
+        document.querySelector(".lyrics").innerHTML = '';
+        track_id.value = store.playing.id;
+        error.value = true;
+        loaded.value = true;
+        return
+    }
 
     track_id.value = store.playing.id;
     let parser = new DOMParser();
     let doc = parser.parseFromString(response.lyrics, "text/html");
-    document.querySelector(".lyrics").innerHTML = doc.querySelector('#lyrics-root').childNodes[2].innerHTML;
+    let lyrics = doc.querySelector('#lyrics-root');
+
+    if (!lyrics) {
+        document.querySelector(".lyrics").innerHTML = '';
+        error.value = true;
+        loaded.value = true;
+        return
+    }
+
+    document.querySelector(".lyrics").innerHTML = lyrics.childNodes[2].innerHTML;
     loaded.value = true;
 }
 
