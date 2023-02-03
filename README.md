@@ -20,6 +20,7 @@
 * [x] Playing controls
 * [x] Keyboard shortcuts
 * [x] Lyrics support
+* [x] MediaSession API
 
 # Getting started
 
