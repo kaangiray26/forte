@@ -52,7 +52,15 @@ function _show() {
 }
 
 async function clear_queue() {
-    store.queue = [];
+    if (!store.playing.is_playing) {
+        store.queue = [];
+        queue.value = store.queue;
+        return
+    }
+
+    // Check if the track is in the queue
+    store.queue = [store.queue[store.queue_index]]
+    store.queue_index = 0;
     queue.value = store.queue;
 }
 

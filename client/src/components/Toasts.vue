@@ -31,7 +31,10 @@ watch(toasts.value, async (newToasts, oldToasts) => {
     if (newToasts.length > 0) {
         let index = newToasts.length - 1;
         let toastEl = document.getElementById('toast_' + index);
-        let toast = new Toast(toastEl);
+        let toast = new Toast(toastEl, {
+            autohide: true,
+            delay: 2000
+        });
         toast.show();
     }
 })
