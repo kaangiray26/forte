@@ -1,6 +1,8 @@
 {
-  "name": "template",
-  "version": "0.0.0",
+  "name": "forte_client",
+  "version": "1.0.0",
+  "description": "Self-hosted, music streaming platform",
+  "author": "kaangiray26",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

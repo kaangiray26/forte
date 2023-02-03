@@ -211,3 +211,18 @@ img {
     color: #fff !important;
     background-color: RGBA(25, 135, 84, var(--bs-bg-opacity, 1)) !important;
 }
+
+.mobile-carousel {
+    display: flex;
+    overflow-x: scroll;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    scrollbar-width: none;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+}
+
+.carousel-img {
+    aspect-ratio: 1/1;
+    object-fit: contain;
+}
