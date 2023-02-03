@@ -25,7 +25,13 @@ const thisPlayer = ref(null);
 async function keyPress(event) {
     if (event.target.tagName != 'INPUT' && event.key == 's') {
         event.preventDefault();
-        thisNavBar.value.focus_search();
+        thisPlayer.value.shuffle();
+        return;
+    }
+
+    if (event.target.tagName != 'INPUT' && event.key == 'r') {
+        event.preventDefault();
+        thisPlayer.value.repeat();
         return;
     }
 
@@ -62,6 +68,12 @@ async function keyPress(event) {
     if (event.target.tagName != 'INPUT' && event.key == 'l') {
         event.preventDefault();
         thisPlayer.value.show_lyrics();
+        return;
+    }
+
+    if (event.target.tagName != 'INPUT' && event.ctrlKey && event.key == 'k') {
+        event.preventDefault();
+        thisNavBar.value.focus_search();
         return;
     }
 }

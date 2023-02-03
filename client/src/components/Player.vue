@@ -13,21 +13,11 @@
                                 }}</span>
                             </div>
                         </div>
-                        <div class="dropup">
-                            <button class="btn btn-light action-btn bi bi-three-dots" type="button"
-                                data-bs-toggle="dropdown">
-                                <ul class="dropdown-menu shadow-lg context-menu">
-                                    <li>
-                                        <button class="dropdown-item" type="button" @click="show_lyrics">
-                                            <span class="bi bi-justify-left me-1"></span>Show lyrics</button>
-                                    </li>
-                                </ul>
-                            </button>
-                        </div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center p-2">
-                    <div class="btn-group btn-group-sm me-2" role="group" aria-label="Basic example">
+                    <!-- Left-side buttons -->
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
                         <button type="button" class="btn btn-light bi bi-skip-start-fill"
                             @click="play_previous"></button>
                         <button type="button" class="btn btn-light bi" :class="{
@@ -35,23 +25,41 @@
                         }" @click="play"></button>
                         <button type="button" class="btn btn-light bi bi-skip-end-fill" @click="play_next"></button>
                     </div>
-                    <div class="d-flex align-items-center font-monospace me-2">
-                        <small>{{ formatTime(store.playing.seek) }}</small>
-                    </div>
-                    <div class="progress flex-fill me-2" @click="seekProgress($event)">
-                        <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
-                            aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
+                    <!-- Progress bar -->
+                    <div class="d-flex flex-fill align-items-center mx-2">
+                        <div class="d-flex align-items-center font-monospace">
+                            <small>{{ formatTime(store.playing.seek) }}</small>
+                        </div>
+                        <div class="progress flex-fill mx-2" @click="seekProgress($event)">
+                            <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0"
+                                aria-valuemin="0" aria-valuemax="100"
+                                :style="{ 'width': store.playing.progress + '%' }">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center font-monospace">
+                            <small>{{ formatTime(store.playing.duration) }}</small>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center font-monospace me-2">
-                        <small>{{ formatTime(store.playing.duration) }}</small>
-                    </div>
+                    <!-- Right-side buttons -->
                     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-light bi bi-soundwave"></button>
+                        <button type="button" class="btn btn-light bi bi-shuffle" @click="shuffle"></button>
+                        <button type="button" class="btn btn-light bi" :class="repeat_icon" @click="repeat"></button>
                         <button ref="volumeButton" type="button" class="btn btn-light bi" :class="volume_icon"
                             data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="100"
                             @wheel.prevent="changeVolume($event)" :volume="setVolume" @click="muteVolume"></button>
                         <button type="button" class="btn btn-light bi bi-collection-fill" @click="show_queue"></button>
+                        <button class="btn btn-light bi bi-three-dots" type="button" data-bs-toggle="dropdown">
+                            <ul class="dropdown-menu shadow-lg context-menu">
+                                <li>
+                                    <button class="dropdown-item" type="button" @click="show_lyrics">
+                                        <span class="bi bi-justify-left me-1"></span>Show lyrics</button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" type="button" @click="show_lyrics">
+                                        <span class="bi bi-soundwave me-1"></span>Group session</button>
+                                </li>
+                            </ul>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -143,6 +151,18 @@ const volume_icon = computed(() => {
         return 'bi-volume-off-fill';
     }
     return 'bi-volume-mute-fill';
+});
+
+const repeat_icon = computed(() => {
+    if (store.playing.repeat == 0) {
+        return 'bi-repeat text-muted';
+    }
+    if (store.playing.repeat == 1) {
+        return 'bi-repeat';
+    }
+    if (store.playing.repeat == 2) {
+        return 'bi-repeat-1';
+    }
 });
 
 function formatTime(secs) {
@@ -239,9 +259,19 @@ async function show_lyrics() {
     lyricsEl.value.get_lyrics();
 }
 
+async function repeat() {
+    store.playing.repeat = (store.playing.repeat + 1) % 3;
+}
+
+async function shuffle() {
+    queueEl.value.shuffle();
+}
+
 defineExpose({
     show_queue,
-    show_lyrics
+    show_lyrics,
+    shuffle,
+    repeat,
 })
 
 onMounted(() => {

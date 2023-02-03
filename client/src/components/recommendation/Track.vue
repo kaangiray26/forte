@@ -1,8 +1,11 @@
 <template>
     <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.track, event: $event })">
         <div class="p-3">
-            <div class="position-relative clickable-shadow" @click="openTrack">
-                <img class="img-fluid placeholder-img" :src="get_cover(props.track.cover)" height="250" width="250" />
+            <div class="position-relative clickable-shadow">
+                <div @click="openTrack">
+                    <img class="img-fluid placeholder-img" :src="get_cover(props.track.cover)" height="250"
+                        width="250" />
+                </div>
                 <div class="position-absolute bottom-0 right-0">
                     <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                         @click="play(props.track.id)">

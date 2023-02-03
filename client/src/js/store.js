@@ -17,6 +17,7 @@ const store = reactive({
         album: null,
         cover: null,
         seek: 0,
+        repeat: 0,
         duration: 0,
         progress: 0,
     },

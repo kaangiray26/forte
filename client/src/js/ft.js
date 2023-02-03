@@ -206,6 +206,17 @@ class Forte {
 
         // At the end of the queue
         if (store.queue_index + 1 == store.queue.length) {
+            // Repeat queue
+            if (store.playing.repeat == 1) {
+                store.queue_index = 0;
+                this.load_track(store.queue[0]);
+                return;
+            }
+            // Repeat track
+            if (store.playing.repeat == 2) {
+                this.load_track(store.queue[store.queue_index]);
+                return;
+            }
             store.playing.is_playing = false;
             store.playing.seek = 0;
             store.playing.progress = 0;
@@ -214,6 +225,11 @@ class Forte {
         }
 
         // Somewhere in the queue
+        // Repeat track
+        if (store.playing.repeat == 2) {
+            this.load_track(store.queue[store.queue_index]);
+            return;
+        }
         store.queue_index += 1;
         this.load_track(store.queue[store.queue_index]);
         this.addTrackToHistory(track);

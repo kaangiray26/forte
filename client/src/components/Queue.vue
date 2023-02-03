@@ -46,9 +46,33 @@ const offcanvasEl = ref(null);
 
 const queue = ref(store.queue);
 
+function shuffle_arr(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+
 function _show() {
     queue.value = store.queue
     offcanvas.show();
+}
+
+async function _shuffle() {
+    if (!store.playing.is_playing) {
+        shuffle_arr(store.queue);
+        queue.value = store.queue;
+        return
+    }
+
+    let current_track = store.queue[store.queue_index];
+    store.queue.splice(store.queue_index, 1);
+    shuffle_arr(store.queue);
+    store.queue.unshift(current_track);
+    store.queue_index = 0;
+    queue.value = store.queue;
 }
 
 async function clear_queue() {
@@ -58,7 +82,6 @@ async function clear_queue() {
         return
     }
 
-    // Check if the track is in the queue
     store.queue = [store.queue[store.queue_index]]
     store.queue_index = 0;
     queue.value = store.queue;
@@ -70,7 +93,8 @@ async function play_queue_track(index) {
 }
 
 defineExpose({
-    show: _show
+    show: _show,
+    shuffle: _shuffle,
 })
 
 onMounted(() => {
