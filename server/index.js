@@ -113,6 +113,8 @@ app.post("/api/playlist/:id/add_track", isAuthenticated, db.add_track_to_playlis
 app.post("/api/playlist/:id/delete_track", isAuthenticated, db.delete_track_to_playlist)
 app.get("/api/playlist/:id/loved", isAuthenticated, db.get_playlist_loved)
 
+app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
+
 //
 
 module.exports = app;
