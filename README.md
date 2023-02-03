@@ -1,6 +1,6 @@
 ![forte](client/src/public/images/favicon.svg)
 # Forte
-![](https://img.shields.io/badge/-OWN%20YOUR%20MUSIC-red)
+![](https://img.shields.io/badge/-OWN%20YOUR%20MUSIC-blue)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/kaangiray26/forte)
 
 **Self-hosted, music streaming platform**
