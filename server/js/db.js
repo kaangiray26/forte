@@ -86,13 +86,6 @@ async function _init(args) {
         }
     }
 
-    db.oneOrNone("SELECT username from auth")
-        .then(async function (data) {
-            if (!data) {
-                await db.none("INSERT INTO auth(username, hash) VALUES ('forte', 'a04fe4e390a7c7d5d4583f85d24e164d')")
-            }
-        })
-
     db.tx('creating_tables', t => {
         console.log("Checking tables...");
         return t.batch([
@@ -106,6 +99,12 @@ async function _init(args) {
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.type, playlists.title, playlists.cover FROM playlists;"),
         ])
     }).then(() => {
+        db.oneOrNone("SELECT username from auth")
+            .then(async function (data) {
+                if (!data) {
+                    await db.none("INSERT INTO auth(username, hash) VALUES ('forte', 'a04fe4e390a7c7d5d4583f85d24e164d')")
+                }
+            })
         refresh_library()
     }).catch(error => {
         console.log("An error occured.\n")
@@ -118,31 +117,44 @@ function update_library() {
     let folders = fs.readdirSync(config.library_path);
     db.oneOrNone("SELECT folders from library")
         .then(async function (data) {
+
             if (!data) {
                 await walk_folders(folders);
                 await db.none("INSERT INTO library(folders) VALUES ($1)", [folders])
                 console.log("\n==> Added a new total of " + folders.length + " folders.");
-                console.log("==> Ready.");
                 return;
             }
 
-            let changes = folders.filter(folder => !data.folders.includes(folder));
-            if (!changes.length) {
-                console.log("==> No changes in the library.")
-                console.log("==> Ready.");
-                return
+            if (folders.length != data.folders.length) {
+                console.log("==> The library has changed.");
             }
 
-            await walk_folders(changes);
-            await db.none("UPDATE library SET folders = $1", [folders])
-            console.log("\n==> Added a new total of " + changes.length + " folders.");
-            console.log("==> Ready.");
+            // Find out which folders have been added
+            let changes = folders.filter(folder => !data.folders.includes(folder));
+            if (!changes.length) {
+                console.log("==> (Add) No changes in the library.")
+            } else {
+                await walk_folders(changes);
+                await db.none("UPDATE library SET folders = $1", [folders])
+                console.log("\n==> Added a new total of " + changes.length + " folders.");
+            }
+
+            // Find out which folders have been removed
+            changes = data.folders.filter(folder => !folders.includes(folder));
+            if (!changes.length) {
+                console.log("==> (Remove) No changes in the library.")
+            } else {
+                console.log("Folders to remove:", changes)
+                await remove_folders(changes);
+                await db.none("UPDATE library SET folders = $1", [folders])
+                console.log("\n==> Removed a total of " + changes.length + " folders.");
+            }
         })
 }
 
 async function refresh_library() {
     console.log("Checking for any changes...");
-    console.log("This may take a while.\n")
+    console.log("This may take a while.\n");
     update_library();
 
     // Watch for changes
@@ -152,6 +164,28 @@ async function refresh_library() {
             update_library();
         }
     })
+}
+
+async function remove_folders(folders) {
+    for (let i = 0; i < folders.length; i++) {
+        let folder = folders[i];
+
+        db.task(async t => {
+            let album = await t.oneOrNone("SELECT * FROM albums WHERE (title % $1) AND similarity(title, $1) > 0.2 LIMIT 1", [folder]);
+            let artist_albums = await t.any("SELECT * FROM albums WHERE artist = $1", [album.artist]);
+
+            // If the artist has only one album, remove it
+            if (artist_albums.length === 1) {
+                await t.none("DELETE FROM artists WHERE id = $1", [album.artist]);
+            }
+
+            // Remove the album
+            await t.none("DELETE FROM albums WHERE id = $1", [album.id]);
+
+            // Remove the tracks
+            await t.none("DELETE FROM tracks WHERE album = $1", [album.id]);
+        })
+    }
 }
 
 async function walk_folders(folders) {
