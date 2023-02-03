@@ -172,6 +172,14 @@ class Forte {
         store.playing.artist = track.artist;
         store.playing.loaded = true;
 
+        // mediaSession metadata
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: store.playing.title,
+            artwork: [
+                { src: store.playing.cover, sizes: '250x250', type: 'image/png' },
+            ]
+        });
+
         this.player.unload();
         this.player._src = [ft.server + '/api/stream/' + track.id];
         this.player.load();
