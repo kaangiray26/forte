@@ -84,10 +84,10 @@ sudo node server.js
 ```
 
 ## Keyboard Shortcuts
-* [**S**] Search
-* [**L**] Show Lyrics
-* [**Q**] Open Queue
-* [**M**] Mute/Unmute
 * [**Space**] Play/Pause
 * [**Left Arrow**] Previous song
 * [**Right Arrow**] Next song
+* [**M**] Mute/Unmute
+* [**Q**] Open Queue
+* [**L**] Show Lyrics
+* [**Ctrl + K**] Search

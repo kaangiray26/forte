@@ -7,13 +7,14 @@
                 </div>
             </div>
         </li>
-        <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="result in results"
-            @contextmenu.prevent="right_click({ item: result, event: $event })">
+        <li class="list-group-item list-group-item-action clickable d-flex justify-content-between"
+            v-for="result in results" @contextmenu.prevent="right_click({ item: result, event: $event })"
+            @click="openResult(result)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(result.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link" :content_id="result.id" :content_type="result.type"
-                        @click="openResult(result)" style="display:contents;">
+                        style="display:contents;">
                         {{ result.title }}
                     </button>
                     <div>

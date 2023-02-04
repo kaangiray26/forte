@@ -11,7 +11,7 @@
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="playlist-img rounded" :src="get_cover(playlist.cover)" />
+                        <img class="playlist-img shadow" :src="get_cover(playlist.cover)" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_playlist(playlist.id)">
@@ -40,15 +40,14 @@
                         </li>
                         <li v-for="(track, index) in tracks" class="list-group-item list-group-item-action d-flex"
                             @contextmenu.prevent="right_click({ item: track, event: $event })">
-                            <div class="d-flex w-100 justify-content-between">
+                            <div class="d-flex w-100 justify-content-between clickable" @click="play_track(track.id)">
                                 <div class="d-flex">
                                     <div class="d-flex ratio-1x1 align-items-center">
-                                        <img :src="track.cover" class="placeholder-img-lite rounded" width="56"
-                                            height="56" />
+                                        <img :src="track.cover" class="track-cover" />
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-link search-link d-flex text-start"
-                                            style="display:contents;" @click="play_track(track.id)">
+                                            style="display:contents;">
                                             <span class="text-muted me-2">{{ index+ 1 }}.</span>
                                             <span>{{ track.title }}</span>
                                         </button>

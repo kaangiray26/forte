@@ -10,12 +10,14 @@
         <div class="card-body">
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
-                    <img class="img-fluid rounded placeholder-img" :src="artist.cover" width="250" height="250" />
+                    <img class="playlist-img shadow" :src="artist.cover" />
                 </div>
-                <div class="col">
-                    <h1 class="artist-title">{{ artist.title }}</h1>
-                    <small class="text-muted">{{ albums.length }} albums</small>
-                    <hr />
+                <div class="col d-flex flex-column justify-content-between">
+                    <div class="d-flex flex-column">
+                        <h1 class="artist-title">{{ artist.title }}</h1>
+                        <small class="text-muted">{{ albums.length }} albums</small>
+                        <hr />
+                    </div>
                     <ul class="list-group">
                         <li class="list-group-item bg-dark text-light d-flex">
                             <div class="d-flex w-100 justify-content-between">
@@ -27,17 +29,17 @@
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item list-group-item-action d-flex" v-for="album in albums"
-                            @contextmenu.prevent="right_click({ item: album, event: $event })">
+                        <li class="list-group-item list-group-item-action clickable d-flex" v-for="album in albums"
+                            @contextmenu.prevent="right_click({ item: album, event: $event })"
+                            @click="openAlbum(album.id)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
-                                    <div class="d-flex ratio-1x1 align-items-center">
-                                        <img :src="album.cover" class="placeholder-img rounded" width="56"
-                                            height="56" />
+                                    <div class="d-flex align-items-start padding-7">
+                                        <img :src="album.cover" class="track-cover" />
                                     </div>
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex align-items-start">
                                         <button class="btn btn-link search-link d-flex flex-column text-start"
-                                            style="display:contents;" @click="openAlbum(album.id)">
+                                            style="display:contents;">
                                             <span>{{ album.title }}</span>
                                             <span class="text-muted">{{ album.year }}</span>
                                         </button>

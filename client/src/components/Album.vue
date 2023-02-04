@@ -11,7 +11,7 @@
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="playlist-img" :src="get_cover(album.cover)" width="250" height="250" />
+                        <img class="playlist-img shadow" :src="get_cover(album.cover)" width="250" height="250" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_album(album.id)">
@@ -37,18 +37,18 @@
                                     </div>
                                 </div>
                             </li>
-                            <li class="list-group-item list-group-item-action d-flex"
+                            <li class="list-group-item list-group-item-action clickable d-flex"
                                 :class="{ 'now-playing': selected_track == track.id }"
-                                @contextmenu.prevent="right_click({ item: track, event: $event })">
+                                @contextmenu.prevent="right_click({ item: track, event: $event })"
+                                @click="play_track(track.id)">
                                 <div class="d-flex w-100 justify-content-between">
                                     <div class="d-flex">
-                                        <div class="d-flex ratio-1x1 align-items-center">
-                                            <img :src="album.cover" class="placeholder-img rounded" width="56"
-                                                height="56" />
+                                        <div class="d-flex align-items-center">
+                                            <img :src="album.cover" class="track-cover" />
                                         </div>
                                         <div class="d-flex align-items-center">
                                             <button class="btn btn-link search-link d-flex text-start"
-                                                style="display:contents;" @click="play_track(track.id)">
+                                                style="display:contents;">
                                                 <span class="text-muted me-2">{{ track.track_position }}.</span>
                                                 <span>{{ track.title }}</span>
                                             </button>

@@ -23,17 +23,17 @@ const thisContentView = ref(null);
 const thisPlayer = ref(null);
 
 async function keyPress(event) {
-    if (event.target.tagName != 'INPUT' && event.key == 's') {
-        event.preventDefault();
-        thisPlayer.value.shuffle();
-        return;
-    }
+    // if (event.target.tagName != 'INPUT' && event.key == 's') {
+    //     event.preventDefault();
+    //     thisPlayer.value.shuffle();
+    //     return;
+    // }
 
-    if (event.target.tagName != 'INPUT' && event.key == 'r') {
-        event.preventDefault();
-        thisPlayer.value.repeat();
-        return;
-    }
+    // if (event.target.tagName != 'INPUT' && event.key == 'r') {
+    //     event.preventDefault();
+    //     thisPlayer.value.repeat();
+    //     return;
+    // }
 
     if (event.target.tagName != 'INPUT' && event.code == 'Space') {
         event.preventDefault();
