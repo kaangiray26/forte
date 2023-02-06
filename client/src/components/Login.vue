@@ -23,11 +23,12 @@
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text bi bi-key-fill"></span>
                         <input ref="token" type="text" class="form-control" placeholder="Token" aria-label="Token"
-                            aria-describedby="addon-wrapping">
+                            aria-describedby="addon-wrapping" @keypress.enter="connect">
                     </div>
-                    <div class="d-flex flex-fill justify-content-between align-items-center">
-                        <div class="d-flex flex-fill alert alert-danger p-2 m-0 me-2"
-                            :class="{ 'invisible': fail_invisible }" role="alert">
+                    <div class="d-flex flex-fill justify-content-end align-items-center">
+                        <div v-if="!fail"
+                            class="d-flex flex-fill alert alert-danger login-alert appear p-2 m-0 me-2 align-items-center"
+                            role="alert">
                             Login failed!
                         </div>
                         <div>
@@ -42,15 +43,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { Modal } from "bootstrap"
-
-const router = useRouter();
 
 let loginModal = null;
 const loginModalEl = ref(null);
 
-const fail_invisible = ref(true);
+const fail = ref(true);
 
 const server = ref(null);
 const username = ref(null);
@@ -67,7 +65,7 @@ async function connect() {
         return
     }
 
-    fail_invisible.value = true;
+    fail.value = true;
 
     ft.connect(
         server.value.value, username.value.value, token.value.value
@@ -77,7 +75,7 @@ async function connect() {
             window.location.replace("/");
             return;
         };
-        fail_invisible.value = false;
+        fail.value = false;
     });
 }
 

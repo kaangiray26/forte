@@ -48,6 +48,7 @@
                             data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="100"
                             @wheel.prevent="changeVolume($event)" :volume="setVolume" @click="muteVolume"></button>
                         <button type="button" class="btn btn-light bi bi-collection-fill" @click="show_queue"></button>
+                        <!-- Extra options -->
                         <button class="btn btn-light bi bi-three-dots" type="button" data-bs-toggle="dropdown">
                             <ul class="dropdown-menu shadow-lg context-menu">
                                 <li>

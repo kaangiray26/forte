@@ -237,3 +237,7 @@ img {
 .padding-7 {
     padding-top: 7px;
 }
+
+.login-alert {
+    height: 38px;
+}

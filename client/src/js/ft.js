@@ -149,6 +149,8 @@ class Forte {
             credentials: "include"
         }).then((response) => {
             return response.json();
+        }).catch((error) => {
+            return { "error": error.toString() }
         })
 
         if (response.hasOwnProperty('success')) {
