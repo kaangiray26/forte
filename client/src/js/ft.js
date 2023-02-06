@@ -336,6 +336,7 @@ class Forte {
 
     async playTrack(track_id) {
         this.API(`/track/${track_id}/basic`).then((response) => {
+            store.queue_index = 0;
             this.load_track(response.track);
             this.addToQueueStart([response.track]);
         })
@@ -349,6 +350,7 @@ class Forte {
 
     async playAlbum(album_id) {
         this.API(`/album/${album_id}/tracks`).then((response) => {
+            store.queue_index = 0;
             this.load_track(response.tracks[0]);
             this.addToQueueStart(response.tracks);
         })
@@ -362,6 +364,7 @@ class Forte {
 
     async playPlaylist(playlist_id) {
         this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
+            store.queue_index = 0;
             this.load_track(response.tracks[0]);
             this.addToQueueStart(response.tracks);
         })
