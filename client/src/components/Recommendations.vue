@@ -1,15 +1,20 @@
 <template>
-    <ul class="hide-on-desktop list-group list-group-horizontal mobile-carousel mx-2">
-        <li class="list-group-item border-0 p-0" v-for="track in tracks.slice(0, 12)">
-            <CarouselTrack :track="track" />
-        </li>
-    </ul>
-    <div class="hide-on-desktop row g-2 mx-2">
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="track in tracks.slice(12, 24)">
-            <Track :track="track" />
+    <div class="hide-on-desktop mx-2">
+        <h3 class="fw-bold px-3">Recommended for you</h3>
+        <ul class="list-group list-group-horizontal mobile-carousel">
+            <li class="list-group-item border-0 p-0" v-for="track in tracks.slice(0, 12)">
+                <CarouselTrack :track="track" />
+            </li>
+        </ul>
+        <hr class="mx-3">
+        <div class="row g-2">
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="track in tracks.slice(12, 24)">
+                <Track :track="track" />
+            </div>
         </div>
     </div>
     <div class="hide-on-mobile row g-2 mx-2">
+        <h3 class="fw-bold px-3">Recommended for you</h3>
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="track in tracks">
             <Track :track="track" />
         </div>

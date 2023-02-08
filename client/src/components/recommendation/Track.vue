@@ -32,7 +32,7 @@ function get_cover(cover) {
     if (cover) {
         return cover;
     }
-    return "/images/playlist.png"
+    return "/images/track.svg"
 }
 
 async function openTrack() {

@@ -59,11 +59,6 @@ img {
 
 .placeholder-img {
     width: 100%;
-    background-image: linear-gradient(to bottom right, grey, var(--bs-dark));
-}
-
-.placeholder-img-lite {
-    background-image: linear-gradient(to bottom right, grey, var(--bs-dark));
 }
 
 .search-link {

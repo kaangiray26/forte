@@ -44,7 +44,7 @@
                                 <div class="d-flex w-100 justify-content-between">
                                     <div class="d-flex">
                                         <div class="d-flex align-items-center">
-                                            <img :src="album.cover" class="track-cover" />
+                                            <img :src="get_track_cover(album.cover)" class="track-cover" />
                                         </div>
                                         <div class="d-flex align-items-center">
                                             <button class="btn btn-link search-link d-flex text-start"
@@ -86,7 +86,17 @@ function get_cover(cover) {
         }
         return ft.server + '/' + cover;
     }
-    return "/images/playlist.png"
+    return "/images/album.svg"
+}
+
+function get_track_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/track.svg"
 }
 
 async function play_track(id) {

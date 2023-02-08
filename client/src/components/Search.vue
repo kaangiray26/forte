@@ -11,7 +11,7 @@
             v-for="result in results" @contextmenu.prevent="right_click({ item: result, event: $event })"
             @click="openResult(result)">
             <div class="d-flex flex-fill align-items-center">
-                <img :src="get_cover(result.cover)" class="playlist-selection-img me-2" />
+                <img :src="get_cover(result.type, result.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link" :content_id="result.id" :content_type="result.type"
                         style="display:contents;">
@@ -38,14 +38,24 @@ const query_param = computed(() => {
     return router.currentRoute.value.params.query;
 })
 
-function get_cover(cover) {
+function get_cover(type, cover) {
     if (cover) {
         if (cover.startsWith('http')) {
             return cover;
         }
         return ft.server + '/' + cover;
     }
-    return "/images/playlist.png"
+
+    switch (type) {
+        case 'track':
+            return "/images/track.svg";
+        case 'album':
+            return "/images/album.svg";
+        case 'artist':
+            return "/images/artist.svg";
+        case 'playlist':
+            return "/images/cassette.svg";
+    }
 }
 
 async function get_search_results() {

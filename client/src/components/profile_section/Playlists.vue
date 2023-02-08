@@ -32,7 +32,7 @@
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow" @click="showPlaylistCreate">
-                        <img class="playlist-img" src="/images/add.png" />
+                        <img class="playlist-img" src="/images/add.svg" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
@@ -99,7 +99,7 @@ function get_cover(cover) {
     if (cover) {
         return ft.server + '/' + cover;
     }
-    return "/images/playlist.png"
+    return "/images/cassette.svg"
 }
 
 async function openPlaylist(id) {

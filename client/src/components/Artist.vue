@@ -10,7 +10,7 @@
         <div class="card-body">
             <div class="row g-4">
                 <div class="col-12 col-sm-auto">
-                    <img class="playlist-img shadow" :src="artist.cover" />
+                    <img class="playlist-img shadow" :src="get_artist_cover(artist.cover)" />
                 </div>
                 <div class="col d-flex flex-column justify-content-between">
                     <div class="d-flex flex-column">
@@ -35,7 +35,7 @@
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex align-items-start padding-7">
-                                        <img :src="album.cover" class="track-cover" />
+                                        <img :src="get_album_cover(album.cover)" class="track-cover" />
                                     </div>
                                     <div class="d-flex align-items-start">
                                         <button class="btn btn-link search-link d-flex flex-column text-start"
@@ -69,6 +69,26 @@ const albums = ref([]);
 const loaded = ref(false);
 
 const router = useRouter();
+
+function get_artist_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/artist.svg"
+}
+
+function get_album_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/album.svg"
+}
 
 function year_sort(a, b) {
     return b.year - a.year;

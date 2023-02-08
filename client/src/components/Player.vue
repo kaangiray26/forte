@@ -5,8 +5,7 @@
                 <div v-show="store.playing.loaded">
                     <div class="d-flex flex-row justify-content-between align-items-center p-2 pb-0 rounded m-0">
                         <div class="d-flex flex-row align-items-center">
-                            <img class="img-fluid placeholder-img-lite me-2" :src="get_cover(store.playing.cover)"
-                                width="56" height="56" />
+                            <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-wrap clickable red-on-hover" @click="openAlbum">{{
                                     store.playing.title
@@ -72,8 +71,7 @@
                 :class="{ 'justify-content-between': store.playing.loaded, 'justify-content-end': !store.playing.loaded }">
                 <div v-show="store.playing.loaded" class="overflow-hidden">
                     <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
-                        <img class="img-fluid placeholder-img-lite me-2" :src="store.playing.cover" width="56"
-                            height="56" />
+                        <img class="img-fluid me-2" :src="store.playing.cover" width="56" height="56" />
                         <div class="overflow-hidden">
                             <div class="fw-bold text-nowrap clickable red-on-hover" @click="openAlbum">{{
                                 store.playing.title
@@ -131,7 +129,7 @@ function get_cover(cover) {
     if (cover) {
         return cover;
     }
-    return "/images/playlist.png"
+    return "/images/track.svg"
 }
 
 async function muteVolume() {
