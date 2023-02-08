@@ -40,7 +40,7 @@ function get_cover(cover) {
     if (cover) {
         return ft.server + '/' + cover;
     }
-    return "/images/playlist.png"
+    return "/images/cassette.svg"
 }
 
 async function add_to_playlist(playlist_id) {

@@ -94,7 +94,7 @@ function get_cover(cover) {
     if (cover) {
         return ft.server + '/' + cover;
     }
-    return "/images/playlist.png"
+    return "/images/cassette.svg"
 }
 
 async function delete_track_from_playlist(id) {

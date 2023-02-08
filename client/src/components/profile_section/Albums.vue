@@ -90,7 +90,7 @@ function get_cover(cover) {
         }
         return ft.server + '/' + cover;
     }
-    return "/images/playlist.png"
+    return "/images/album.svg"
 }
 
 async function openAlbum(id) {

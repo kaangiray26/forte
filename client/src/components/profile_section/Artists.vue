@@ -82,7 +82,7 @@ function get_cover(cover) {
         }
         return ft.server + '/' + cover;
     }
-    return "/images/playlist.png"
+    return "/images/artist.svg"
 }
 
 async function openArtist(id) {

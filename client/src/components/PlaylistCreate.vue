@@ -14,7 +14,7 @@
                             <div class="col">
                                 <div class="position-relative">
                                     <div class="d-flex ratio ratio-1x1">
-                                        <img ref="playlist_cover" src="/images/playlist.png"
+                                        <img ref="playlist_cover" src="/images/cassette.svg"
                                             class="figure-img img-fluid rounded img-profile">
                                         <input ref="cover_upload" type="file" class="visually-hidden"
                                             @change="handle_cover" />
