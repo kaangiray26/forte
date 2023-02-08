@@ -17,15 +17,15 @@
                         </div>
                     </div>
                 </li>
-                <li class="list-group-item list-group-item-action d-flex justify-content-between"
-                    :class="{ 'now-playing': index === store.queue_index }" v-for="(track, index) in queue">
+                <li class="list-group-item list-group-item-action d-flex justify-content-between clickable"
+                    :class="{ 'now-playing': index === store.queue_index }" v-for="(track, index) in queue"
+                    @click="play_queue_track(index)">
                     <div class="d-flex flex-fill">
                         <div class="ratio-1x1 me-2">
                             <img :src="track.cover" class="placeholder-img" width="56" height="56" />
                         </div>
                         <div class="d-flex align-items-center">
-                            <button class="btn btn-link search-link" :content_id="track.id" style="display:contents;"
-                                @click="play_queue_track(index)">
+                            <button class="btn btn-link search-link" :content_id="track.id" style="display:contents;">
                                 <span class="text-muted me-2">{{ index + 1 }}.</span>{{ track.title }}
                             </button>
                         </div>

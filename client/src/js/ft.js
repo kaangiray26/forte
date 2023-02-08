@@ -204,7 +204,8 @@ class Forte {
     }
 
     async track_finished() {
-        let track = store.playing.id;
+        let track = store.queue[store.queue_index].id;
+        this.addTrackToHistory(track);
 
         // At the end of the queue
         if (store.queue_index + 1 == store.queue.length) {
@@ -222,7 +223,6 @@ class Forte {
             store.playing.is_playing = false;
             store.playing.seek = 0;
             store.playing.progress = 0;
-            this.addTrackToHistory(track);
             return;
         }
 
@@ -234,7 +234,6 @@ class Forte {
         }
         store.queue_index += 1;
         this.load_track(store.queue[store.queue_index]);
-        this.addTrackToHistory(track);
     }
 
     async mute() {
