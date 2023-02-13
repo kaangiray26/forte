@@ -39,6 +39,12 @@ img {
     --bs-btn-disabled-border-color: #fff;
 }
 
+.complete-view {
+    height: 100vh;
+    /* Fallback for browsers that do not support Custom Properties */
+    height: calc(var(--vh, 1vh) * 100);
+}
+
 .content-view {
     flex: 1 1 auto;
     overflow: scroll;
