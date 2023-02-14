@@ -18,6 +18,10 @@
                     <div class="d-flex flex-column">
                         <h1 class="artist-title">{{ artist.title }}</h1>
                         <small class="text-muted">{{ albums.length }} albums</small>
+                        <div class="pt-2">
+                            <button type="button" class="btn btn-dark" :class="{ 'disabled': about_disabled }"
+                                @click="get_about">{{ about_text }}</button>
+                        </div>
                         <hr />
                     </div>
                     <ul class="list-group">
@@ -68,9 +72,51 @@ import { right_click } from '/js/events.js';
 
 const artist = ref({});
 const albums = ref([]);
+
 const loaded = ref(false);
+const about_disabled = ref(false);
+const about_text = ref("About");
 
 const router = useRouter();
+
+async function get_about() {
+    about_disabled.value = true;
+
+    // Query with "(band)"
+
+    let search_1 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)} (band)&gpsnamespace=0&gpslimit=6`)
+        .then((response) => response.json())
+        .then((data) => {
+            return Object.keys(data.query.pages);
+        })
+        .catch((error) => {
+            return [];
+        });
+
+    if (search_1.length) {
+        window.open("https://en.wikipedia.org/?curid=" + search_1[0], "_blank")
+        about_disabled.value = false;
+        return
+    }
+
+    // Query without "(band)"
+
+    let search_2 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)}&gpsnamespace=0&gpslimit=6`)
+        .then((response) => response.json())
+        .then((data) => {
+            return Object.keys(data.query.pages);
+        }).catch((error) => {
+            return [];
+        });
+
+    if (search_2.length) {
+        window.open("https://en.wikipedia.org/?curid=" + search_2[0], "_blank")
+        about_disabled.value = false;
+        return
+    }
+
+    about_text.value = "No information found";
+}
 
 function get_artist_cover(cover) {
     if (cover) {
