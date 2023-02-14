@@ -13,16 +13,17 @@ if ('serviceWorker' in navigator) {
 
 window.ft = new Forte();
 window.ft.init().then(() => {
-    navigator.mediaSession.setActionHandler('play', () => {
+    navigator.mediaSession.playbackState = "none";
+    navigator.mediaSession.setActionHandler("play", () => {
         window.ft.play();
     });
-    navigator.mediaSession.setActionHandler('pause', () => {
+    navigator.mediaSession.setActionHandler("pause", () => {
         window.ft.play();
     });
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
         window.ft.play_next();
     });
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
         window.ft.play_previous();
     });
 

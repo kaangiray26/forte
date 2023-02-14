@@ -249,11 +249,13 @@ class Forte {
         if (store.playing.is_playing) {
             this.player.pause();
             store.playing.is_playing = false;
+            navigator.mediaSession.playbackState = "paused";
             return;
         }
 
         this.player.play();
         store.playing.is_playing = true;
+        navigator.mediaSession.playbackState = "playing";
     }
 
     async play_previous() {

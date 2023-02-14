@@ -1,5 +1,5 @@
 <template>
-    <div class="complete-view d-flex flex-column vh-100 vw-100">
+    <div class="vw-100 complete-view d-flex flex-column">
         <Toasts />
         <div class="content-view pb-4" style="flex: 1 1 auto;">
             <NavBar ref="thisNavBar" />
@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 import NavBar from './NavBar.vue';
 import ContentView from './ContentView.vue';
 import Player from './Player.vue';
@@ -78,7 +78,7 @@ async function keyPress(event) {
     }
 }
 
-onMounted(() => {
+onBeforeMount(() => {
     let vh = window.innerHeight * 0.01;
     // Then we set the value in the --vh custom property to the root of the document
     document.documentElement.style.setProperty('--vh', `${vh}px`);
