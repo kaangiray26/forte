@@ -10,24 +10,32 @@
 
 ## Features
 * [x] Add tracks and albums to your queue
-* [x] Listen to radio streams
 * [x] Mark your favorite tracks, albums, artists, playlists
+* [x] Endless listening with radio feature
 * [x] Create playlists
-* [x] Specialized context menus
 * [x] Desktop / Mobile Player
+* [x] Listen to TuneIn stations
+* [x] Specialized context menus
 * [x] Make fuzzy searches
 * [x] Add friends
 * [x] Playing controls
 * [x] Keyboard shortcuts
 * [x] Lyrics support
 * [x] MediaSession API
+* [x] Progressive Web App
 
 # Getting started
 
 forte is a self-hosted music platform. You can either **connect to a forte server** or **create your own server** for your friends & family. However, it is also very convenient to use forte on your local machine as a **stand-alone music player**. Follow this guide to learn how to connect and how to build your own forte server.
 
-### Using forte
+## Using forte
 If you know a forte server and just want to connect to use the service, go to https://forte.buzl.uk. The webpage is hosted with GitHub pages and uses the latest forte version. Therefore, this is the **recommended way** to access forte services.
+
+If you want to use forte on your mobile device, we suggest using the [PWA](https://en.wikipedia.org/wiki/Progressive_web_application) version of the application. You can access the PWA version by going to https://forte.buzl.uk on your mobile device and clicking on the `Add to Home Screen` button.
+
+**However, Forte works best with the Chrome browser on your mobile device.**
+
+## Logging in
 
 Once you go to the website, you will be prompted with this dialog:
 
@@ -50,10 +58,8 @@ If you log in successfully, you will see the homepage of the application, where 
 
 Once you log in, your authorization parameters will be saved on the local session of your browser. However, if you ever want to reset these information, you can right click on the `Profile` button on the top right of the screen, you will see an option to `Reset`. This will clear the local storage along with your session storage.
 
-### Creating your own server
+## Creating your own server
 To build and host your own server you need a decent computer as we will be dealing with multiple users and streaming audio files to them. In the remaining of this section, we will be going over the steps of building the server. However, we won't be focusing on installing the PostgreSQL server.
-
----
 
 Before you go through the following steps, you need a PostgreSQL server with a database named `forte`, a user named `forte`, working on `localhost:5432`.
 
@@ -68,11 +74,11 @@ cd forte/server
 npm install
 ```
 Now change the library path and genius token in `forte/server/config.json`.
-### Using locally
+## Using locally
 ```
 node local.js
 ```
-### Using publicly
+## Using publicly
 ```
 npx greenlock init --config-dir ./greenlock.d --maintainer-email '<your email here>'
 ```
