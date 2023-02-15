@@ -77,13 +77,14 @@
             </div>
         </div>
     </div>
+    <!-- Mobile player -->
     <div ref="mobilePlayer" class="card text-bg-dark rounded-0 hide-on-desktop">
         <div class="card-body p-0">
             <div class="d-inline-flex flex-row w-100 align-items-center"
                 :class="{ 'justify-content-between': store.playing.loaded, 'justify-content-end': !store.playing.loaded }">
                 <div v-show="store.playing.loaded" class="overflow-hidden">
                     <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
-                        <img class="img-fluid me-2" :src="store.playing.cover" width="56" height="56" />
+                        <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
                         <div class="overflow-hidden">
                             <div class="fw-bold text-nowrap clickable red-on-hover" @click="openAlbum">{{
                                 store.playing.title

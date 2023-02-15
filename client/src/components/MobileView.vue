@@ -7,7 +7,7 @@
                     <div ref="cardView" class="card h-100">
                         <div>
                             <div class="m-4">
-                                <img :src="store.playing.cover"
+                                <img :src="get_cover(store.playing.cover)"
                                     class="card-img-top image-stable border border-dark rounded">
                             </div>
                             <div class="overflow-hidden text-center">
@@ -84,6 +84,13 @@ const emit = defineEmits(['queue', 'lyrics', 'shuffle']);
 let offcanvas = null;
 const offcanvasEl = ref(null);
 const cardView = ref(null);
+
+function get_cover(cover) {
+    if (cover) {
+        return cover;
+    }
+    return "/images/track.svg"
+}
 
 function _show() {
     offcanvas.show();

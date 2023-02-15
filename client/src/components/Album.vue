@@ -24,7 +24,8 @@
                     <h1 class="album-title mb-4">{{ album.title }}</h1>
                     <router-link :to="'/artist/' + artist.id" class="search-link">
                         <div class="d-inline-flex align-content-center align-items-center">
-                            <img class="img-fluid figure-img rounded m-0" :src="artist.cover" width="28" height="28">
+                            <img class="img-fluid figure-img rounded m-0" :src="get_artist_cover(artist.cover)"
+                                width="28" height="28">
                             <span class="mx-2">{{ artist.title }}</span>
                         </div>
                     </router-link>
@@ -98,6 +99,16 @@ function get_track_cover(cover) {
         return ft.server + '/' + cover;
     }
     return "/images/track.svg"
+}
+
+function get_artist_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/artist.svg"
 }
 
 async function play_track(id) {
