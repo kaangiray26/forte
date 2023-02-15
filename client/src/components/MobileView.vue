@@ -5,11 +5,24 @@
             <div class="row h-100 justify-content-center align-items-end gx-0">
                 <div class="col h-100">
                     <div ref="cardView" class="card h-100">
-                        <img :src="store.playing.cover" class="card-img-top image-stable p-2">
-                        <div class="overflow-hidden text-center">
-                            <div class="text-wrap">
-                                <h5 class="fw-bold">{{ store.playing.title }}</h5>
+                        <div>
+                            <div class="m-4">
+                                <img :src="store.playing.cover"
+                                    class="card-img-top image-stable border border-dark rounded">
                             </div>
+                            <div class="overflow-hidden text-center">
+                                <div class="text-wrap">
+                                    <h5 class="fw-bold">{{ store.playing.title }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <button v-show="store.playing.radio" type="button" class="btn btn-sm btn-success fw-bold"
+                                @click="radio">ON
+                                AIR</button>
+                            <button v-show="!store.playing.radio" type="button" class="btn btn-sm btn-danger fw-bold"
+                                @click="radio">OFF
+                                AIR</button>
                         </div>
                         <div class="card-body d-flex align-items-end p-2">
                             <div class="d-flex flex-fill flex-column">
@@ -28,23 +41,28 @@
                                         <span class="visually-hidden"></span>
                                     </div>
                                 </div>
+                                <!-- First set of buttons -->
                                 <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Basic example">
-                                    <button type="button" class="btn btn-dark rounded bi bi-skip-start-fill mx-1"
+                                    <button type="button" class="btn btn-dark rounded bi bi-skip-start-fill"
                                         @click="play_previous"></button>
-                                    <button type="button" class="btn btn-dark rounded bi mx-1" :class="{
+                                    <button type="button" class="btn btn-dark rounded bi mx-2" :class="{
                                         'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
                                     }" @click="play"></button>
-                                    <button type="button" class="btn btn-dark rounded bi bi-skip-end-fill mx-1"
+                                    <button type="button" class="btn btn-dark rounded bi bi-skip-end-fill"
                                         @click="play_next"></button>
                                 </div>
+                                <hr />
+                                <!-- Second set of buttons -->
                                 <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn rounded bi bi-volume-up-fill mx-1">
-                                    </button>
-                                    <button type="button" class="btn rounded bi bi-chat-square-text-fill mx-1"
-                                        @click="emit('lyrics')">
-                                    </button>
-                                    <button type="button" class="btn rounded bi bi-collection-fill mx-1"
-                                        @click="emit('queue')"></button>
+                                    <button type="button" class="btn border bi bi-shuffle mx-1"
+                                        @click="emit('shuffle')" />
+                                    <button type="button" class="btn bi bi-volume-up-fill mx-1" />
+                                    <button type="button" class="btn bi bi-chat-square-text-fill mx-1"
+                                        @click="emit('lyrics')" />
+                                    <button type="button" class="btn bi bi-collection-fill mx-1"
+                                        @click="emit('queue')" />
+                                    <button type="button" class="btn border bi mx-1" :class="props.repeat_icon"
+                                        @click="repeat" />
                                 </div>
                             </div>
                         </div>
@@ -61,7 +79,7 @@ import { Offcanvas } from "bootstrap"
 import { store } from "/js/store.js"
 import Hammer from "hammerjs";
 
-const emit = defineEmits(['queue', 'lyrics']);
+const emit = defineEmits(['queue', 'lyrics', 'shuffle']);
 
 let offcanvas = null;
 const offcanvasEl = ref(null);
@@ -80,6 +98,14 @@ function formatTime(secs) {
     let minutes = Math.floor(seconds / 60);
     seconds = seconds % 60;
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+}
+
+async function repeat() {
+    ft.repeat();
+}
+
+async function radio() {
+    ft.radio();
 }
 
 defineExpose({
@@ -103,6 +129,10 @@ const props = defineProps({
     play_previous: {
         type: Function,
         default: () => { }
+    },
+    repeat_icon: {
+        type: String,
+        default: "bi-repeat text-muted"
     },
 })
 

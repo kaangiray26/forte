@@ -1,5 +1,5 @@
 <template>
-    <div id="lyricsModal" class="modal" tabindex="-1">
+    <div id="lyricsModal" class="modal p-2" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">

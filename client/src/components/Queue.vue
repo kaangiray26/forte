@@ -22,7 +22,7 @@
                     @click="play_queue_track(index)">
                     <div class="d-flex flex-fill">
                         <div class="ratio-1x1 me-2">
-                            <img :src="track.cover" class="placeholder-img" width="56" height="56" />
+                            <img :src="get_track_cover(track.cover)" class="placeholder-img" width="56" height="56" />
                         </div>
                         <div class="d-flex align-items-center">
                             <button class="btn btn-link search-link" :content_id="track.id" style="display:contents;">
@@ -45,6 +45,16 @@ let offcanvas = null;
 const offcanvasEl = ref(null);
 
 const queue = ref(store.queue);
+
+function get_track_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/track.svg"
+}
 
 function shuffle_arr(arr) {
     for (let i = arr.length - 1; i > 0; i--) {

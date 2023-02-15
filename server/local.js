@@ -113,6 +113,7 @@ app.get("/api/album/:id/unlove", isAuthenticated, db.unlove_album)
 app.get("/api/album/:id/loved", isAuthenticated, db.get_album_loved)
 
 app.get("/api/all/albums", isAuthenticated, db.get_all_albums)
+app.get("/api/random/track", isAuthenticated, db.get_random_track)
 app.get("/api/random/tracks", isAuthenticated, db.get_random_tracks)
 
 app.get("/api/friends", isAuthenticated, db.get_friends)

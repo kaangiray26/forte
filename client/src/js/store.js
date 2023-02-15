@@ -20,6 +20,7 @@ const store = reactive({
         repeat: 0,
         duration: 0,
         progress: 0,
+        radio: false,
     },
     queue: [],
     queue_index: 0,

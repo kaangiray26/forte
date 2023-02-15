@@ -24,6 +24,7 @@ class Forte {
             this.track_loaded()
             this.listen_progress()
         })
+
         this.player.on('end', () => {
             this.track_finished()
         })
@@ -207,6 +208,16 @@ class Forte {
         let track = store.queue[store.queue_index].id;
         this.addTrackToHistory(track);
 
+        // Radio
+        if (store.playing.radio) {
+            this.API('/random/track').then((response) => {
+                this.load_track(response.track);
+                this.addToQueue([response.track]);
+                store.queue_index += 1;
+            })
+            return
+        }
+
         // At the end of the queue
         if (store.queue_index + 1 == store.queue.length) {
             // Repeat queue
@@ -239,6 +250,10 @@ class Forte {
     async mute() {
         store.playing.muted = !store.playing.muted;
         ft.player.mute(store.playing.muted);
+    }
+
+    async repeat() {
+        store.playing.repeat = (store.playing.repeat + 1) % 3;
     }
 
     async play() {
@@ -318,7 +333,6 @@ class Forte {
     }
 
     async addTrackToHistory() {
-        console.log("Starting addTrackToHistory")
         let track = store.queue[store.queue_index].id;
         let response = await fetch(this.server + `/api/profile/history/add`, {
             method: "POST",
@@ -477,6 +491,20 @@ class Forte {
             return response.json();
         });
         return response;
+    }
+
+    async radio() {
+        store.playing.radio = !store.playing.radio;
+        if (!store.playing.radio) {
+            return
+        }
+
+        if (store.queue.length == 0) {
+            this.API('/random/track').then((response) => {
+                this.load_track(response.track);
+                this.addToQueue([response.track]);
+            });
+        }
     }
 }
 

@@ -52,11 +52,23 @@
                             <ul class="dropdown-menu shadow-lg context-menu">
                                 <li>
                                     <button class="dropdown-item" type="button" @click="show_lyrics">
-                                        <span class="bi bi-justify-left me-1"></span>Show lyrics</button>
+                                        <span class="bi bi-justify-left me-2"></span>
+                                        <span>Show lyrics</span>
+                                    </button>
                                 </li>
                                 <li>
                                     <button class="dropdown-item" type="button" @click="show_lyrics">
-                                        <span class="bi bi-soundwave me-1"></span>Group session</button>
+                                        <span class="bi bi-soundwave me-2"></span>
+                                        <span>Group session</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" type="button" @click="radio">
+                                        <span class="bi bi-broadcast"></span>
+                                        <span class="mx-2">Radio</span>
+                                        <span v-show="store.playing.radio" class="badge bg-success">ON AIR</span>
+                                        <span v-show="!store.playing.radio" class="badge bg-danger">OFF AIR</span>
+                                    </button>
                                 </li>
                             </ul>
                         </button>
@@ -100,7 +112,8 @@
     <Lyrics ref="lyricsEl" />
     <Queue ref="queueEl" />
     <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
-        :play_previous="play_previous" @queue="show_queue" @lyrics="show_lyrics" />
+        :play_previous="play_previous" :repeat_icon="repeat_icon" @queue="show_queue" @lyrics="show_lyrics"
+        @shuffle="shuffle" />
 </template>
 
 <script setup>
@@ -259,11 +272,15 @@ async function show_lyrics() {
 }
 
 async function repeat() {
-    store.playing.repeat = (store.playing.repeat + 1) % 3;
+    ft.repeat();
 }
 
 async function shuffle() {
     queueEl.value.shuffle();
+}
+
+async function radio() {
+    ft.radio();
 }
 
 defineExpose({

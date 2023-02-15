@@ -42,6 +42,7 @@ module.exports = {
     get_profile_artists: _get_profile_artists,
     get_profile_playlists: _get_profile_playlists,
     get_profile_tracks: _get_profile_tracks,
+    get_random_track: _get_random_track,
     get_random_tracks: _get_random_tracks,
     get_track: _get_track,
     get_track_basic: _get_track_basic,
@@ -780,6 +781,16 @@ async function _get_all_albums(req, res, next) {
         res.status(200)
             .json({
                 "albums": albums
+            })
+    })
+}
+
+async function _get_random_track(req, res, next) {
+    db.task(async t => {
+        let track = await t.oneOrNone("SELECT * FROM tracks ORDER BY random() LIMIT 1");
+        res.status(200)
+            .json({
+                "track": track
             })
     })
 }
