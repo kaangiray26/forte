@@ -107,7 +107,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    let hammertime = new Hammer(offcanvasEl.value);
+    let hammertime = new Hammer(cardView.value);
     hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
     hammertime.on("swipedown", function () {
         _hide();

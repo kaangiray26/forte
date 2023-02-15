@@ -21,7 +21,7 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-app.use(express.static('public/assets'))
+app.use(express.static('admin/src/dist'))
 app.use(express.static('uploads'))
 
 function isAdmin(req, res, next) {
@@ -38,11 +38,23 @@ function isAuthenticated(req, res, next) {
 }
 
 app.get("/", isAdmin, (req, res, next) => {
-    res.sendFile(path.join(__dirname, '/public/index.html'))
+    res.sendFile(path.join(__dirname, '/admin/src/dist/index.html'))
 })
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/login.html'))
+    res.redirect("/login");
+})
+
+app.get("/login", (req, res) => {
+    res.sendFile(path.join(__dirname, '/admin/src/dist/index.html'))
+})
+
+app.get("/auth", (req, res) => {
+    let status = (req.session.user && req.session.user == 'forte');
+    console.log("Status:", status);
+    res.status(200).json({
+        "status": status,
+    })
 })
 
 app.post("/login", db.login)
