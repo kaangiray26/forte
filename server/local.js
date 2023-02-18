@@ -3,12 +3,17 @@ const session = require('express-session')
 const multer = require('multer')
 const upload = multer({ dest: 'uploads/' })
 
+// const history = require('connect-history-api-fallback')
+
 const cors = require('cors')
 const path = require('path')
 const crypto = require('crypto')
 const db = require('./js/db.js')
 
 const app = express()
+
+// connect-history-api-fallback
+// app.use(history())
 
 app.use(cors({ credentials: true, origin: true }))
 
@@ -37,38 +42,35 @@ function isAuthenticated(req, res, next) {
     })
 }
 
-app.get("/", isAdmin, (req, res, next) => {
-    res.sendFile(path.join(__dirname, '/admin/src/dist/index.html'))
-})
-
-app.get("/", (req, res) => {
-    res.redirect("/login");
-})
-
-app.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, '/admin/src/dist/index.html'))
-})
+// Admin Panel
 
 app.get("/auth", (req, res) => {
     let status = (req.session.user && req.session.user == 'forte');
-    console.log("Status:", status);
     res.status(200).json({
         "status": status,
     })
 })
 
-app.post("/login", db.login)
-
+app.post("/login", db.admin_login)
+app.get("/session", db.admin_session)
 app.get("/log_off", (req, res, next) => {
-    req.session.user = null
-    res.sendStatus(200)
+    delete req.session.user
+    res.json({
+        "success": "logged off."
+    })
 })
 
 app.get("/get_users", isAdmin, db.get_users)
-
 app.post("/add_user", isAdmin, db.add_user)
-
 app.post("/remove_user", isAdmin, db.remove_user)
+
+app.get("/search/artist/:query", isAdmin, db.search_artist)
+app.get("/search/album/:query", isAdmin, db.search_album)
+app.get("/search/track/:query", isAdmin, db.search_track)
+
+app.put("/artist/:id", isAdmin, db.update_artist)
+app.put("/album/:id", isAdmin, db.update_album)
+app.put("/track/:id", isAdmin, db.update_track)
 
 // API
 

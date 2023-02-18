@@ -37,15 +37,18 @@ function isAuthenticated(req, res, next) {
     })
 }
 
-app.get("/", isAdmin, (req, res, next) => {
-    res.sendFile(path.join(__dirname, '/public/index.html'))
+// Admin Panel
+
+app.get("/auth", (req, res) => {
+    let status = (req.session.user && req.session.user == 'forte');
+    res.status(200).json({
+        "status": status,
+    })
 })
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/login.html'))
-})
+app.post("/login", db.admin_login)
 
-app.post("/login", db.login)
+app.get("/session", db.admin_session)
 
 app.get("/log_off", (req, res, next) => {
     req.session.user = null

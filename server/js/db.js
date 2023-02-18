@@ -21,6 +21,8 @@ module.exports = {
     add_history: _add_history,
     add_track_to_playlist: _add_track_to_playlist,
     add_user: _add_user,
+    admin_login: _admin_login,
+    admin_session: _admin_session,
     auth: _auth,
     create_playlist: _create_playlist,
     delete_playlist: _delete_playlist,
@@ -51,18 +53,23 @@ module.exports = {
     get_users: _get_users,
     init: _init,
     is_authenticated: _is_authenticated,
-    login: _login,
     love_album: _love_album,
     love_artist: _love_artist,
     love_track: _love_track,
     remove_user: _remove_user,
     search: _search,
+    search_artist: _search_artist,
+    search_album: _search_album,
+    search_track: _search_track,
     session: _session,
     stream: _stream,
     unlove_album: _unlove_album,
     unlove_artist: _unlove_artist,
     unlove_track: _unlove_track,
     upload_cover: _upload_cover,
+    update_artist: _update_artist,
+    update_album: _update_album,
+    update_track: _update_track,
 }
 
 async function _init(args) {
@@ -364,6 +371,48 @@ async function _search(req, res, next) {
         })
 }
 
+async function _search_artist(req, res, next) {
+    let query = req.params.query;
+    if (!query) {
+        res.status(400).json({ "error": "Query parameter not given." });
+        return;
+    }
+
+    db.any("SELECT * FROM artists WHERE (title % $1) AND similarity(title, $1) > 0.2 ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
+        .then(function (data) {
+            res.status(200)
+                .json({ "data": data })
+        })
+}
+
+async function _search_album(req, res, next) {
+    let query = req.params.query;
+    if (!query) {
+        res.status(400).json({ "error": "Query parameter not given." });
+        return;
+    }
+
+    db.any("SELECT * FROM albums WHERE (title % $1) AND similarity(title, $1) > 0.2 ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
+        .then(function (data) {
+            res.status(200)
+                .json({ "data": data })
+        })
+}
+
+async function _search_track(req, res, next) {
+    let query = req.params.query;
+    if (!query) {
+        res.status(400).json({ "error": "Query parameter not given." });
+        return;
+    }
+
+    db.any("SELECT * FROM tracks WHERE (title % $1) AND similarity(title, $1) > 0.2 ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
+        .then(function (data) {
+            res.status(200)
+                .json({ "data": data })
+        })
+}
+
 async function _stream(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -542,7 +591,7 @@ async function _get_playlist_loved(req, res, next) {
     })
 }
 
-async function _login(req, res, next) {
+async function _admin_login(req, res, next) {
     if (!['username', 'password'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .send(JSON.stringify({
@@ -570,9 +619,21 @@ async function _login(req, res, next) {
     })
 }
 
+async function _admin_session(req, res, next) {
+    if (!req.session.hasOwnProperty('user')) {
+        res.status(400).json({
+            "error": "Not authorized."
+        })
+        return;
+    }
+    res.status(200).json({
+        "username": req.session.user
+    })
+}
+
 async function _get_users(req, res, next) {
     db.task(async t => {
-        let users = await t.manyOrNone("SELECT username FROM users");
+        let users = await t.manyOrNone("SELECT username, cover FROM users");
         res.status(200)
             .send(JSON.stringify({
                 "users": users
@@ -770,6 +831,63 @@ async function _upload_cover(req, res, next) {
         res.status(200)
             .json({
                 "cover": req.file.filename
+            })
+    })
+}
+
+async function _update_artist(req, res, next) {
+    if (!['id', 'cover', 'title'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Metadata not given."
+            });
+        return;
+    }
+
+    db.task(async t => {
+        await t.none("UPDATE artists SET cover = $1, title = $2 WHERE id = $3", [req.body.cover, req.body.title, req.body.id]);
+        res.status(200)
+            .json({
+                "success": "Artist updated."
+            })
+    })
+}
+
+async function _update_album(req, res, next) {
+    if (!['id', 'cover', 'title', 'date', 'year', 'genre'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Metadata not given."
+            });
+        return;
+    }
+
+    console.log(req.body.genre)
+
+    db.task(async t => {
+        await t.none("UPDATE albums SET cover = $1, title = $2, date = $3, year = $4, genre = ARRAY[$5] WHERE id = $6", [req.body.cover, req.body.title, req.body.date, req.body.year, req.body.genre, req.body.id]);
+        await t.none("UPDATE tracks SET cover = $1 WHERE album = $2", [req.body.cover, req.body.id]);
+        res.status(200)
+            .json({
+                "success": "Album updated."
+            })
+    })
+}
+
+async function _update_track(req, res, next) {
+    if (!['id', 'cover', 'title'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Metadata not given."
+            });
+        return;
+    }
+
+    db.task(async t => {
+        await t.none("UPDATE tracks SET cover = $1, title = $2 WHERE id = $3", [req.body.cover, req.body.title, req.body.id]);
+        res.status(200)
+            .json({
+                "success": "Track updated."
             })
     })
 }

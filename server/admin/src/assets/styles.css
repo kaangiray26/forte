@@ -18,3 +18,12 @@ body {
 .invisible {
     opacity: 0;
 }
+
+.img-profile {
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.clickable {
+    cursor: pointer;
+}

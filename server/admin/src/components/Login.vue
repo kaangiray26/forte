@@ -1,11 +1,11 @@
 <template>
-    <div class="row gx-0 h-100 vw-100 justify-content-center align-items-center">
+    <div class="row gx-0 h-100 vw-100 justify-content-center align-items-center p-4">
         <div class="col-12 col-lg-6">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-center">
                         <div class="d-flex flex-column justify-content-center align-items-center">
-                            <img class="img-fluid rounded bg-dark mb-2" src="/forte.svg" width="56" height="56">
+                            <img class="img-fluid bg-dark rounded-5 p-2 mb-2" src="/forte.svg" width="56" height="56">
                             <h5 class="fw-bold">Forte Dashboard</h5>
                         </div>
                     </div>
@@ -13,12 +13,13 @@
                     <div class="input-group flex-nowrap">
                         <span class="input-group-text bi bi-person-circle" id="addon-wrapping"></span>
                         <input ref="username" id="username" type="text" class="form-control" placeholder="Username"
-                            aria-label="Username" aria-describedby="addon-wrapping">
+                            aria-label="Username" aria-describedby="addon-wrapping" autocomplete="off">
                     </div>
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text bi bi-key" id="addon-wrapping"></span>
                         <input ref="password" id="password" type="password" class="form-control" placeholder="Password"
-                            aria-label="Password" aria-describedby="addon-wrapping" @keyup.enter="log_in">
+                            aria-label="Password" aria-describedby="addon-wrapping" @keyup.enter="log_in"
+                            autocomplete="off">
                     </div>
                     <div class="d-flex flex-fill justify-content-center">
                         <button class="btn btn-dark" onclick="log_in()">Log in</button>
@@ -33,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter();
@@ -70,10 +71,15 @@ async function log_in() {
 
     if (response.hasOwnProperty('success')) {
         sessionStorage.setItem('username', response.success);
+        sessionStorage.setItem('username', response.success);
         router.push("/");
         return
     }
 
     alert.value = true;
 }
+
+onMounted(() => {
+    username.value.focus();
+})
 </script>

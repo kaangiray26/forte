@@ -208,18 +208,18 @@ class Forte {
         let track = store.queue[store.queue_index].id;
         this.addTrackToHistory(track);
 
-        // Radio
-        if (store.playing.radio) {
-            this.API('/random/track').then((response) => {
-                this.load_track(response.track);
-                this.addToQueue([response.track]);
-                store.queue_index += 1;
-            })
-            return
-        }
-
         // At the end of the queue
         if (store.queue_index + 1 == store.queue.length) {
+            // Radio
+            if (store.playing.radio) {
+                this.API('/random/track').then((response) => {
+                    this.load_track(response.track);
+                    this.addToQueue([response.track]);
+                    store.queue_index += 1;
+                })
+                return
+            }
+
             // Repeat queue
             if (store.playing.repeat == 1) {
                 store.queue_index = 0;
@@ -309,6 +309,7 @@ class Forte {
     }
 
     async addToQueueNext(tracks) {
+        console.log(store.queue);
         store.queue.splice(1, 0, ...tracks);
     }
 
