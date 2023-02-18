@@ -274,7 +274,7 @@ async function save_artist() {
     })
 
     if (response.hasOwnProperty("success")) {
-        save_artist();
+        search_artist();
         artist_modal.value.hide();
     }
 }
