@@ -10,9 +10,9 @@
                                 <img :src="get_cover(store.playing.cover)"
                                     class="card-img-top image-stable border border-dark rounded">
                             </div>
-                            <div class="overflow-hidden text-center">
+                            <div class="overflow-hidden text-center clickable mt-0 m-4" @click="openAlbum">
                                 <div class="text-wrap">
-                                    <h5 class="fw-bold">{{ store.playing.title }}</h5>
+                                    <h5 class="fw-bold bg-dark text-white rounded p-2 m-0">{{ store.playing.title }}</h5>
                                 </div>
                             </div>
                         </div>
@@ -54,13 +54,11 @@
                                 <hr />
                                 <!-- Second set of buttons -->
                                 <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn border bi bi-shuffle mx-1"
-                                        @click="emit('shuffle')" />
+                                    <button type="button" class="btn border bi bi-shuffle mx-1" @click="emit('shuffle')" />
                                     <button type="button" class="btn bi bi-volume-up-fill mx-1" />
                                     <button type="button" class="btn bi bi-chat-square-text-fill mx-1"
                                         @click="emit('lyrics')" />
-                                    <button type="button" class="btn bi bi-collection-fill mx-1"
-                                        @click="emit('queue')" />
+                                    <button type="button" class="btn bi bi-collection-fill mx-1" @click="emit('queue')" />
                                     <button type="button" class="btn border bi mx-1" :class="props.repeat_icon"
                                         @click="repeat" />
                                 </div>
@@ -75,15 +73,24 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router';
 import { Offcanvas } from "bootstrap"
 import { store } from "/js/store.js"
 import Hammer from "hammerjs";
+
+const router = useRouter();
 
 const emit = defineEmits(['queue', 'lyrics', 'shuffle']);
 
 let offcanvas = null;
 const offcanvasEl = ref(null);
 const cardView = ref(null);
+
+async function openAlbum() {
+    store.selected_track_id = store.playing.id;
+    router.push("/album/" + store.playing.album);
+    _hide();
+}
 
 function get_cover(cover) {
     if (cover) {

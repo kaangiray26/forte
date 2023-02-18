@@ -17,8 +17,7 @@
                 <div class="d-flex align-items-center p-2">
                     <!-- Left-side buttons -->
                     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-light bi bi-skip-start-fill"
-                            @click="play_previous"></button>
+                        <button type="button" class="btn btn-light bi bi-skip-start-fill" @click="play_previous"></button>
                         <button type="button" class="btn btn-light bi" :class="{
                             'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
                         }" @click="play"></button>
@@ -30,9 +29,8 @@
                             <small>{{ formatTime(store.playing.seek) }}</small>
                         </div>
                         <div class="progress flex-fill mx-2" @click="seekProgress($event)">
-                            <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0"
-                                aria-valuemin="0" aria-valuemax="100"
-                                :style="{ 'width': store.playing.progress + '%' }">
+                            <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
+                                aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
                             </div>
                         </div>
                         <div class="d-flex align-items-center font-monospace">
@@ -83,10 +81,10 @@
             <div class="d-inline-flex flex-row w-100 align-items-center"
                 :class="{ 'justify-content-between': store.playing.loaded, 'justify-content-end': !store.playing.loaded }">
                 <div v-show="store.playing.loaded" class="overflow-hidden">
-                    <div class="d-flex flex-row align-items-center p-2 pb-0 rounded m-0">
+                    <div class="d-flex flex-row align-items-center p-2 pb-0 rounded clickable m-0" @click="openAlbum">
                         <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
                         <div class="overflow-hidden">
-                            <div class="fw-bold text-nowrap clickable red-on-hover" @click="openAlbum">{{
+                            <div class="fw-bold text-nowrap clickable">{{
                                 store.playing.title
                             }}</div>
                         </div>
@@ -94,8 +92,7 @@
                 </div>
                 <div class="d-flex align-items-center p-2">
                     <div class="btn-group btn-group-sm me-2" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-light bi bi-skip-start-fill"
-                            @click="play_previous"></button>
+                        <button type="button" class="btn btn-light bi bi-skip-start-fill" @click="play_previous"></button>
                         <button type="button" class="btn btn-light bi" :class="{
                             'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
                         }" @click="play"></button>
