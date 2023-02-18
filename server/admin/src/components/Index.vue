@@ -19,7 +19,7 @@
             </div>
         </nav>
         <!-- Users collapse -->
-        <div class="bg-light rounded p-2 mt-4">
+        <div class="bg-light rounded p-2 mt-1">
             <button type="button" class="btn btn-dark w-100 text-start" data-bs-toggle="collapse"
                 data-bs-target="#userCollapse">Users</button>
             <div class="collapse" id="userCollapse">
