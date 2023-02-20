@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
+    "animejs": "^3.2.1",
     "bootstrap": "^5.2.2",
     "hammerjs": "^2.0.8",
     "howler": "^2.2.3",
+    "peerjs": "^1.4.7",
     "vue": "^3.2.41",
     "vue-router": "^4.1.5"
   },

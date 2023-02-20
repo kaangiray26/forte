@@ -2,8 +2,7 @@
     <div ref="offcanvasEl" class="offcanvas offcanvas-bottom border-0 vh-100 vw-100" tabindex="-1" id="offcanvasBottom"
         aria-labelledby="offcanvasBottomLabel" style="z-index: 1046;">
         <div class="offcanvas-header d-flex bg-dark text-white justify-content-end">
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
-                aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
             <ul class="list-group shadow-lg">
@@ -40,6 +39,7 @@
 import { ref, onMounted } from 'vue'
 import { Offcanvas } from "bootstrap"
 import { store } from "/js/store.js"
+import { notify, action, refresh_queue } from '/js/events.js';
 
 let offcanvas = null;
 const offcanvasEl = ref(null);
@@ -66,11 +66,19 @@ function shuffle_arr(arr) {
 }
 
 function _show() {
-    queue.value = store.queue
+    queue.value = ft.getCurrentQueue();
     offcanvas.show();
 }
 
 async function _shuffle() {
+    // Disable shuffle in groupSession
+    if (ft.inGroupSession()) {
+        notify({
+            "title": "You can't use shuffle in a group session."
+        })
+        return;
+    }
+
     if (!store.playing.is_playing) {
         shuffle_arr(store.queue);
         queue.value = store.queue;
@@ -85,21 +93,38 @@ async function _shuffle() {
     queue.value = store.queue;
 }
 
+// Must be synchronized in groupSession: ok
 async function clear_queue() {
-    if (!store.playing.is_playing) {
-        store.queue = [];
-        queue.value = store.queue;
-        return
-    }
+    action({
+        func: async function op() {
+            if (!store.playing.is_playing) {
+                ft.setCurrentQueue([]);
+                refresh_queue();
+                return
+            }
 
-    store.queue = [store.queue[store.queue_index]]
-    store.queue_index = 0;
-    queue.value = store.queue;
+            let q = ft.getCurrentQueue();
+            q = [q[store.queue_index]];
+            store.queue_index = 0;
+            ft.setCurrentQueue(q);
+            refresh_queue();
+        },
+        object: null,
+        operation: "clearQueue"
+    })
 }
 
+// Must be synchronized in groupSession: ok
 async function play_queue_track(index) {
-    store.queue_index = index;
-    ft.load_track(store.queue[store.queue_index]);
+    action({
+        func: async function op() {
+            let q = ft.getCurrentQueue();
+            store.queue_index = index;
+            ft.load_track(q[store.queue_index]);
+        },
+        object: index,
+        operation: "playQueueTrack"
+    })
 }
 
 defineExpose({
@@ -109,5 +134,8 @@ defineExpose({
 
 onMounted(() => {
     offcanvas = new Offcanvas(offcanvasEl.value);
+    window.addEventListener('queue', () => {
+        queue.value = ft.getCurrentQueue();
+    })
 })
 </script>

@@ -29,6 +29,8 @@ import UserPage from "/components/user_section/UserPage.vue";
 import User_Stations from "/components/user_section/Stations.vue";
 import User_Tracks from "/components/user_section/Tracks.vue";
 
+import GroupSessionLink from "/components/GroupSessionLink.vue"
+
 const routes = [
     {
         path: "/",
@@ -54,6 +56,10 @@ const routes = [
     {
         path: "/station/:id",
         component: Station
+    },
+    {
+        path: "/groupsession/:id",
+        component: GroupSessionLink
     },
     {
         path: '/profile',

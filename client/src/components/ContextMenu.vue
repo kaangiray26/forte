@@ -2,8 +2,7 @@
     <TrackContextModal ref="trackContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
     <AlbumContextModal ref="albumContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
     <ArtistContextModal ref="artistContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
-    <PlaylistContextModal ref="playlistContextModal" @context-menu-event="contextMenuEvent"
-        :loved="selectedItemLoved" />
+    <PlaylistContextModal ref="playlistContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
     <StationContextModal ref="stationContextModal" @context-menu-event="contextMenuEvent" :loved="selectedItemLoved" />
 
     <a ref="downloadLink" class="visually-hidden" href=""></a>
@@ -12,7 +11,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { notify } from "/js/events.js";
+import { notify, action } from "/js/events.js";
 import { useRouter } from 'vue-router'
 
 import TrackContextModal from "./context_menu/TrackContextModal.vue";
@@ -130,44 +129,86 @@ async function contextMenuEvent(event) {
     }
 
     // Play Events
+    // Must be synchronized in groupSession: ok
     if (event == 'playTrack') {
-        ft.playTrack(selectedItem.value.id);
+        action({
+            func: async function op() {
+                ft.playTrack(selectedItem.value.id);
+            },
+            object: selectedItem.value.id,
+            operation: "playTrack",
+        })
         return
     }
+    // Must be synchronized in groupSession: ok
     if (event == 'playAlbum') {
-        ft.playAlbum(selectedItem.value.id);
+        action({
+            func: async function op() {
+                ft.playAlbum(selectedItem.value.id);
+            },
+            object: selectedItem.value.id,
+            operation: "playAlbum",
+        })
         return
     }
+    // Must be synchronized in groupSession: ok
     if (event == 'playPlaylist') {
-        ft.playPlaylist(selectedItem.value.id);
+        action({
+            func: async function op() {
+                ft.playPlaylist(selectedItem.value.id);
+            },
+            object: selectedItem.value.id,
+            operation: "playPlaylist",
+        })
         return
     }
 
     // Add To Queue Events
+    // Must be synchronized in groupSession: ok
     if (event == 'addTrackToQueue') {
-        ft.queueTrack(selectedItem.value.id).then(() => {
-            notify({
-                "title": "Added to the queue.",
-            })
-        });
+        action({
+            func: async function op() {
+                ft.queueTrack(selectedItem.value.id).then(() => {
+                    notify({
+                        "title": "Added to the queue."
+                    })
+                })
+            },
+            object: selectedItem.value.id,
+            operation: "addTrackToQueue",
+        })
         return
     }
 
+    // Must be synchronized in groupSession: ok
     if (event == 'addAlbumToQueue') {
-        ft.queueAlbum(selectedItem.value.id).then(() => {
-            notify({
-                "title": "Added to the queue.",
-            })
-        });
+        action({
+            func: async function op() {
+                ft.queueAlbum(selectedItem.value.id).then(() => {
+                    notify({
+                        "title": "Added to the queue."
+                    })
+                })
+            },
+            object: selectedItem.value.id,
+            operation: "addAlbumToQueue",
+        })
         return
     }
 
+    // Must be synchronized in groupSession: ok
     if (event == 'addPlaylistToQueue') {
-        ft.queuePlaylist(selectedItem.value.id).then(() => {
-            notify({
-                "title": "Added to the queue.",
-            })
-        });
+        action({
+            func: async function op() {
+                ft.queuePlaylist(selectedItem.value.id).then(() => {
+                    notify({
+                        "title": "Added to the queue."
+                    })
+                })
+            },
+            object: selectedItem.value.id,
+            operation: "addPlaylistToQueue",
+        })
         return
     }
 
@@ -178,17 +219,38 @@ async function contextMenuEvent(event) {
     }
 
     // Play Next Events
+    // Must be synchronized in groupSession: ok
     if (event == 'playTrackNext') {
-        ft.playTrackNext(selectedItem.value.id);
+        action({
+            func: async function op() {
+                ft.playTrackNext(selectedItem.value.id);
+            },
+            object: selectedItem.value.id,
+            operation: "playTrackNext",
+        })
         return
     }
 
+    // Must be synchronized in groupSession: ok
     if (event == 'playAlbumNext') {
-        ft.playAlbumNext(selectedItem.value.id);
+        action({
+            func: async function op() {
+                ft.playAlbumNext(selectedItem.value.id);
+            },
+            object: selectedItem.value.id,
+            operation: "playAlbumNext",
+        })
         return
     }
+    // Must be synchronized in groupSession:
     if (event == 'playPlaylistNext') {
-        ft.playPlaylistNext(selectedItem.value.id);
+        action({
+            func: async function op() {
+                ft.playPlaylistNext(selectedItem.value.id);
+            },
+            object: selectedItem.value.id,
+            operation: "playPlaylistNext",
+        })
         return
     }
 

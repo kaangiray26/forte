@@ -35,15 +35,14 @@
                         <img class="playlist-img" src="/images/add.svg" />
                     </div>
                     <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
-                            @click="showPlaylistCreate">Create a playlist</h6>
+                        <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0" @click="showPlaylistCreate">
+                            Create a playlist</h6>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="playlist in playlists">
-            <div class="card h-100 w-100 border-0"
-                @contextmenu.prevent="right_click({ item: playlist, event: $event })">
+            <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: playlist, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
                         <img class="playlist-img pe-auto" :src="get_cover(playlist.cover)"
@@ -56,8 +55,7 @@
                                 data-bs-toggle="dropdown">
                                 <ul class="dropdown-menu shadow-lg context-menu">
                                     <li>
-                                        <button class="dropdown-item" type="button"
-                                            @click="delete_playlist(playlist.id)">
+                                        <button class="dropdown-item" type="button" @click="delete_playlist(playlist.id)">
                                             <span class="bi bi-trash-fill me-1"></span>Delete playlist</button>
                                     </li>
                                 </ul>
@@ -78,7 +76,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { right_click } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 import PlaylistCreate from '../PlaylistCreate.vue';
 
 const router = useRouter();
@@ -106,8 +104,15 @@ async function openPlaylist(id) {
     router.push("/playlist/" + id);
 }
 
+// Must be synchronized in groupSession: ok
 async function play_playlist(id) {
-    ft.playPlaylist(id);
+    action({
+        func: async function op() {
+            ft.playPlaylist(id)
+        },
+        object: id,
+        operation: "playPlaylist"
+    })
 }
 
 async function get_playlists() {

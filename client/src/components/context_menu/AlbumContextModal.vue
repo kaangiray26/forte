@@ -5,8 +5,7 @@
                 <ul id="albumMenu" class="dropdown-menu shadow show position-fixed"
                     :style="{ 'bottom': posY + 'px', 'right': posX + 'px' }">
                     <li>
-                        <button class="dropdown-item" type="button"
-                            @click="emit('context-menu-event', 'playAlbum')"><span
+                        <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'playAlbum')"><span
                                 class="bi bi-play-fill me-1"></span>Play</button>
                     </li>
                     <li>
@@ -15,8 +14,7 @@
                                 class="bi bi-fast-forward-fill me-1"></span>Play next</button>
                     </li>
                     <li v-show="!props.loved">
-                        <button class="dropdown-item" type="button"
-                            @click="emit('context-menu-event', 'addToLoved')"><span
+                        <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'addToLoved')"><span
                                 class="bi bi-star me-1"></span>Like</button>
                     </li>
                     <li v-show="props.loved">
@@ -40,8 +38,7 @@
                                 class="bi bi-person-fill me-1"></span>Artist page</button>
                     </li>
                     <li>
-                        <button class="dropdown-item" type="button"
-                            @click="emit('context-menu-event', 'shareAlbum')"><span
+                        <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'shareAlbum')"><span
                                 class="bi bi-share-fill me-1"></span>Share</button>
                     </li>
                 </ul>

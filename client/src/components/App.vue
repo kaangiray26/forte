@@ -1,6 +1,7 @@
 <template>
     <div class="vw-100 complete-view d-flex flex-column">
         <Toasts />
+        <Animation />
         <div class="content-view pb-4" style="flex: 1 1 auto;">
             <NavBar ref="thisNavBar" />
             <ContentView ref="thisContentView" />
@@ -13,43 +14,54 @@
 
 <script setup>
 import { ref, onBeforeMount } from 'vue';
+import { action } from '/js/events.js';
 import NavBar from './NavBar.vue';
 import ContentView from './ContentView.vue';
 import Player from './Player.vue';
 import Toasts from './Toasts.vue';
+import Animation from './Animation.vue';
 
 const thisNavBar = ref(null);
 const thisContentView = ref(null);
 const thisPlayer = ref(null);
 
 async function keyPress(event) {
-    // if (event.target.tagName != 'INPUT' && event.key == 's') {
-    //     event.preventDefault();
-    //     thisPlayer.value.shuffle();
-    //     return;
-    // }
-
-    // if (event.target.tagName != 'INPUT' && event.key == 'r') {
-    //     event.preventDefault();
-    //     thisPlayer.value.repeat();
-    //     return;
-    // }
-
+    // Must be synchronized in groupSession: ok
     if (event.target.tagName != 'INPUT' && event.code == 'Space') {
         event.preventDefault();
-        ft.play();
+        action({
+            func: async function op() {
+                ft.play();
+            },
+            object: null,
+            operation: "play"
+        });
         return;
     }
 
+    // Must be synchronized in groupSession: ok
     if (event.target.tagName != 'INPUT' && event.key == 'ArrowLeft') {
         event.preventDefault();
-        ft.play_previous();
+        action({
+            func: async function op() {
+                ft.play_previous();
+            },
+            object: null,
+            operation: "playPrevious"
+        });
         return;
     }
 
+    // Must be synchronized in groupSession: ok
     if (event.target.tagName != 'INPUT' && event.key == 'ArrowRight') {
         event.preventDefault();
-        ft.play_next();
+        action({
+            func: async function op() {
+                ft.play_next();
+            },
+            object: null,
+            operation: "playNext"
+        });
         return;
     }
 
@@ -68,6 +80,12 @@ async function keyPress(event) {
     if (event.target.tagName != 'INPUT' && event.key == 'l') {
         event.preventDefault();
         thisPlayer.value.show_lyrics();
+        return;
+    }
+
+    if (event.target.tagName != 'INPUT' && event.key == 'g') {
+        event.preventDefault();
+        thisPlayer.value.group_session();
         return;
     }
 

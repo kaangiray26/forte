@@ -13,7 +13,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { store } from '../../js/store';
+import { store } from '/js/store.js';
 import { right_click } from '/js/events.js';
 
 const router = useRouter();
@@ -28,10 +28,6 @@ function get_cover(cover) {
 async function openTrack() {
     store.selected_track_id = props.track.id;
     router.push("/album/" + props.track.album);
-}
-
-async function play(id) {
-    ft.playTrack(id);
 }
 
 const props = defineProps({

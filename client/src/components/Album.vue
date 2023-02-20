@@ -24,8 +24,8 @@
                     <h1 class="album-title mb-4">{{ album.title }}</h1>
                     <router-link :to="'/artist/' + artist.id" class="search-link">
                         <div class="d-inline-flex align-content-center align-items-center">
-                            <img class="img-fluid figure-img rounded m-0" :src="get_artist_cover(artist.cover)"
-                                width="28" height="28">
+                            <img class="img-fluid figure-img rounded m-0" :src="get_artist_cover(artist.cover)" width="28"
+                                height="28">
                             <span class="mx-2">{{ artist.title }}</span>
                         </div>
                     </router-link>
@@ -70,7 +70,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { store } from '../js/store';
-import { right_click } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 
@@ -111,8 +111,15 @@ function get_artist_cover(cover) {
     return "/images/artist.svg"
 }
 
+// Must be synchronized in groupSession: ok
 async function play_track(id) {
-    ft.playTrack(id);
+    action({
+        func: async function op() {
+            ft.playTrack(id)
+        },
+        object: id,
+        operation: "playTrack"
+    })
 }
 
 async function get_album(id) {
@@ -127,8 +134,15 @@ async function get_album(id) {
     loaded.value = true;
 }
 
+// Must be synchronized in groupSession: ok
 async function play_album(id) {
-    ft.playAlbum(id);
+    action({
+        func: async function op() {
+            ft.playAlbum(id)
+        },
+        object: id,
+        operation: "playAlbum"
+    })
 }
 
 onMounted(() => {

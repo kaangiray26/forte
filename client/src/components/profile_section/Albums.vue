@@ -79,8 +79,15 @@ const total = ref(0);
 const offset = ref(0);
 const searchFinished = ref(true);
 
+// Must be synchronized in groupSession: ok
 async function play_album(id) {
-    ft.playAlbum(id);
+    action({
+        func: async function op() {
+            ft.playAlbum(id)
+        },
+        object: id,
+        operation: "playAlbum"
+    })
 }
 
 function get_cover(cover) {

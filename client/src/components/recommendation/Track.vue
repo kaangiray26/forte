@@ -3,8 +3,7 @@
         <div class="p-3">
             <div class="position-relative clickable-shadow">
                 <div @click="openTrack">
-                    <img class="img-fluid placeholder-img" :src="get_cover(props.track.cover)" height="250"
-                        width="250" />
+                    <img class="img-fluid placeholder-img" :src="get_cover(props.track.cover)" height="250" width="250" />
                 </div>
                 <div class="position-absolute bottom-0 right-0">
                     <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
@@ -23,8 +22,8 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { store } from '../../js/store';
-import { right_click } from '/js/events.js';
+import { store } from '/js/store.js';
+import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 
@@ -40,8 +39,16 @@ async function openTrack() {
     router.push("/album/" + props.track.album);
 }
 
+
+// Must be synchronized in groupSession: ok
 async function play(id) {
-    ft.playTrack(id);
+    action({
+        func: async function op() {
+            ft.playTrack(id);
+        },
+        object: id,
+        operation: "playTrack",
+    })
 }
 
 const props = defineProps({

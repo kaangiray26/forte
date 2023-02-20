@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 const path = require('path')
+const fs = require('fs')
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,6 +20,8 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./src', import.meta.url)),
             '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
             'hammerjs': path.resolve(__dirname, 'node_modules/hammerjs'),
+            'peerjs': path.resolve(__dirname, 'node_modules/peerjs'),
+            'animejs': path.resolve(__dirname, 'node_modules/animejs'),
         }
     }
 })

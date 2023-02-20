@@ -1,5 +1,5 @@
 <template>
-    <div id="groupSessionModal" class="modal fade" role="dialog" tabindex="-1" aria-hidden="true" ref="modalEle">
+    <div id="groupSessionModal" class="modal fade" role="dialog" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header d-flex flex-column">
@@ -15,11 +15,9 @@
                     <div class="input-group mb-2">
                         <form class="form-floating">
                             <input type="text" class="form-control" id="floatingInputValue" :value="peer_id" readonly>
-                            <label for="floatingInputValue">My PeerID <input class="form-check-input online" type="radio"
-                                    checked>
-                            </label>
+                            <label for="floatingInputValue">My PeerID</label>
                         </form>
-                        <button class="btn btn-dark" @click="copyPeerID">Link</button>
+                        <button class="btn btn-dark" @click="copyPeerID">Copy</button>
                     </div>
                     <div class="input-group mb-2" v-show="store.peer_status.startsWith('disconnected')">
                         <span class="input-group-text" id="basic-addon1">@</span>
@@ -44,12 +42,11 @@ import { ref, onMounted } from "vue";
 import { store } from "/js/store.js";
 import { Modal } from 'bootstrap';
 import { Peer } from "peerjs";
-import PeerJS from '/components/PeerJS.vue';
+import PeerJS from "./PeerJS.vue";
 
 const emit = defineEmits(['reset', 'reaction', 'message']);
 
-let modalEle = ref(null);
-let thisModalObj = null;
+const modal = ref(null);
 
 const peer = ref(null);
 const conn = ref(null);
@@ -118,15 +115,15 @@ async function showMessage(event) {
 }
 
 async function _show() {
-    thisModalObj.show();
+    modal.value.show();
 }
 
 async function _hide() {
-    thisModalObj.hide();
+    modal.value.hide();
 }
 
 async function _toggle() {
-    thisModalObj.toggle();
+    modal.value.toggle();
 }
 
 async function _peer_event(obj) {
@@ -145,18 +142,20 @@ defineExpose({
 });
 
 onMounted(() => {
-    thisModalObj = new Modal(modalEle.value);
+    modal.value = new Modal(document.querySelector('#groupSessionModal'));
     peer.value = new Peer();
 
     peer.value.on('open', id => {
         peer_id.value = id;
-        localStorage.setItem('groupSession', JSON.stringify([]));
-        store.queue = [];
+        store.queue_index = 0;
+        store.group_queue = [];
+        store.func_stack = [];
 
-        let group_session_id = localStorage.getItem('groupSessionID');
-        if (group_session_id.length) {
-            createConnectionWithStoredID(group_session_id);
-            localStorage.setItem('groupSessionID', '');
+        // Group session
+        let group_session_id = localStorage.getItem('group_session_id');
+        if (group_session_id) {
+            createConnectionWithStoredID(store.group_session_id);
+            localStorage.removeItem('group_session_id');
         }
     });
 

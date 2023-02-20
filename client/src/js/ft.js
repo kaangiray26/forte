@@ -160,6 +160,8 @@ class Forte {
             localStorage.setItem('token', token);
             localStorage.setItem('volume', '1');
             localStorage.setItem('init', 'true');
+            localStorage.setItem('groupSession', JSON.stringify([]));
+            localStorage.setItem('groupSessionID', '');
             return true
         }
 
@@ -190,8 +192,6 @@ class Forte {
     }
 
     async track_loaded() {
-        // window.dispatchEvent(new Event('track_loaded'));
-
         store.playing.duration = this.player.duration();
         this.player.play();
         store.playing.is_playing = true;
@@ -205,11 +205,14 @@ class Forte {
     }
 
     async track_finished() {
-        let track = store.queue[store.queue_index].id;
+        console.log("Track ended.");
+
+        let queue = this.getCurrentQueue();
+        let track = queue[store.queue_index].id;
         this.addTrackToHistory(track);
 
         // At the end of the queue
-        if (store.queue_index + 1 == store.queue.length) {
+        if (store.queue_index + 1 == queue.length) {
             // Radio
             if (store.playing.radio) {
                 this.API('/random/track').then((response) => {
@@ -223,12 +226,12 @@ class Forte {
             // Repeat queue
             if (store.playing.repeat == 1) {
                 store.queue_index = 0;
-                this.load_track(store.queue[0]);
+                this.load_track(queue[0]);
                 return;
             }
             // Repeat track
             if (store.playing.repeat == 2) {
-                this.load_track(store.queue[store.queue_index]);
+                this.load_track(queue[store.queue_index]);
                 return;
             }
             store.playing.is_playing = false;
@@ -240,11 +243,11 @@ class Forte {
         // Somewhere in the queue
         // Repeat track
         if (store.playing.repeat == 2) {
-            this.load_track(store.queue[store.queue_index]);
+            this.load_track(queue[store.queue_index]);
             return;
         }
         store.queue_index += 1;
-        this.load_track(store.queue[store.queue_index]);
+        this.load_track(queue[store.queue_index]);
     }
 
     async mute() {
@@ -262,13 +265,17 @@ class Forte {
         }
 
         if (store.playing.is_playing) {
-            this.player.pause();
+            // howler is inconsistent, using this instead
+            this.player._sounds[0]._node.pause();
+            //
             store.playing.is_playing = false;
             navigator.mediaSession.playbackState = "paused";
             return;
         }
 
-        this.player.play();
+        // howler is inconsistent, using this instead
+        this.player._sounds[0]._node.play();
+        //
         store.playing.is_playing = true;
         navigator.mediaSession.playbackState = "playing";
     }
@@ -280,13 +287,14 @@ class Forte {
 
         // At the start of the queue
         if (store.queue_index == 0) {
-            this.player.seek(0);
+            this.seek(0);
             return;
         }
 
         // Somewhere in the queue
         store.queue_index -= 1;
-        this.load_track(store.queue[store.queue_index]);
+        let queue = this.getCurrentQueue();
+        this.load_track(queue[store.queue_index]);
     }
 
     async play_next() {
@@ -295,26 +303,32 @@ class Forte {
         }
 
         // At the end of the queue
-        if (store.queue_index + 1 == store.queue.length) {
+        let queue = this.getCurrentQueue();
+        if (store.queue_index + 1 == queue.length) {
             return;
         }
 
         // Somewhere in the queue
         store.queue_index += 1;
-        this.load_track(store.queue[store.queue_index]);
+        this.load_track(queue[store.queue_index]);
     }
 
     async addToQueueStart(tracks) {
-        store.queue.unshift(...tracks);
+        let q = this.getCurrentQueue();
+        q.unshift(...tracks);
+        this.setCurrentQueue(q);
     }
 
     async addToQueueNext(tracks) {
-        console.log(store.queue);
-        store.queue.splice(1, 0, ...tracks);
+        let q = this.getCurrentQueue();
+        q.splice(1, 0, ...tracks);
+        this.setCurrentQueue(q);
     }
 
     async addToQueue(tracks) {
-        store.queue.push(...tracks);
+        let q = this.getCurrentQueue();
+        q.push(...tracks);
+        this.setCurrentQueue(q);
     }
 
     async addTrackToPlaylist(track_id, playlist_id) {
@@ -334,7 +348,8 @@ class Forte {
     }
 
     async addTrackToHistory() {
-        let track = store.queue[store.queue_index].id;
+        let queue = this.getCurrentQueue();
+        let track = queue[store.queue_index].id;
         let response = await fetch(this.server + `/api/profile/history/add`, {
             method: "POST",
             headers: {
@@ -495,17 +510,51 @@ class Forte {
     }
 
     async radio() {
+        // Disable radio in groupSession
+        if (this.inGroupSession()) {
+            window.dispatchEvent(new CustomEvent('notify', {
+                detail: {
+                    "title": "You can't use radio while in a group session."
+                }
+            }));
+            return
+        }
+
         store.playing.radio = !store.playing.radio;
         if (!store.playing.radio) {
             return
         }
 
-        if (store.queue.length == 0) {
+        let queue = this.getCurrentQueue();
+        if (queue.length == 0) {
             this.API('/random/track').then((response) => {
                 this.load_track(response.track);
                 this.addToQueue([response.track]);
             });
         }
+    }
+
+    // howler is inconsistent, using this instead
+    async seek(time) {
+        this.player._sounds[0]._node.currentTime = time;
+    }
+
+    getCurrentQueue() {
+        let queue_key = (store.peer_status == 'connected') ? 'group_queue' : 'queue';
+        return store[queue_key];
+    }
+
+    inGroupSession() {
+        return store.peer_status == 'connected';
+    }
+
+    getStore() {
+        return store;
+    }
+
+    setCurrentQueue(q) {
+        let queue_key = (store.peer_status == 'connected') ? 'group_queue' : 'queue';
+        store[queue_key] = q;
     }
 }
 

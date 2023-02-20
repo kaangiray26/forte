@@ -76,6 +76,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { Offcanvas } from "bootstrap"
 import { store } from "/js/store.js"
+import { action } from '/js/events.js';
 import Hammer from "hammerjs";
 
 const router = useRouter();
@@ -114,8 +115,15 @@ function formatTime(secs) {
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
 
+// Must be synchronized in groupSession: ok
 async function repeat() {
-    ft.repeat();
+    action({
+        func: async function op() {
+            ft.repeat();
+        },
+        object: null,
+        operation: "repeat"
+    });
 }
 
 async function radio() {

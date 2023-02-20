@@ -55,7 +55,7 @@
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="dropdown-item" type="button" @click="show_lyrics">
+                                    <button class="dropdown-item" type="button" @click="group_session">
                                         <span class="bi bi-soundwave me-2"></span>
                                         <span>Group session</span>
                                     </button>
@@ -112,6 +112,7 @@
     <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
         :play_previous="play_previous" :repeat_icon="repeat_icon" @queue="show_queue" @lyrics="show_lyrics"
         @shuffle="shuffle" />
+    <GroupSession ref="groupSession" />
 </template>
 
 <script setup>
@@ -119,10 +120,12 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { Tooltip } from "bootstrap"
 import { store } from '/js/store.js';
+import GroupSession from './GroupSession.vue';
 import Hammer from "hammerjs";
 import Queue from './Queue.vue';
 import Lyrics from './Lyrics.vue';
 import MobileView from './MobileView.vue';
+import { action } from '/js/events.js';
 
 const router = useRouter();
 
@@ -135,6 +138,7 @@ const volume = ref(100);
 
 const volumeButton = ref(null);
 const volumeTooltip = ref(null);
+const groupSession = ref(null);
 
 function get_cover(cover) {
     if (cover) {
@@ -182,6 +186,7 @@ function formatTime(secs) {
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
 
+// Must be synchronized in groupSession: ok
 async function seekProgress(ev) {
     let src = null;
 
@@ -194,7 +199,14 @@ async function seekProgress(ev) {
     let rect = src.getBoundingClientRect();
     let x = ev.clientX - rect.left;
     let point = ft.player.duration() * (x / rect.width);
-    ft.player.seek(point);
+
+    action({
+        func: async function op() {
+            ft.seek(point);
+        },
+        object: point,
+        operation: "seek"
+    })
 }
 
 async function initTooltips() {
@@ -244,16 +256,37 @@ async function lowerVolume() {
     localStorage.setItem('volume', volume.value / 100);
 }
 
+// Must be synchronized in groupSession: ok
 async function play() {
-    ft.play();
+    action({
+        func: async function op() {
+            ft.play();
+        },
+        object: null,
+        operation: "play"
+    });
 }
 
+// Must be synchronized in groupSession: ok
 async function play_previous() {
-    ft.play_previous();
+    action({
+        func: async function op() {
+            ft.play_previous();
+        },
+        object: null,
+        operation: "playPrevious"
+    });
 }
 
+// Must be synchronized in groupSession: ok
 async function play_next() {
-    ft.play_next();
+    action({
+        func: async function op() {
+            ft.play_next();
+        },
+        object: null,
+        operation: "playNext"
+    });
 }
 
 async function show_queue() {
@@ -269,16 +302,29 @@ async function show_lyrics() {
     lyricsEl.value.get_lyrics();
 }
 
+// Must be synchronized in groupSession: ok
 async function repeat() {
-    ft.repeat();
+    action({
+        func: async function op() {
+            ft.repeat();
+        },
+        object: null,
+        operation: "repeat"
+    });
 }
 
+// Must be synchronized in groupSession: no
 async function shuffle() {
     queueEl.value.shuffle();
 }
 
+// Must be synchronized in groupSession: no
 async function radio() {
     ft.radio();
+}
+
+async function group_session() {
+    groupSession.value.show();
 }
 
 defineExpose({
@@ -286,6 +332,7 @@ defineExpose({
     show_lyrics,
     shuffle,
     repeat,
+    group_session,
 })
 
 onMounted(() => {
@@ -296,9 +343,6 @@ onMounted(() => {
     } else {
         localStorage.setItem('volume', volume.value / 100);
     }
-
-    // Media Session API
-    // TODO: Add support for this
 
     // Swipe events
     let hammertime = new Hammer(mobilePlayer.value);

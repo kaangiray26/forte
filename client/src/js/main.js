@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from '/components/App.vue'
 import router from '/router'
 import { Forte } from '/js/ft.js'
+import { action } from '/js/events.js'
 
 // Import our custom CSS
 import '/scss/styles.scss'
@@ -14,17 +15,49 @@ if ('serviceWorker' in navigator) {
 window.ft = new Forte();
 window.ft.init().then(() => {
     navigator.mediaSession.playbackState = "none";
+
+    // Must be synchronized in groupSession:
     navigator.mediaSession.setActionHandler("play", () => {
-        window.ft.play();
+        action({
+            func: async function op() {
+                window.ft.play();
+            },
+            object: null,
+            operation: "play"
+        });
     });
+
+    // Must be synchronized in groupSession:
     navigator.mediaSession.setActionHandler("pause", () => {
-        window.ft.play();
+        action({
+            func: async function op() {
+                window.ft.play();
+            },
+            object: null,
+            operation: "play"
+        });
     });
+
+    // Must be synchronized in groupSession:
     navigator.mediaSession.setActionHandler("nexttrack", () => {
-        window.ft.play_next();
+        action({
+            func: async function op() {
+                window.ft.play_next();
+            },
+            object: null,
+            operation: "playNext"
+        });
     });
+
+    // Must be synchronized in groupSession:
     navigator.mediaSession.setActionHandler("previoustrack", () => {
-        window.ft.play_previous();
+        action({
+            func: async function op() {
+                window.ft.play_previous();
+            },
+            object: null,
+            operation: "playPrevious"
+        });
     });
 
     console.log("Forte initialized.");

@@ -48,7 +48,7 @@
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-link search-link d-flex text-start"
                                             style="display:contents;">
-                                            <span class="text-muted me-2">{{ index+ 1 }}.</span>
+                                            <span class="text-muted me-2">{{ index + 1 }}.</span>
                                             <span>{{ track.title }}</span>
                                         </button>
                                     </div>
@@ -80,7 +80,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { right_click } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 
@@ -102,8 +102,15 @@ async function delete_track_from_playlist(id) {
     get_playlist(router.currentRoute.value.params.id);
 }
 
+// Must be synchronized in groupSession: ok
 async function play_track(id) {
-    ft.playTrack(id);
+    action({
+        func: async function op() {
+            ft.playTrack(id)
+        },
+        object: id,
+        operation: "playTrack"
+    })
 }
 
 async function get_playlist(id) {
@@ -120,8 +127,15 @@ async function get_playlist(id) {
     loaded.value = true;
 }
 
+// Must be synchronized in groupSession: ok
 async function play_playlist(id) {
-    ft.playPlaylist(id);
+    action({
+        func: async function op() {
+            ft.playPlaylist(id)
+        },
+        object: id,
+        operation: "playPlaylist"
+    })
 }
 
 onMounted(() => {

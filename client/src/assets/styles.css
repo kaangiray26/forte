@@ -120,6 +120,10 @@ img {
     cursor: pointer;
 }
 
+.unclickable {
+    cursor: default;
+}
+
 .clickable-shadow:hover {
     cursor: pointer;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35) !important;
@@ -246,4 +250,9 @@ img {
 
 .login-alert {
     height: 38px;
+}
+
+.animation {
+    position: fixed;
+    z-index: 1047;
 }

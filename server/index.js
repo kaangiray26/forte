@@ -4,7 +4,6 @@ const multer = require('multer')
 const upload = multer({ dest: 'uploads/' })
 
 const cors = require('cors')
-const path = require('path')
 const crypto = require('crypto')
 const db = require('./js/db.js')
 
@@ -21,7 +20,7 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-app.use(express.static('public/assets'))
+app.use(express.static('admin/src/dist'))
 app.use(express.static('uploads'))
 
 function isAdmin(req, res, next) {
@@ -47,19 +46,25 @@ app.get("/auth", (req, res) => {
 })
 
 app.post("/login", db.admin_login)
-
 app.get("/session", db.admin_session)
-
 app.get("/log_off", (req, res, next) => {
-    req.session.user = null
-    res.sendStatus(200)
+    delete req.session.user
+    res.json({
+        "success": "logged off."
+    })
 })
 
 app.get("/get_users", isAdmin, db.get_users)
-
 app.post("/add_user", isAdmin, db.add_user)
-
 app.post("/remove_user", isAdmin, db.remove_user)
+
+app.get("/search/artist/:query", isAdmin, db.search_artist)
+app.get("/search/album/:query", isAdmin, db.search_album)
+app.get("/search/track/:query", isAdmin, db.search_track)
+
+app.put("/artist/:id", isAdmin, db.update_artist)
+app.put("/album/:id", isAdmin, db.update_album)
+app.put("/track/:id", isAdmin, db.update_track)
 
 // API
 

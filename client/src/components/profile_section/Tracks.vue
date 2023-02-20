@@ -67,15 +67,22 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { right_click } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 
 const tracks = ref([]);
 const total = ref(0);
 const offset = ref(0);
 const searchFinished = ref(true);
 
+// Must be synchronized in groupSession: ok
 async function playTrack(track_id) {
-    ft.playTrack(track_id);
+    action({
+        func: async function op() {
+            ft.playTrack(track_id)
+        },
+        object: track_id,
+        operation: "playTrack"
+    })
     return;
 }
 

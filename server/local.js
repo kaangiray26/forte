@@ -3,17 +3,11 @@ const session = require('express-session')
 const multer = require('multer')
 const upload = multer({ dest: 'uploads/' })
 
-// const history = require('connect-history-api-fallback')
-
 const cors = require('cors')
-const path = require('path')
 const crypto = require('crypto')
 const db = require('./js/db.js')
 
 const app = express()
-
-// connect-history-api-fallback
-// app.use(history())
 
 app.use(cors({ credentials: true, origin: true }))
 
