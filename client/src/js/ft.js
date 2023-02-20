@@ -205,8 +205,6 @@ class Forte {
     }
 
     async track_finished() {
-        console.log("Track ended.");
-
         let queue = this.getCurrentQueue();
         let track = queue[store.queue_index].id;
         this.addTrackToHistory(track);
@@ -555,6 +553,15 @@ class Forte {
     setCurrentQueue(q) {
         let queue_key = (store.peer_status == 'connected') ? 'group_queue' : 'queue';
         store[queue_key] = q;
+    }
+
+    reset() {
+        store.playing.is_playing = false;
+        store.playing.loaded = false;
+        store.playing.seek = 0;
+        store.playing.progress = 0;
+        this.player.unload();
+
     }
 }
 

@@ -42,7 +42,6 @@ async function action(options) {
     });
     if (store.peer_status != 'connected') {
         let func = store.func_stack.pop();
-        console.log("Func:", func);
         func();
         return;
     }

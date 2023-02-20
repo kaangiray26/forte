@@ -125,6 +125,7 @@ async function acceptRequest() {
     });
     contacts.value.requester = {};
     store.peer_status = 'connected';
+    ft.reset();
 }
 
 async function rejectRequest() {
@@ -178,9 +179,6 @@ async function runFunc() {
 }
 
 props.conn.on("data", async function (data) {
-    // Print out the data we receives
-    console.log(data);
-
     if (data.type == 'ack') {
         let func = store.func_stack.pop();
         func();
@@ -353,6 +351,7 @@ props.conn.on("data", async function (data) {
             username: data.username
         };
         store.peer_status = 'connected';
+        ft.reset();
         emit('show');
         return;
     }
