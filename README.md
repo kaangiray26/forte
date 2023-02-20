@@ -16,7 +16,7 @@
     <p align="center">
         Self-hosted, music streaming platform
         <br />
-        <a href="https://github.com/othneildrew/Best-README-Template"><strong>Open the Web Player »</strong></a>
+        <a href="https://forte.buzl.uk/"><strong>Open the Web Player »</strong></a>
         <br />
         <br />
         <a href="https://github.com/kaangiray26/forte/issues">Report Bug</a>
