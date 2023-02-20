@@ -17,9 +17,6 @@
             <router-link :to="'/user/' + user_id + '/artists'" class="nav-link search-link">Artists</router-link>
         </li>
         <li class="nav-item">
-            <router-link :to="'/user/' + user_id + '/stations'" class="nav-link search-link">Stations</router-link>
-        </li>
-        <li class="nav-item">
             <router-link :to="'/user/' + user_id + '/friends'" class="nav-link search-link">Friends</router-link>
         </li>
     </ul>

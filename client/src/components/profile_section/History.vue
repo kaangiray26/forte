@@ -1,9 +1,6 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile/settings" class="nav-link search-link">Settings</router-link>
-        </li>
-        <li class="nav-item">
             <router-link to="/profile/history" class="nav-link bg-dark search-link text-white">Listening
                 History</router-link>
         </li>
@@ -70,7 +67,6 @@ import { right_click, action } from '/js/events.js';
 
 const tracks = ref([]);
 const searchFinished = ref(true);
-
 
 // Must be synchronized in groupSession: ok
 async function playTrack(track_id) {

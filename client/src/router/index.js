@@ -15,7 +15,6 @@ import Friends from "/components/profile_section/Friends.vue";
 import History from "/components/profile_section/History.vue";
 import Playlists from "/components/profile_section/Playlists.vue";
 import ProfilePage from "/components/profile_section/ProfilePage.vue";
-import Settings from "/components/profile_section/Settings.vue";
 import Stations from "/components/profile_section/Stations.vue";
 import Tracks from "/components/profile_section/Tracks.vue";
 
@@ -26,7 +25,6 @@ import User_Friends from "/components/user_section/Friends.vue";
 import User_History from "/components/user_section/History.vue";
 import User_Playlists from "/components/user_section/Playlists.vue";
 import UserPage from "/components/user_section/UserPage.vue";
-import User_Stations from "/components/user_section/Stations.vue";
 import User_Tracks from "/components/user_section/Tracks.vue";
 
 import GroupSessionLink from "/components/GroupSessionLink.vue"
@@ -90,10 +88,6 @@ const routes = [
                 component: Playlists
             },
             {
-                path: 'settings',
-                component: Settings
-            },
-            {
                 path: 'stations',
                 component: Stations
             },
@@ -130,10 +124,6 @@ const routes = [
             {
                 path: 'playlists',
                 component: User_Playlists
-            },
-            {
-                path: 'stations',
-                component: User_Stations
             },
             {
                 path: 'tracks',

@@ -1,9 +1,6 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile/settings" class="nav-link search-link">Settings</router-link>
-        </li>
-        <li class="nav-item">
             <router-link to="/profile/history" class="nav-link search-link">Listening
                 History</router-link>
         </li>
@@ -33,8 +30,8 @@
     <div class="d-inline-flex flex-column">
         <div class="input-group flex-nowrap mb-2">
             <span class="input-group-text bi bi-broadcast" id="addon-wrapping"></span>
-            <input ref="station_name" type="text" class="form-control" placeholder="Station name"
-                aria-label="Station name" aria-describedby="addon-wrapping" @keypress.enter="search_station">
+            <input ref="station_name" type="text" class="form-control" placeholder="Station name" aria-label="Station name"
+                aria-describedby="addon-wrapping" @keypress.enter="search_station">
             <button class="btn btn-dark" @click="search_station">Search</button>
         </div>
         <div v-if="!searchFinished" class="alert alert-primary appear" role="alert">

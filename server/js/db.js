@@ -34,6 +34,7 @@ module.exports = {
     get_artist: _get_artist,
     get_artist_loved: _get_artist_loved,
     get_friends: _get_friends,
+    get_user_friends: _get_user_friends,
     get_history: _get_history,
     get_lyrics: _get_lyrics,
     get_playlist: _get_playlist,
@@ -50,6 +51,11 @@ module.exports = {
     get_track_basic: _get_track_basic,
     get_track_loved: _get_track_loved,
     get_user: _get_user,
+    get_user_albums: _get_user_albums,
+    get_user_artists: _get_user_artists,
+    get_user_history: _get_user_history,
+    get_user_playlists: _get_user_playlists,
+    get_user_tracks: _get_user_tracks,
     get_users: _get_users,
     init: _init,
     is_authenticated: _is_authenticated,
@@ -58,18 +64,18 @@ module.exports = {
     love_track: _love_track,
     remove_user: _remove_user,
     search: _search,
-    search_artist: _search_artist,
     search_album: _search_album,
+    search_artist: _search_artist,
     search_track: _search_track,
     session: _session,
     stream: _stream,
     unlove_album: _unlove_album,
     unlove_artist: _unlove_artist,
     unlove_track: _unlove_track,
-    upload_cover: _upload_cover,
-    update_artist: _update_artist,
     update_album: _update_album,
+    update_artist: _update_artist,
     update_track: _update_track,
+    upload_cover: _upload_cover,
 }
 
 async function _init(args) {
@@ -680,6 +686,27 @@ async function _get_history(req, res, next) {
     })
 }
 
+async function _get_user_history(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT history FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({
+                "error": "User not found."
+            });
+            return;
+        }
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [user.history]);
+        res.status(200).json({
+            "tracks": tracks
+        });
+    })
+}
+
 async function _add_user(req, res, next) {
     if (!['username'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
@@ -933,6 +960,22 @@ async function _get_friends(req, res, next) {
     })
 }
 
+async function _get_user_friends(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let data = await t.oneOrNone("SELECT friends FROM users WHERE username = $1", [id]);
+        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE id = ANY($1)", [data.friends]);
+        res.status(200).json({
+            "friends": friends
+        })
+    })
+}
+
 async function _add_friend(req, res, next) {
     if (!['username'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
@@ -1000,6 +1043,103 @@ async function _get_profile_tracks(req, res, next) {
         }
         let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_tracks, offset]);
         res.status(200).json({ "tracks": tracks, "total": user.fav_tracks.length })
+    })
+}
+
+async function _get_user_tracks(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_tracks) {
+            res.status(200).json({ "tracks": [], "total": 0 })
+            return;
+        }
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_tracks, offset]);
+        res.status(200).json({ "tracks": tracks, "total": user.fav_tracks.length })
+    })
+}
+
+async function _get_user_albums(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT fav_albums FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_albums) {
+            res.status(200).json({ "albums": [], "total": 0 })
+            return;
+        }
+        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_albums, offset]);
+        res.status(200).json({ "albums": albums, "total": user.fav_albums.length })
+    })
+}
+
+async function _get_user_artists(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT fav_artists FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_artists) {
+            res.status(200).json({ "artists": [], "total": 0 })
+            return;
+        }
+        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_artists, offset]);
+        res.status(200).json({ "artists": artists, "total": user.fav_artists.length })
+    })
+}
+
+async function _get_user_playlists(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1", [id]);
+        res.status(200).json({ "playlists": playlists })
     })
 }
 

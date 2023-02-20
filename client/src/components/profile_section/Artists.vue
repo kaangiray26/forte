@@ -1,9 +1,6 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile/settings" class="nav-link search-link">Settings</router-link>
-        </li>
-        <li class="nav-item">
             <router-link to="/profile/history" class="nav-link search-link">Listening
                 History</router-link>
         </li>
@@ -44,8 +41,7 @@
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: artist, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="playlist-img pe-auto" :src="get_cover(artist.cover)"
-                            @click="openArtist(artist.id)" />
+                        <img class="playlist-img pe-auto" :src="get_cover(artist.cover)" @click="openArtist(artist.id)" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
