@@ -35,9 +35,9 @@
     <li><a href="#built-with">Built with</a></li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#keyboard-shortcuts">Keyboard Shortcuts</a></li>
-    <li><a href="#license">Logging in</a></li>
+    <li><a href="#logging-in">Logging in</a></li>
     <li>
-        <a href="#contact">Creating your own server</a>
+        <a href="#creating-your-own-server">Creating your own server</a>
         <ul>
             <li><a href="#using-locally">Using locally</a></li>
             <li><a href="#using-publicly">Using publicly</a></li>
@@ -45,7 +45,7 @@
     </li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
 <br/>
@@ -74,16 +74,16 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 * [x] Group Sessions
 
 ## Built with
-* ![Vue.js](https://img.shields.io/badge/Vue.js-FFF?style=flat-square&logo=vuedotjs&logoColor=4FC08D)
-* ![Node.js](https://img.shields.io/badge/Node.js-FFF?style=flat-square&logo=nodedotjs&logoColor=339933)
-* ![Express.js](https://img.shields.io/badge/Express-FFF?style=flat-square&logo=express&logoColor=000000)
-* ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-FFF?style=flat-square&logo=postgresql&logoColor=4169E1)
-* ![Bootstrap](https://img.shields.io/badge/Bootstrap-FFF?style=flat-square&logo=bootstrap&logoColor=7952B3)
-* ![PeerJS](https://img.shields.io/badge/PeerJS-FFF?style=flat-square)
-* ![howler.js](https://img.shields.io/badge/howler.js-FFF?style=flat-square)
-* ![hammer.js](https://img.shields.io/badge/hammer.js-FFF?style=flat-square)
-* ![Anime.js](https://img.shields.io/badge/Anime.js-FFF?style=flat-square)
-* ![Greenlock](https://img.shields.io/badge/Greenlock%20Express-FFF?style=flat-square)
+* ![Vue.js](https://img.shields.io/badge/Vue.js-d3d4d5?style=flat-square&logo=vuedotjs&logoColor=4FC08D)
+* ![Node.js](https://img.shields.io/badge/Node.js-d3d4d5?style=flat-square&logo=nodedotjs&logoColor=339933)
+* ![Express.js](https://img.shields.io/badge/Express-d3d4d5?style=flat-square&logo=express&logoColor=000000)
+* ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-d3d4d5?style=flat-square&logo=postgresql&logoColor=4169E1)
+* ![Bootstrap](https://img.shields.io/badge/Bootstrap-d3d4d5?style=flat-square&logo=bootstrap&logoColor=7952B3)
+* ![PeerJS](https://img.shields.io/badge/PeerJS-d3d4d5?style=flat-square)
+* ![howler.js](https://img.shields.io/badge/howler.js-d3d4d5?style=flat-square)
+* ![hammer.js](https://img.shields.io/badge/hammer.js-d3d4d5?style=flat-square)
+* ![Anime.js](https://img.shields.io/badge/Anime.js-d3d4d5?style=flat-square)
+* ![Greenlock](https://img.shields.io/badge/Greenlock%20Express-d3d4d5?style=flat-square)
 
 ## Usage
 If you know a forte server and just want to connect to use the service, go to https://forte.buzl.uk. The webpage is hosted with GitHub pages and uses the latest forte version. Therefore, this is the **recommended way** to access forte services.
@@ -107,7 +107,7 @@ If you want to use forte on your mobile device, we suggest using the [PWA](https
 ## Logging in
 Once you go to the website, you will be prompted with this dialog:
 
-![image_5](images/image_5.png)
+![image_4](images/image_4.png)
 
 Here's an explanation for the fields:
 ```
@@ -120,7 +120,7 @@ If you are wondering about how to create accounts, this will be explained in the
 
 Here's an example for the authorization:
 
-![image_4](images/image_4.png)
+![image_5](images/image_5.png)
 
 If you log in successfully, you will see the homepage of the application, where some track recommendations can be found. Now you can use the application and listen to some music.
 
