@@ -23,6 +23,7 @@
 * [x] Lyrics support
 * [x] MediaSession API
 * [x] Progressive Web App
+* [x] Group Sessions
 
 # Getting started
 
