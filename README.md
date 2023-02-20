@@ -9,7 +9,7 @@
 <br>
 <div align="center">
     <a href="https://github.com/kaangiray26/forte">
-        <img src="client/src/public/images/favicon.svg" alt="Logo" width="80" height="80">
+        <img src="client/src/public/images/favicon.svg" alt="Forte Logo" width="80" height="80">
     </a>
     <h1 align="center">Forte</h1>
     <img alt="Quote" src="https://img.shields.io/badge/OWN%20YOUR%20MUSIC-blue?style=flat-square">
