@@ -25,6 +25,12 @@ async function reaction(obj) {
     }));
 }
 
+async function group_key(obj) {
+    window.dispatchEvent(new CustomEvent('group_key', {
+        detail: obj
+    }));
+}
+
 async function notify_peer(obj) {
     if (store.peer_status == 'connected') {
         window.dispatchEvent(new CustomEvent('peer', {
@@ -47,4 +53,4 @@ async function action(options) {
     }
 }
 
-export { right_click, notify, reaction, action, notify_peer, refresh_queue }
+export { right_click, notify, reaction, action, notify_peer, refresh_queue, group_key }

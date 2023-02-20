@@ -61,7 +61,7 @@ import { ref, computed, onMounted } from "vue";
 import { store } from "/js/store.js";
 import { notify, reaction, refresh_queue } from "/js/events.js"
 
-const emit = defineEmits(['show', 'reset', 'reaction', 'message']);
+const emit = defineEmits(['disconnected', 'show', 'reaction', 'message']);
 
 const message = ref(null);
 const status = ref("disconnected");
@@ -90,10 +90,11 @@ async function reset_alert() {
     };
 }
 
-async function cleanup() {
+function cleanup() {
     contacts.value.requester = {};
     contacts.value.recipient = {};
     store.peer_status = 'disconnected';
+    emit('disconnected');
 }
 
 async function alert_notify(msg) {
@@ -145,7 +146,6 @@ async function disconnect() {
         username: localStorage.getItem('username'),
     });
     cleanup();
-    emit('reset');
 }
 
 function setRecipient() {
@@ -341,7 +341,6 @@ props.conn.on("data", async function (data) {
 
     if (data.type == 'disconnect') {
         cleanup();
-        emit('reset');
         return;
     }
 

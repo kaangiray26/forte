@@ -29,7 +29,7 @@
                             @click="stopConnection">Stop</button>
                     </div>
                     <PeerJS ref="thisPeerJS" v-if="peerInit" :key="peer_key" :peer="peer" :conn="conn" :peer_id="peer_id"
-                        @show="_show" @reset="reset" @reaction="showReaction" @message="showMessage">
+                        @show="_show" @disconnected="disconnect" @reaction="showReaction" @message="showMessage">
                     </PeerJS>
                 </div>
             </div>
@@ -43,8 +43,9 @@ import { store } from "/js/store.js";
 import { Modal } from 'bootstrap';
 import { Peer } from "peerjs";
 import PeerJS from "./PeerJS.vue";
+import { group_key } from "/js/events.js";
 
-const emit = defineEmits(['reset', 'reaction', 'message']);
+const emit = defineEmits(['reaction', 'message']);
 
 const modal = ref(null);
 
@@ -94,16 +95,13 @@ async function createConnectionWithStoredID(stored_id) {
     });
 }
 
-async function stopConnection() {
-    store.peer_status = 'disconnected';
+async function disconnect() {
+    _hide();
+    group_key();
 }
 
-async function reset() {
-    peerInit.value = false;
-    peer_key.value += 1;
-    peer.value.disconnect();
-    _hide();
-    emit('reset');
+async function stopConnection() {
+    store.peer_status = 'disconnected';
 }
 
 async function showReaction(event) {

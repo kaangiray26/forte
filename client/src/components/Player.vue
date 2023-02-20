@@ -112,7 +112,7 @@
     <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
         :play_previous="play_previous" :repeat_icon="repeat_icon" @queue="show_queue" @lyrics="show_lyrics"
         @shuffle="shuffle" @group_session="group_session" />
-    <GroupSession ref="groupSession" />
+    <GroupSession ref="groupSession" :key="group_key" />
 </template>
 
 <script setup>
@@ -138,7 +138,9 @@ const volume = ref(100);
 
 const volumeButton = ref(null);
 const volumeTooltip = ref(null);
+
 const groupSession = ref(null);
+const group_key = ref(0);
 
 function get_cover(cover) {
     if (cover) {
@@ -352,5 +354,9 @@ onMounted(() => {
     });
 
     initTooltips();
+
+    window.addEventListener('group_key', () => {
+        group_key.value++;
+    })
 })
 </script>
