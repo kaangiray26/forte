@@ -154,7 +154,7 @@ onMounted(() => {
         // Group session
         let group_session_id = localStorage.getItem('group_session_id');
         if (group_session_id) {
-            createConnectionWithStoredID(store.group_session_id);
+            createConnectionWithStoredID(group_session_id);
             localStorage.removeItem('group_session_id');
         }
     });

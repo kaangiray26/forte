@@ -26,7 +26,6 @@ const store = reactive({
     queue_index: 0,
     group_queue: [],
     func_stack: [],
-    group_session_id: null,
     selected_track_id: null,
     peer_status: 'disconnected',
 });
