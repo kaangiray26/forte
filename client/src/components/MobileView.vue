@@ -55,7 +55,7 @@
                                 <!-- Second set of buttons -->
                                 <div class="d-flex justify-content-between">
                                     <button type="button" class="btn border bi bi-shuffle mx-1" @click="emit('shuffle')" />
-                                    <button type="button" class="btn bi bi-volume-up-fill mx-1" />
+                                    <button type="button" class="btn bi bi-soundwave mx-1" @click="emit('group_session')" />
                                     <button type="button" class="btn bi bi-chat-square-text-fill mx-1"
                                         @click="emit('lyrics')" />
                                     <button type="button" class="btn bi bi-collection-fill mx-1" @click="emit('queue')" />
@@ -81,7 +81,7 @@ import Hammer from "hammerjs";
 
 const router = useRouter();
 
-const emit = defineEmits(['queue', 'lyrics', 'shuffle']);
+const emit = defineEmits(['queue', 'lyrics', 'shuffle', 'group_session']);
 
 let offcanvas = null;
 const offcanvasEl = ref(null);

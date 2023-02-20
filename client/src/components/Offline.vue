@@ -1,5 +1,5 @@
 <template>
-    <div ref="modalEl" class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+    <div ref="modalEl" class="modal fade p-2" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -10,8 +10,9 @@
                     </div>
                 </div>
                 <div class="modal-body d-flex flex-column">
-                    <span class="mb-2">You can wait for a while or you can reset the connection.</span>
-                    <button class="btn btn-dark" @click="reset">Reset</button>
+                    <span class="mb-2">You can wait for a while but you can also reload or reset the connection.</span>
+                    <button class="btn btn-dark mb-2" @click="reload">Reload</button>
+                    <button class="btn btn-danger" @click="reset">Reset</button>
                 </div>
             </div>
         </div>
@@ -24,6 +25,11 @@ import { Modal } from "bootstrap"
 
 let modal = null;
 const modalEl = ref(null);
+
+async function reload() {
+    console.log("Reloading...");
+    window.location.reload();
+}
 
 async function reset() {
     console.log("Resetting...");

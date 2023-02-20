@@ -1,12 +1,15 @@
 <template>
     <div v-show="store.peer_status == 'connected'">
         <div class="input-group mb-2">
-            <span class="input-group-text bg-dark text-white">Connected to:</span>
+            <span class="input-group-text bg-success text-white">Connected to:</span>
             <input type="text" class="form-control" :value="contacts.recipient.username" readonly>
-            <button class="btn btn-danger" @click="disconnect">Disconnect</button>
+        </div>
+        <div class="d-flex flex-column">
+            <button class="btn btn-danger fw-bold" @click="disconnect">Disconnect</button>
         </div>
         <hr />
-        <div class="d-flex mb-2">
+        <div class="d-flex flex-column mb-2">
+            <h5 class="fw-bold">Reactions</h5>
             <div class="input-group">
                 <button class="btn btn-outline-light border" type="button" @click="send_reaction('love')">❤️</button>
                 <button class="btn btn-outline-light border" type="button" @click="send_reaction('hand')">🤘</button>
@@ -22,9 +25,6 @@
             <input ref="message" type="text" class="form-control" placeholder="Send a message..."
                 @keyup.enter="sendMessage">
             <button class="btn btn-dark" @click="sendMessage">Send</button>
-        </div>
-        <div class="d-flex flex-column">
-            <button type="button" class="btn btn-dark">Show messages</button>
         </div>
     </div>
     <div v-show="alert.show">

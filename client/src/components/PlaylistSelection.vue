@@ -1,5 +1,5 @@
 <template>
-    <div id="playlistSelection" class="modal" tabindex="-1">
+    <div id="playlistSelection" class="modal p-2" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="d-flex justify-content-end p-4 pb-2">

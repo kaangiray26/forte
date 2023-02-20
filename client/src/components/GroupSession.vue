@@ -1,5 +1,5 @@
 <template>
-    <div id="groupSessionModal" class="modal fade" role="dialog" tabindex="-1" aria-hidden="true">
+    <div id="groupSessionModal" class="modal fade p-2" role="dialog" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header d-flex flex-column">
@@ -12,7 +12,7 @@
                     </div>
                 </div>
                 <div class="modal-body">
-                    <div class="input-group mb-2">
+                    <div v-show="store.peer_status != 'connected'" class="input-group mb-2">
                         <form class="form-floating">
                             <input type="text" class="form-control" id="floatingInputValue" :value="peer_id" readonly>
                             <label for="floatingInputValue">My PeerID</label>
