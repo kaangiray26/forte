@@ -43,6 +43,7 @@
             <li><a href="#using-publicly">Using publicly</a></li>
       </ul>
     </li>
+    <li><a href="#forte-dashboard"></a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
@@ -143,7 +144,6 @@ cd forte/server
 ```
 npm install
 ```
-Now change the library path and genius token in `forte/server/config.json`.
 
 ### Using locally
 ```
@@ -160,6 +160,9 @@ npx greenlock add --subject yourdomain.tld --altnames yourdomain.tld
 ```
 sudo node server.js
 ```
+
+## Forte dashboard
+You can access the forte dashboard by going to `http://localhost:3000`. The default login credentials are: `forte` and `alternative`. While in dashboard, don't forget to change the `library_path` and `genius_token` fields in the `Config` tab. Also, please change the default password from the `Password` tab.
 
 ## License
 Distributed under the GPL-3.0 License. See `LICENSE` for more information.
