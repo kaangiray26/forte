@@ -5,7 +5,6 @@ var readlineSync = require('readline-sync');
 const axios = require('axios')
 const crypto = require('crypto')
 
-const configParser = require('./configParser')
 const mime = require('mime-types')
 
 const mm = require('music-metadata')
@@ -13,8 +12,6 @@ const { exit } = require('process')
 
 const pgp = require('pg-promise')()
 const db = pgp('postgres://forte@localhost:5432/forte')
-
-var config = configParser.read();
 
 module.exports = {
     add_friend: _add_friend,
@@ -33,8 +30,8 @@ module.exports = {
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
     get_artist_loved: _get_artist_loved,
+    get_config: _get_config,
     get_friends: _get_friends,
-    get_user_friends: _get_user_friends,
     get_history: _get_history,
     get_lyrics: _get_lyrics,
     get_playlist: _get_playlist,
@@ -53,6 +50,7 @@ module.exports = {
     get_user: _get_user,
     get_user_albums: _get_user_albums,
     get_user_artists: _get_user_artists,
+    get_user_friends: _get_user_friends,
     get_user_history: _get_user_history,
     get_user_playlists: _get_user_playlists,
     get_user_tracks: _get_user_tracks,
@@ -74,6 +72,7 @@ module.exports = {
     unlove_track: _unlove_track,
     update_album: _update_album,
     update_artist: _update_artist,
+    update_config: _update_config,
     update_track: _update_track,
     upload_cover: _upload_cover,
 }
@@ -103,6 +102,7 @@ async function _init(args) {
     db.tx('creating_tables', t => {
         console.log("Checking tables...");
         return t.batch([
+            t.none("CREATE TABLE IF NOT EXISTS config (id SERIAL PRIMARY KEY, name TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name))"),
             t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, UNIQUE(title))"),
             t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, UNIQUE(title, artist))"),
             t.none("CREATE TABLE IF NOT EXISTS playlists(id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'playlist', title TEXT NOT NULL, cover TEXT, author TEXT, tracks INTEGER[], UNIQUE(title, author))"),
@@ -113,10 +113,12 @@ async function _init(args) {
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.type, playlists.title, playlists.cover FROM playlists;"),
         ])
     }).then(() => {
-        db.oneOrNone("SELECT username from auth")
+        db.manyOrNone("SELECT * from config")
             .then(async function (data) {
                 if (!data) {
-                    await db.none("INSERT INTO auth(username, hash) VALUES ('forte', 'a04fe4e390a7c7d5d4583f85d24e164d')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('password', 'a04fe4e390a7c7d5d4583f85d24e164d')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('library_path', '/home/forte/Music')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('genius_token', 'TOKEN')")
                 }
             })
         refresh_library()
@@ -127,13 +129,13 @@ async function _init(args) {
     })
 }
 
-function update_library() {
-    let folders = fs.readdirSync(config.library_path);
+function update_library(path) {
+    let folders = fs.readdirSync(path);
     db.oneOrNone("SELECT folders from library")
         .then(async function (data) {
 
             if (!data) {
-                await walk_folders(folders);
+                await walk_folders(folders, path);
                 await db.none("INSERT INTO library(folders) VALUES ($1)", [folders])
                 console.log("\n==> Added a new total of " + folders.length + " folders.");
                 return;
@@ -148,7 +150,7 @@ function update_library() {
             if (!changes.length) {
                 console.log("==> (Add) No changes in the library.")
             } else {
-                await walk_folders(changes);
+                await walk_folders(changes, path);
                 await db.none("UPDATE library SET folders = $1", [folders])
                 console.log("\n==> Added a new total of " + changes.length + " folders.");
             }
@@ -169,13 +171,15 @@ function update_library() {
 async function refresh_library() {
     console.log("Checking for any changes...");
     console.log("This may take a while.\n");
-    update_library();
+
+    let path = await db.one("SELECT value FROM config WHERE name = 'library_path'");
+    update_library(path.value);
 
     // Watch for changes
     console.log("Watching for changes...");
-    fs.watch(config.library_path, async function (event) {
+    fs.watch(path.value, async function (event) {
         if (event === 'rename') {
-            update_library();
+            update_library(path.value);
         }
     })
 }
@@ -202,7 +206,7 @@ async function remove_folders(folders) {
     }
 }
 
-async function walk_folders(folders) {
+async function walk_folders(folders, path) {
     let cs_artists = new pgp.helpers.ColumnSet(['title', 'cover'], { table: 'artists' });
     let cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'nb_tracks', 'genre', 'year', 'date'], { table: 'albums' });
     let cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
@@ -212,10 +216,10 @@ async function walk_folders(folders) {
         let folder = folders[i];
 
         // Get tags
-        let tags = await get_tags(path.join(config.library_path, folder));
+        let tags = await get_tags(path.join(path, folder));
 
         // Get tracks
-        let tracks = await get_tracks(path.join(config.library_path, folder), tags.album_cover);
+        let tracks = await get_tracks(path.join(path, folder), tags.album_cover);
 
         // Insert artist record
         let artist = await get_artist(tags.artist, tags.artist_cover);
@@ -449,6 +453,34 @@ async function _get_artist(req, res, next) {
     })
 }
 
+async function _get_config(req, res, next) {
+    db.task(async t => {
+        let config = await t.manyOrNone("SELECT * FROM config WHERE name != 'password'");
+        res.status(200)
+            .json({
+                "config": config,
+            })
+    })
+}
+
+async function _update_config(req, res, next) {
+    if (!['name', 'value'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "name and value are not given."
+            });
+        return;
+    }
+
+    db.task(async t => {
+        await t.none("UPDATE config SET value = $1 WHERE name = $2", [req.body.value, req.body.name]);
+        res.status(200)
+            .json({
+                "success": "Config updated."
+            })
+    })
+}
+
 async function _get_album(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -606,10 +638,18 @@ async function _admin_login(req, res, next) {
         return;
     }
     let username = req.body.username;
+    if (username != "forte") {
+        res.status(400)
+            .json({
+                "error": "Not authorized."
+            });
+        return;
+    }
+
     let hash = crypto.createHash('md5').update(req.body.password).digest("hex")
 
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT * FROM auth WHERE username = $1 AND hash = $2", [username, hash]);
+        let user = await t.oneOrNone("SELECT value FROM config WHERE name = 'password' AND value = $1", [hash]);
         if (!user) {
             res.status(400)
                 .send(JSON.stringify({
@@ -1514,11 +1554,12 @@ async function _get_lyrics(req, res, next) {
             return;
         }
 
+        let genius_token = await t.one("SELECT value FROM config WHERE name = 'genius_token'");
         let data = await fetch(`https://api.genius.com/search/?q=${encodeURI([artist.title, req.body.title])}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + config.genius_token
+                'Authorization': 'Bearer ' + genius_token.value
             }
         }).then((res) => res.json());
 

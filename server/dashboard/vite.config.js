@@ -17,6 +17,7 @@ export default defineConfig({
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
             '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
+            'crypto-js/md5': path.resolve(__dirname, 'node_modules/crypto-js/md5'),
         }
     }
 })

@@ -111,6 +111,46 @@
                 </ul>
             </div>
         </div>
+        <!-- Config collapse -->
+        <div class="bg-light rounded p-2 mt-1">
+            <button type="button" class="btn btn-dark w-100 text-start" data-bs-toggle="collapse"
+                data-bs-target="#configCollapse">Config</button>
+            <div class="collapse" id="configCollapse">
+                <ul class="list-group mt-2">
+                    <li v-for="conf in config" class="mb-2">
+                        <div class="input-group">
+                            <span class="input-group-text" :id="conf.id">{{ conf.name }}</span>
+                            <input :id="conf.name + 'Input'" type="text" class="form-control" placeholder="Value"
+                                aria-label="Value" :aria-describedby="conf.id" :value="conf.value">
+                            <button type="button" class="btn btn-dark" @click="change_config(conf.name)">Change</button>
+                        </div>
+                    </li>
+                </ul>
+                <div v-show="config_alert" class="alert alert-success mb-0" role="alert">
+                    Config changed successfully!
+                </div>
+            </div>
+        </div>
+        <!-- Password collapse -->
+        <div class="bg-light rounded p-2 mt-1">
+            <button type="button" class="btn btn-dark w-100 text-start" data-bs-toggle="collapse"
+                data-bs-target="#passwordCollapse">Password</button>
+            <div class="collapse" id="passwordCollapse">
+                <ul class="list-group mt-2">
+                    <li class="mb-2">
+                        <div class="input-group">
+                            <span class="input-group-text" id="password">Password</span>
+                            <input id="passwordInput" type="password" class="form-control" placeholder="New Password..."
+                                aria-label="Value" aria-describedby="password">
+                            <button type="button" class="btn btn-dark" @click="change_password">Change</button>
+                        </div>
+                    </li>
+                </ul>
+                <div v-show="password_alert" class="alert alert-success mb-0" role="alert">
+                    Password changed successfully!
+                </div>
+            </div>
+        </div>
     </div>
     <!-- Add user modal -->
     <div id="addUserModal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
@@ -236,6 +276,7 @@
 import { ref, onMounted } from 'vue'
 import { Modal, Collapse } from 'bootstrap'
 import { useRouter } from 'vue-router';
+import MD5 from 'crypto-js/md5';
 
 const router = useRouter();
 
@@ -254,6 +295,10 @@ const track_modal = ref(null);
 const artist_results = ref([]);
 const album_results = ref([]);
 const track_results = ref([]);
+
+const config = ref([]);
+const config_alert = ref(false);
+const password_alert = ref(false);
 
 async function save_artist() {
     let cover = document.querySelector('#artistCoverInput');
@@ -410,6 +455,64 @@ async function search_track() {
     track_results.value = response.data;
 }
 
+async function change_password() {
+    let pwd = document.querySelector('#passwordInput');
+    if (!pwd.value.length) {
+        pwd.focus();
+        return
+    }
+
+    password_alert.value = false;
+
+    let hash = MD5(pwd.value).toString();
+
+    let response = await fetch("/config", {
+        method: "PUT",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: "password",
+            value: hash
+        })
+    }).then((response) => {
+        return response.json();
+    })
+
+    if (response.hasOwnProperty("success")) {
+        password_alert.value = true;
+    }
+}
+
+async function change_config(name) {
+    let value = document.querySelector(`#${name}Input`);
+    if (!value.value.length) {
+        value.focus();
+        return
+    }
+
+    config_alert.value = false;
+
+    let response = await fetch("/config", {
+        method: "PUT",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: name,
+            value: value.value
+        })
+    }).then((response) => {
+        return response.json();
+    })
+
+    if (response.hasOwnProperty("success")) {
+        config_alert.value = true;
+    }
+
+    get_config();
+}
+
 function get_user_cover(cover) {
     if (cover) {
         return `/${cover}`;
@@ -455,6 +558,16 @@ async function get_users() {
     })
 
     users.value = data.users;
+}
+
+async function get_config() {
+    let data = await fetch("/config", {
+        method: "GET"
+    }).then((response) => {
+        return response.json();
+    })
+    config.value = data.config;
+    config.value.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
 }
 
 async function log_off() {
@@ -511,6 +624,7 @@ async function remove_user(username) {
 
 onMounted(() => {
     username.value = sessionStorage.getItem('username');
+    get_config();
     get_users();
 
     // Add user modal
