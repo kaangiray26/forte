@@ -129,13 +129,13 @@ async function _init(args) {
     })
 }
 
-function update_library(path) {
-    let folders = fs.readdirSync(path);
+function update_library(library_path) {
+    let folders = fs.readdirSync(library_path);
     db.oneOrNone("SELECT folders from library")
         .then(async function (data) {
 
             if (!data) {
-                await walk_folders(folders, path);
+                await walk_folders(folders, library_path);
                 await db.none("INSERT INTO library(folders) VALUES ($1)", [folders])
                 console.log("\n==> Added a new total of " + folders.length + " folders.");
                 return;
@@ -150,7 +150,7 @@ function update_library(path) {
             if (!changes.length) {
                 console.log("==> (Add) No changes in the library.")
             } else {
-                await walk_folders(changes, path);
+                await walk_folders(changes, library_path);
                 await db.none("UPDATE library SET folders = $1", [folders])
                 console.log("\n==> Added a new total of " + changes.length + " folders.");
             }
@@ -172,14 +172,14 @@ async function refresh_library() {
     console.log("Checking for any changes...");
     console.log("This may take a while.\n");
 
-    let path = await db.one("SELECT value FROM config WHERE name = 'library_path'");
-    update_library(path.value);
+    let library_path = await db.one("SELECT value FROM config WHERE name = 'library_path'");
+    update_library(library_path.value);
 
     // Watch for changes
     console.log("Watching for changes...");
-    fs.watch(path.value, async function (event) {
+    fs.watch(library_path.value, async function (event) {
         if (event === 'rename') {
-            update_library(path.value);
+            update_library(library_path.value);
         }
     })
 }
@@ -206,7 +206,7 @@ async function remove_folders(folders) {
     }
 }
 
-async function walk_folders(folders, path) {
+async function walk_folders(folders, library_path) {
     let cs_artists = new pgp.helpers.ColumnSet(['title', 'cover'], { table: 'artists' });
     let cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'nb_tracks', 'genre', 'year', 'date'], { table: 'albums' });
     let cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
@@ -216,10 +216,10 @@ async function walk_folders(folders, path) {
         let folder = folders[i];
 
         // Get tags
-        let tags = await get_tags(path.join(path, folder));
+        let tags = await get_tags(path.join(library_path, folder));
 
         // Get tracks
-        let tracks = await get_tracks(path.join(path, folder), tags.album_cover);
+        let tracks = await get_tracks(path.join(library_path, folder), tags.album_cover);
 
         // Insert artist record
         let artist = await get_artist(tags.artist, tags.artist_cover);
