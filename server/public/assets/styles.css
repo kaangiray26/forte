@@ -1,9 +1,0 @@
-body {
-    height: 100%;
-    margin: 0;
-    background-color: var(--bs-dark);
-}
-
-.invisible {
-    opacity: 0;
-}
