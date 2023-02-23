@@ -14,7 +14,7 @@ import Artists from "/components/profile_section/Artists.vue";
 import Friends from "/components/profile_section/Friends.vue";
 import History from "/components/profile_section/History.vue";
 import Playlists from "/components/profile_section/Playlists.vue";
-import ProfilePage from "/components/profile_section/ProfilePage.vue";
+import Settings from "/components/profile_section/Settings.vue";
 import Stations from "/components/profile_section/Stations.vue";
 import Tracks from "/components/profile_section/Tracks.vue";
 
@@ -28,6 +28,7 @@ import UserPage from "/components/user_section/UserPage.vue";
 import User_Tracks from "/components/user_section/Tracks.vue";
 
 import GroupSessionLink from "/components/GroupSessionLink.vue"
+import LastfmAuth from "/components/LastfmAuth.vue"
 
 const routes = [
     {
@@ -60,12 +61,16 @@ const routes = [
         component: GroupSessionLink
     },
     {
+        path: "/auth/lastfm",
+        component: LastfmAuth
+    },
+    {
         path: '/profile',
         component: Profile,
         children: [
             {
                 path: '',
-                component: ProfilePage
+                component: Settings
             },
             {
                 path: 'albums',

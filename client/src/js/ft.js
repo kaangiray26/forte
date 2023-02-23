@@ -42,6 +42,11 @@ class Forte {
             return
         }
 
+        // Set scrobbling
+        if (JSON.parse(localStorage.getItem('scrobbling'))) {
+            store.scrobbling = true;
+        }
+
         this.token = token;
         this.server = server;
         this.username = username;
@@ -208,6 +213,7 @@ class Forte {
         let queue = this.getCurrentQueue();
         let track = queue[store.queue_index].id;
         this.addTrackToHistory(track);
+        this.scrobble(track);
 
         // At the end of the queue
         if (store.queue_index + 1 == queue.length) {
@@ -345,9 +351,7 @@ class Forte {
         return response;
     }
 
-    async addTrackToHistory() {
-        let queue = this.getCurrentQueue();
-        let track = queue[store.queue_index].id;
+    async addTrackToHistory(track) {
         let response = await fetch(this.server + `/api/profile/history/add`, {
             method: "POST",
             headers: {
@@ -360,6 +364,33 @@ class Forte {
         }).then((response) => {
             return response.json();
         });
+        return response;
+    }
+
+    async scrobble(track) {
+        if (!store.scrobbling) {
+            return;
+        }
+
+        let sk = localStorage.getItem("lastfm_key");
+        if (!sk) {
+            return;
+        }
+
+        let response = await fetch(this.server + '/api/lastfm/scrobble', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "track": track,
+                "sk": JSON.parse(sk)
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        }
+        );
         return response;
     }
 
@@ -562,6 +593,22 @@ class Forte {
         store.playing.progress = 0;
         this.player.unload();
 
+    }
+
+    async lastfm_auth(token) {
+        let response = await fetch(this.server + `/api/lastfm/auth`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "token": token
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
     }
 }
 

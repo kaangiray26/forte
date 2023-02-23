@@ -45,14 +45,14 @@
                                 @click="play_track(track.id)">
                                 <div class="d-flex w-100 justify-content-between">
                                     <div class="d-flex">
-                                        <div class="d-flex align-items-center">
+                                        <div class="d-flex align-items-start">
                                             <img :src="get_track_cover(album.cover)" class="track-cover" />
                                         </div>
                                         <div class="d-flex align-items-center">
                                             <button class="btn btn-link search-link d-flex text-start"
                                                 style="display:contents;">
                                                 <span class="text-muted me-2">{{ track.track_position }}.</span>
-                                                <span>{{ track.title }}</span>
+                                                <span class="text-break">{{ track.title }}</span>
                                             </button>
                                         </div>
                                     </div>

@@ -75,6 +75,8 @@ module.exports = {
     update_config: _update_config,
     update_track: _update_track,
     upload_cover: _upload_cover,
+    lastfm_auth: _lastfm_auth,
+    lastfm_scrobble: _lastfm_scrobble,
 }
 
 async function _init(args) {
@@ -119,6 +121,8 @@ async function _init(args) {
                     await db.none("INSERT INTO config(name, value) VALUES ('password', 'a04fe4e390a7c7d5d4583f85d24e164d')")
                     await db.none("INSERT INTO config(name, value) VALUES ('library_path', '/home/forte/Music')")
                     await db.none("INSERT INTO config(name, value) VALUES ('genius_token', 'TOKEN')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', 'TOKEN')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', 'TOKEN')")
                 }
             })
         refresh_library()
@@ -1575,4 +1579,103 @@ async function _get_lyrics(req, res, next) {
 
         res.status(200).json({ "lyrics": lyric })
     })
+}
+
+async function _lastfm_auth(req, res, next) {
+    if (!['token'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Parameters not given correctly."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        let lastfm_api = await t.many("SELECT value FROM config WHERE name = 'lastfm_api_key' OR name = 'lastfm_api_secret'");
+        let signature = crypto.createHash('md5').update(
+            "api_key" + lastfm_api[0].value + "methodauth.getSessiontoken" + req.body.token + lastfm_api[1].value,
+        ).digest("hex");
+
+        let response = await fetch("https://ws.audioscrobbler.com/2.0/?" + new URLSearchParams({
+            method: 'auth.getSession',
+            format: 'json',
+            token: req.body.token,
+            api_key: lastfm_api[0].value,
+            api_sig: signature
+        }), {
+            method: 'GET',
+        }).then((res) => res.json());
+
+        if (response.hasOwnProperty('session')) {
+            res.status(200).json({
+                "key": response.session.key
+            });
+            return;
+        }
+
+        res.status(400).json({ "error": "Unauthorized" });
+    })
+}
+
+async function _lastfm_scrobble(req, res, next) {
+    if (!['track', 'sk'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Parameters not given correctly."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+        if (!track) {
+            res.status(400).json({ "error": "Track not found." })
+            return;
+        }
+
+        let artist = await t.oneOrNone("SELECT title FROM artists WHERE id = $1", [track.artist]);
+        if (!artist) {
+            res.status(400).json({ "error": "Artist not found." })
+            return;
+        }
+
+        let lastfm_api = await t.many("SELECT value FROM config WHERE name = 'lastfm_api_key' OR name = 'lastfm_api_secret'");
+        let params = {
+            method: 'track.scrobble',
+            artist: artist.title,
+            track: track.title,
+            timestamp: Math.floor(Date.now() / 1000),
+            api_key: lastfm_api[0].value,
+            sk: req.body.sk,
+        }
+
+        let sig = get_api_sig(params, lastfm_api[1].value);
+        params['api_sig'] = sig;
+        params['format'] = 'json';
+
+        let response = await fetch("https://ws.audioscrobbler.com/2.0/", {
+            method: 'POST',
+            body: new URLSearchParams(params)
+        }).then((res) => {
+            return res.json()
+        });
+
+        if (response.scrobbles['@attr'].accepted) {
+            res.status(200).json({ "success": "Scrobbled" });
+            return
+        }
+
+        res.status(400).json({ "error": "Scrobble failed." });
+    })
+}
+
+function get_api_sig(obj, sig) {
+    let keys = Object.keys(obj);
+    keys.sort();
+    let str = '';
+    for (let i = 0; i < keys.length; i++) {
+        str += keys[i] + obj[keys[i]];
+    }
+    str += sig;
+    return crypto.createHash('md5').update(str).digest("hex");
 }

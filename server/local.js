@@ -133,6 +133,9 @@ app.get("/api/playlist/:id/loved", isAuthenticated, db.get_playlist_loved)
 
 app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
 
+app.post("/api/lastfm/auth", isAuthenticated, db.lastfm_auth)
+app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
+
 // Error Handling
 
 app.use((req, res, next) => {

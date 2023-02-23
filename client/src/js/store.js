@@ -28,6 +28,7 @@ const store = reactive({
     func_stack: [],
     selected_track_id: null,
     peer_status: 'disconnected',
+    scrobbling: false,
 });
 
 export { store, isFav }
