@@ -68,8 +68,6 @@ async function get_search_results() {
     let response = await ft.API('/search/' + query);
     if (!response) return;
 
-    console.log(response);
-
     results.value = response.data;
 }
 
