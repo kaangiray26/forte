@@ -133,6 +133,12 @@ app.get("/api/playlist/:id/loved", isAuthenticated, db.get_playlist_loved)
 
 app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
 
+// Error Handling
+
+app.use((req, res, next) => {
+    res.redirect('/')
+})
+
 //
 
 app.listen(3000, 'localhost', () => {
