@@ -36,7 +36,7 @@ function isAuthenticated(req, res, next) {
     })
 }
 
-// Admin Panel
+// Dashboard
 
 app.get("/auth", (req, res) => {
     let status = (req.session.user && req.session.user == 'forte');
@@ -132,6 +132,12 @@ app.post("/api/playlist/:id/delete_track", isAuthenticated, db.delete_track_to_p
 app.get("/api/playlist/:id/loved", isAuthenticated, db.get_playlist_loved)
 
 app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
+
+// Error Handling
+
+app.use((req, res, next) => {
+    res.redirect('/')
+})
 
 //
 

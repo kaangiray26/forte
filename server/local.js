@@ -36,7 +36,7 @@ function isAuthenticated(req, res, next) {
     })
 }
 
-// Admin Panel
+// Dashboard
 
 app.get("/auth", (req, res) => {
     let status = (req.session.user && req.session.user == 'forte');
