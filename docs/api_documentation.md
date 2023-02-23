@@ -12,6 +12,10 @@
   - [GET /api/profile/](#get-apiprofile)
   - [GET /api/profile/history](#get-apiprofilehistory)
   - [POST /api/profile/history/add](#post-apiprofilehistoryadd)
+  - [GET /api/profile/tracks/:offset](#get-apiprofiletracksoffset)
+  - [GET /api/profile/albums/:offset](#get-apiprofilealbumsoffset)
+  - [GET /api/profile/artists/:offset](#get-apiprofileartistsoffset)
+  - [GET /api/profile/playlists/:offset](#get-apiprofileplaylistsoffset)
 
 # Authentication
 ## GET /api/test
@@ -152,15 +156,13 @@ Updates the cover image for the user.
 Body:  
 Content-Type: `multipart/form-data`
 ```
-FormData {
-    cover: <image file>
-}
+{ cover: <image file> }
 ```
 
 Response 200: Cover image is updated.  
 Content-Type: `application/json`
 ```
-{cover: <cover filename>}
+{ cover: <cover filename> }
 ```
 [Back to top](#table-of-contents)
 
@@ -204,7 +206,7 @@ Content-Type: `application/json`
             album: <track album id>,
             track_position: <track position in album>,
             disc_number: <track disc number in album>,
-            path: <track path>,
+            path: <track path>
         },
         ...
     ]
@@ -227,9 +229,7 @@ Adds a track to the listening history for the current user.
 Body:  
 Content-Type: `application/json`
 ```
-{
-    track: <track id>
-}
+{ track: <track id> }
 ```
 
 Response 200: Track added to listening history.  
@@ -248,5 +248,189 @@ Response 400: Track is not found.
 Content-Type: `application/json`
 ```
 { error: "Track not found." }
+```
+[Back to top](#table-of-contents)
+
+## GET /api/profile/tracks/:offset
+[Needs authentication]  
+Gets the favorite tracks for the current user starting from the given offset.
+
+Route parameters:
+```
+offset: <offset>
+```
+
+Response 200: Favorite tracks retrieved.  
+Content-Type: `application/json`
+```
+{
+    tracks: [
+        {
+            id: <track id>,
+            type: "track",
+            title: <track title>,
+            cover: <track cover>,
+            artist: <track artist id>,
+            album: <track album id>,
+            track_position: <track position in album>,
+            disc_number: <track disc number in album>,
+            path: <track path>
+        },
+        ...
+    ],
+    total: <total number of tracks>
+}
+```
+
+* Tracks are sorted by the most recent first.
+* Only 24 tracks are returned at a time.
+* Returns an empty array if there are no tracks and `total` is 0.
+
+Response 400: Offset parameter is missing.  
+Content-Type: `application/json`
+```
+{ error: "Offset parameter not given." }
+```
+
+Response 400: User session is not up to date.  
+Content-Type: `application/json`
+```
+{ error: "User User not found." }
+```
+[Back to top](#table-of-contents)
+
+## GET /api/profile/albums/:offset
+[Needs authentication]  
+Gets the favorite albums for the current user starting from the given offset.
+
+Route parameters:
+```
+offset: <offset>
+```
+
+Response 200: Favorite albums retrieved.  
+Content-Type: `application/json`
+```
+{
+    albums: [
+        {
+            id: <album id>,
+            type: "album"
+            title: <album title>,
+            cover: <album cover>,
+            artist: <album artist id>,
+            nb_tracks: <number of tracks in album>,
+            genre: [<album genre>, ...],
+            year: <album year>,
+            date: <album date>
+        },
+        ...
+    ],
+    total: <total number of albums>
+}
+```
+
+* Albums are sorted by the most recent first.
+* Only 24 albums are returned at a time.
+* Returns an empty array if there are no albums and `total` is 0.
+
+Response 400: Offset parameter is missing.  
+Content-Type: `application/json`
+```
+{ error: "Offset parameter not given." }
+```
+
+Response 400: User session is not up to date.  
+Content-Type: `application/json`
+```
+{ error: "User User not found." }
+```
+[Back to top](#table-of-contents)
+
+## GET /api/profile/artists/:offset
+[Needs authentication]  
+Gets the favorite artists for the current user starting from the given offset.
+
+Route parameters:
+```
+offset: <offset>
+```
+
+Response 200: Favorite artists retrieved.  
+Content-Type: `application/json`
+```
+{
+    artists: [
+        {
+            id: <artist id>,
+            type: "artist"
+            title: <artist title>,
+            cover: <artist cover>
+        },
+        ...
+    ],
+    total: <total number of artists>
+}
+```
+
+* Artists are sorted by the most recent first.
+* Only 24 artists are returned at a time.
+* Returns an empty array if there are no artists and `total` is 0.
+
+Response 400: Offset parameter is missing.  
+Content-Type: `application/json`
+```
+{ error: "Offset parameter not given." }
+```
+
+Response 400: User session is not up to date.  
+Content-Type: `application/json`
+```
+{ error: "User User not found." }
+```
+[Back to top](#table-of-contents)
+
+## GET /api/profile/playlists/:offset
+[Needs authentication]  
+Gets the favorite playlists for the current user starting from the given offset.
+
+Route parameters:
+```
+offset: <offset>
+```
+
+Response 200: Favorite playlists retrieved.  
+Content-Type: `application/json`
+```
+{
+    playlists: [
+        {
+            id: <playlist id>,
+            type: "playlist"
+            title: <playlist title>,
+            cover: <playlist cover>,
+            author: <playlist author username>,
+            tracks: [<playlist track id>, ...]
+        },
+        ...
+    ],
+    total: <total number of playlists>
+}
+```
+
+* Playlists are sorted by the most recent first.
+* Only 24 playlists are returned at a time.
+* Returns an empty array if there are no playlists and `total` is 0.
+
+Response 400: Offset parameter is missing.  
+Content-Type: `application/json`
+```
+{ error: "Offset parameter not given." }
+```
+
+Response 400: User session is not up to date.  
+Content-Type: `application/json`
+```
+{ error: "User User not found." }
 ```
 [Back to top](#table-of-contents)
