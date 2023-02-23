@@ -59,7 +59,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { store } from "/js/store.js";
-import { notify, reaction, refresh_queue } from "/js/events.js"
+import { notify, reaction, refresh_queue, notify_message } from "/js/events.js"
 
 const emit = defineEmits(['disconnected', 'show', 'reaction', 'message']);
 
@@ -318,8 +318,9 @@ props.conn.on("data", async function (data) {
     }
 
     if (data.type == 'message') {
-        notify({
-            "title": `[${contacts.value.recipient.username}]: ${data.message}`
+        notify_message({
+            "username": contacts.value.recipient.username,
+            "message": data.message
         })
         return;
     }

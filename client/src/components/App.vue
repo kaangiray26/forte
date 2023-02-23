@@ -1,5 +1,6 @@
 <template>
     <div class="vw-100 complete-view d-flex flex-column">
+        <Messages />
         <Toasts />
         <Animation />
         <div class="content-view pb-4" style="flex: 1 1 auto;">
@@ -19,6 +20,7 @@ import NavBar from './NavBar.vue';
 import ContentView from './ContentView.vue';
 import Player from './Player.vue';
 import Toasts from './Toasts.vue';
+import Messages from './Messages.vue';
 import Animation from './Animation.vue';
 
 const thisNavBar = ref(null);

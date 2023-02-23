@@ -1021,6 +1021,13 @@ async function _check_friends(req, res, next) {
             return
         }
 
+        if (!user.friends) {
+            res.status(200).json({
+                "friend": false
+            })
+            return
+        }
+
         let friend = user.friends.includes(id);
         res.status(200).json({
             "friend": friend

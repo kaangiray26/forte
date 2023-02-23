@@ -91,7 +91,7 @@ async function openTrack(track) {
 
 async function toggle_scrobbling() {
     if (!lastfm_config.value.lastfm_key) {
-        window.location.href = 'https://www.last.fm/api/auth/?api_key=48c8147a3ca9e182717a154ab44ab848'
+        window.location.href = 'https://www.last.fm/api/auth/?api_key=1ff0a732f00d53529d764cf4ce9270e5'
         return
     }
 
@@ -106,7 +106,7 @@ async function get_lastfm_profile() {
         return
     }
 
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${JSON.parse(username)}&api_key=48c8147a3ca9e182717a154ab44ab848&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${JSON.parse(username)}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
         .then((response) => response.json());
     lastfm_profile.value = response.user;
 }
@@ -117,7 +117,7 @@ async function get_top_tracks() {
         return
     }
 
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${JSON.parse(username)}&api_key=48c8147a3ca9e182717a154ab44ab848&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${JSON.parse(username)}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
         .then((response) => response.json());
 
     top_tracks.value = response.toptracks.track;

@@ -87,13 +87,13 @@ async function check_lastfm_profile() {
 }
 
 async function get_lastfm_profile(username) {
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=48c8147a3ca9e182717a154ab44ab848&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
         .then((response) => response.json());
     lastfm_profile.value = response.user;
 }
 
 async function get_top_tracks(username) {
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${username}&api_key=48c8147a3ca9e182717a154ab44ab848&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${username}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
         .then((response) => response.json());
     top_tracks.value = response.toptracks.track;
 }
