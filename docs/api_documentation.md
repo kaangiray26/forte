@@ -1,16 +1,20 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [GET /api/test](#get-apitest)
-- [GET /api/auth](#get-apiauth)
-- [GET /api/session](#get-apisession)
-- [POST /api/cover](#post-apicover)
-- [GET /api/search/:query](#get-apisearchquery)
-- [GET /api/stream/:id](#get-apistreamid)
-- [GET /api/profile/](#get-apiprofile)
-- [GET /api/profile/history](#get-apiprofilehistory)
-- [POST /api/profile/history/add](#post-apiprofilehistoryadd)
+- [Authentication](#authentication)
+  - [GET /api/test](#get-apitest)
+  - [GET /api/auth](#get-apiauth)
+  - [GET /api/session](#get-apisession)
+- [Search \& Stream](#search--stream)
+  - [GET /api/search/:query](#get-apisearchquery)
+  - [GET /api/stream/:id](#get-apistreamid)
+- [Profile](#profile)
+  - [POST /api/cover](#post-apicover)
+  - [GET /api/profile/](#get-apiprofile)
+  - [GET /api/profile/history](#get-apiprofilehistory)
+  - [POST /api/profile/history/add](#post-apiprofilehistoryadd)
 
-# GET /api/test
+# Authentication
+## GET /api/test
 Checks if the user session is valid.
 
 Response 200: Session is up to date.  
@@ -26,7 +30,7 @@ Content-Type: `application/json`
 ```
 [Back to top](#table-of-contents)
 
-# GET /api/auth
+## GET /api/auth
 Creates a new session for the user.
 
 Headers:
@@ -53,7 +57,7 @@ Content-Type: `application/json`
 ```
 [Back to top](#table-of-contents)
 
-# GET /api/session
+## GET /api/session
 Updates the session for the user. If the user session is already up to date, the session is not updated.
 
 Headers:
@@ -80,26 +84,9 @@ Content-Type: `application/json`
 ```
 [Back to top](#table-of-contents)
 
-# POST /api/cover
-[Needs authentication]  
-Updates the cover image for the user.
+# Search & Stream
 
-Body:  
-Content-Type: `multipart/form-data`
-```
-FormData {
-    cover: <image file>
-}
-```
-
-Response 200: Cover image is updated.  
-Content-Type: `application/json`
-```
-{cover: <cover filename>}
-```
-[Back to top](#table-of-contents)
-
-# GET /api/search/:query
+## GET /api/search/:query
 [Needs authentication]  
 Makes a search query to the database.
 
@@ -134,7 +121,7 @@ Content-Type: `application/json`
 ```
 [Back to top](#table-of-contents)
 
-# GET /api/stream/:id
+## GET /api/stream/:id
 [Needs authentication]  
 Streams the audio file for the track.
 
@@ -156,7 +143,28 @@ Content-Type: `application/json`
 ```
 [Back to top](#table-of-contents)
 
-# GET /api/profile/
+# Profile
+
+## POST /api/cover
+[Needs authentication]  
+Updates the cover image for the user.
+
+Body:  
+Content-Type: `multipart/form-data`
+```
+FormData {
+    cover: <image file>
+}
+```
+
+Response 200: Cover image is updated.  
+Content-Type: `application/json`
+```
+{cover: <cover filename>}
+```
+[Back to top](#table-of-contents)
+
+## GET /api/profile/
 [Needs authentication]  
 Gets the profile information for the current user.
 
@@ -178,7 +186,7 @@ Content-Type: `application/json`
 ```
 [Back to top](#table-of-contents)
 
-# GET /api/profile/history
+## GET /api/profile/history
 [Needs authentication]  
 Gets the listening history for the current user.
 
@@ -212,7 +220,7 @@ Content-Type: `application/json`
 ```
 [Back to top](#table-of-contents)
 
-# POST /api/profile/history/add
+## POST /api/profile/history/add
 [Needs authentication]  
 Adds a track to the listening history for the current user.
 
