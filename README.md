@@ -89,6 +89,9 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 * ![Anime.js](https://img.shields.io/badge/Anime.js-d3d4d5?style=flat-square)
 * ![Greenlock](https://img.shields.io/badge/Greenlock%20Express-d3d4d5?style=flat-square)
 
+## Documentation
+* Click [here](docs/api_documentation.md) for the API documentation.
+
 ## Usage
 If you know a forte server and just want to connect to use the service, go to https://forte.buzl.uk. The webpage is hosted with GitHub pages and uses the latest forte version. Therefore, this is the **recommended way** to access forte services.
 
