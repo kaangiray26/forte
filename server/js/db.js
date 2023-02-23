@@ -1608,7 +1608,8 @@ async function _lastfm_auth(req, res, next) {
 
         if (response.hasOwnProperty('session')) {
             res.status(200).json({
-                "key": response.session.key
+                "key": response.session.key,
+                "username": response.session.name
             });
             return;
         }

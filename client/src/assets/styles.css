@@ -256,3 +256,8 @@ img {
     position: fixed;
     z-index: 1047;
 }
+
+.img-lastfm {
+    object-fit: cover;
+    aspect-ratio: 1/1;
+}

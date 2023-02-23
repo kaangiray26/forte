@@ -17,8 +17,9 @@ onMounted(async () => {
             return
         }
 
-        localStorage.setItem('lastfm_key', JSON.stringify(response.key))
-        localStorage.setItem('scrobbling', JSON.stringify(true))
+        localStorage.setItem('lastfm_username', JSON.stringify(response.username));
+        localStorage.setItem('lastfm_key', JSON.stringify(response.key));
+        localStorage.setItem('scrobbling', JSON.stringify(true));
         store.scrobbling = true
         router.push('/profile')
     }
