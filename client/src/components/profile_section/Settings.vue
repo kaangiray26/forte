@@ -53,13 +53,21 @@
                 <button v-if="lastfm_profile" class="btn btn-dark mb-2" @click="remove_account">Remove account</button>
             </div>
             <div class="d-flex flex-column">
-                <h5>Recommended Albums</h5>
-                <ul class="list-group flex-fill">
-                    <li v-for="album in lastfm_albums" class="list-group-item list-group-item-action clickable"
-                        @click="openAlbum(album)">
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold">{{ album.artist['#text'] }}</span>
-                            <span>{{ album.name }}</span>
+                <h5>Top Tracks This Week</h5>
+                <ul class="list-group list-group-flush flex-fill">
+                    <li v-for="track in top_tracks" class="list-group-item list-group-item-action clickable"
+                        @click="openTrack(track)">
+                        <div class="d-flex">
+                            <img :src="track.image[3]['#text']" class="img-lastfm" width="50" height="50" />
+                            <div class="d-flex flex-fill justify-content-between">
+                                <div class="d-flex flex-column mx-2">
+                                    <span class="fw-bold">{{ track.artist.name }}</span>
+                                    <span>{{ track.name }}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-dark">{{ track.playcount }}</span>
+                                </div>
+                            </div>
                         </div>
                     </li>
                 </ul>
@@ -74,10 +82,11 @@ import { store } from '/js/store.js';
 
 const lastfm_config = ref({});
 const lastfm_profile = ref(null);
-const lastfm_albums = ref([]);
 
-async function openAlbum(album) {
-    window.open(album.url, '_blank');
+const top_tracks = ref([]);
+
+async function openTrack(track) {
+    window.open(track.url, '_blank');
 }
 
 async function toggle_scrobbling() {
@@ -102,15 +111,17 @@ async function get_lastfm_profile() {
     lastfm_profile.value = response.user;
 }
 
-async function get_album_recommendations() {
+async function get_top_tracks() {
     let username = localStorage.getItem('lastfm_username');
     if (!username) {
         return
     }
 
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getWeeklyAlbumChart&user=${JSON.parse(username)}&api_key=48c8147a3ca9e182717a154ab44ab848&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${JSON.parse(username)}&api_key=48c8147a3ca9e182717a154ab44ab848&format=json`)
         .then((response) => response.json());
-    lastfm_albums.value = response.weeklyalbumchart.album.slice(0, 24);
+    console.log(response);
+
+    top_tracks.value = response.toptracks.track;
 }
 
 async function remove_account() {
@@ -136,6 +147,6 @@ onBeforeMount(() => {
     })
 
     get_lastfm_profile();
-    get_album_recommendations();
+    get_top_tracks();
 })
 </script>
