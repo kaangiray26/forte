@@ -863,7 +863,7 @@ async function _session(req, res, next) {
 
 async function _get_profile(req, res, next) {
     db.task(async t => {
-        let profile = await t.oneOrNone("SELECT * FROM users WHERE session = $1", [req.session.id]);
+        let profile = await t.oneOrNone("SELECT username, cover FROM users WHERE session = $1", [req.session.id]);
         if (!profile) {
             res.status(400)
                 .json({

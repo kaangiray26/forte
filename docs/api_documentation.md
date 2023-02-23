@@ -6,6 +6,9 @@
 - [POST /api/cover](#post-apicover)
 - [GET /api/search/:query](#get-apisearchquery)
 - [GET /api/stream/:id](#get-apistreamid)
+- [GET /api/profile/](#get-apiprofile)
+- [GET /api/profile/history](#get-apiprofilehistory)
+- [POST /api/profile/history/add](#post-apiprofilehistoryadd)
 
 # GET /api/test
 Checks if the user session is valid.
@@ -81,7 +84,8 @@ Content-Type: `application/json`
 [Needs authentication]  
 Updates the cover image for the user.
 
-Body:
+Body:  
+Content-Type: `multipart/form-data`
 ```
 FormData {
     cover: <image file>
@@ -93,6 +97,7 @@ Content-Type: `application/json`
 ```
 {cover: <cover filename>}
 ```
+[Back to top](#table-of-contents)
 
 # GET /api/search/:query
 [Needs authentication]  
@@ -113,7 +118,8 @@ Content-Type: `application/json`
             id: <object id>,
             title: <object title>,
             type: <object type>
-        }
+        },
+        ...
     ]
 }
 ```
@@ -126,6 +132,7 @@ Content-Type: `application/json`
 ```
 { error: "Query parameter not given." }
 ```
+[Back to top](#table-of-contents)
 
 # GET /api/stream/:id
 [Needs authentication]  
@@ -147,3 +154,91 @@ Content-Type: `application/json`
 ```
 { error: "ID parameter not given." }
 ```
+[Back to top](#table-of-contents)
+
+# GET /api/profile/
+[Needs authentication]  
+Gets the profile information for the current user.
+
+Response 200: Profile information retrieved.  
+Content-Type: `application/json`
+```
+{
+    profile: {
+        username: <username>,
+        cover: <cover filename>,
+    }
+}
+```
+
+Response 400: User session is not up to date.  
+Content-Type: `application/json`
+```
+{ error: "User session not up to date." }
+```
+[Back to top](#table-of-contents)
+
+# GET /api/profile/history
+[Needs authentication]  
+Gets the listening history for the current user.
+
+Response 200: Listening history retrieved.  
+Content-Type: `application/json`
+```
+{
+    tracks: [
+        {
+            type: "track"
+            id: <track id>,
+            title: <track title>,
+            cover: <track cover>,
+            artist: <track artist id>,
+            album: <track album id>,
+            track_position: <track position in album>,
+            disc_number: <track disc number in album>,
+            path: <track path>,
+        },
+        ...
+    ]
+}
+```
+
+* Tracks are sorted by the most recent first.
+
+Response 400: User session is not up to date.  
+Content-Type: `application/json`
+```
+{ error: "User not found." }
+```
+[Back to top](#table-of-contents)
+
+# POST /api/profile/history/add
+[Needs authentication]  
+Adds a track to the listening history for the current user.
+
+Body:  
+Content-Type: `application/json`
+```
+{
+    track: <track id>
+}
+```
+
+Response 200: Track added to listening history.  
+Content-Type: `application/json`
+```
+{ success: "History updated." }
+```
+
+Response 400: `track` is missing in body.  
+Content-Type: `application/json`
+```
+{ error: "Track not given." }
+```
+
+Response 400: Track is not found.  
+Content-Type: `application/json`
+```
+{ error: "Track not found." }
+```
+[Back to top](#table-of-contents)
