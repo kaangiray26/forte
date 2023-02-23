@@ -75,6 +75,7 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 * [x] Group Sessions
 * [x] Admin dashboard
 * [x] User profiles
+* [x] Last.fm Scrobbling
 
 ## Built with
 * ![Vue.js](https://img.shields.io/badge/Vue.js-d3d4d5?style=flat-square&logo=vuedotjs&logoColor=4FC08D)
