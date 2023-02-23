@@ -21,7 +21,7 @@ export default defineConfig({
             '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
             'hammerjs': path.resolve(__dirname, 'node_modules/hammerjs'),
             'peerjs': path.resolve(__dirname, 'node_modules/peerjs'),
-            'animejs': path.resolve(__dirname, 'node_modules/animejs'),
+            'js-confetti': path.resolve(__dirname, 'node_modules/js-confetti'),
         }
     }
 })
