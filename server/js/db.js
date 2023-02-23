@@ -21,6 +21,7 @@ module.exports = {
     admin_login: _admin_login,
     admin_session: _admin_session,
     auth: _auth,
+    check_friends: _check_friends,
     create_playlist: _create_playlist,
     delete_playlist: _delete_playlist,
     delete_track_to_playlist: _delete_track_to_playlist,
@@ -57,9 +58,13 @@ module.exports = {
     get_users: _get_users,
     init: _init,
     is_authenticated: _is_authenticated,
+    lastfm_auth: _lastfm_auth,
+    lastfm_scrobble: _lastfm_scrobble,
+    get_lastfm_profile: _get_lastfm_profile,
     love_album: _love_album,
     love_artist: _love_artist,
     love_track: _love_track,
+    remove_friend: _remove_friend,
     remove_user: _remove_user,
     search: _search,
     search_album: _search_album,
@@ -75,8 +80,6 @@ module.exports = {
     update_config: _update_config,
     update_track: _update_track,
     upload_cover: _upload_cover,
-    lastfm_auth: _lastfm_auth,
-    lastfm_scrobble: _lastfm_scrobble,
 }
 
 async function _init(args) {
@@ -111,7 +114,7 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
-            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history INTEGER[10], fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends INTEGER[], UNIQUE(username, token, session))"),
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history INTEGER[10], fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends VARCHAR[], lastfm TEXT, UNIQUE(username, token, session))"),
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.type, playlists.title, playlists.cover FROM playlists UNION SELECT users.id, 'user', users.username, users.cover FROM users;"),
         ])
     }).then(() => {
@@ -997,9 +1000,30 @@ async function _get_random_tracks(req, res, next) {
 async function _get_friends(req, res, next) {
     db.task(async t => {
         let data = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.session.id]);
-        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE id = ANY($1)", [data.friends]);
+        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE username = ANY($1)", [data.friends]);
         res.status(200).json({
             "friends": friends
+        })
+    })
+}
+
+async function _check_friends(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.session.id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." });
+            return
+        }
+
+        let friend = user.friends.includes(id);
+        res.status(200).json({
+            "friend": friend
         })
     })
 }
@@ -1013,7 +1037,7 @@ async function _get_user_friends(req, res, next) {
 
     db.task(async t => {
         let data = await t.oneOrNone("SELECT friends FROM users WHERE username = $1", [id]);
-        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE id = ANY($1)", [data.friends]);
+        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE username = ANY($1)", [data.friends]);
         res.status(200).json({
             "friends": friends
         })
@@ -1035,8 +1059,28 @@ async function _add_friend(req, res, next) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
-        await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [user.id, req.session.id]);
+        await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.username, req.session.id]);
         res.status(200).json({ "success": "Friend addded." })
+    })
+}
+
+async function _remove_friend(req, res, next) {
+    if (!['username'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Username not given."
+            });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.username, req.session.id]);
+        res.status(200).json({ "success": "Friend removed." })
     })
 }
 
@@ -1607,11 +1651,12 @@ async function _lastfm_auth(req, res, next) {
         }).then((res) => res.json());
 
         if (response.hasOwnProperty('session')) {
+            await t.none("UPDATE users SET lastfm = $1 WHERE session = $2", [response.session.name, req.session.id]);
             res.status(200).json({
                 "key": response.session.key,
                 "username": response.session.name
             });
-            return;
+            return
         }
 
         res.status(400).json({ "error": "Unauthorized" });
@@ -1667,6 +1712,24 @@ async function _lastfm_scrobble(req, res, next) {
         }
 
         res.status(400).json({ "error": "Scrobble failed." });
+    })
+}
+
+async function _get_lastfm_profile(req, res, next) {
+    let username = req.params.username;
+    if (!username) {
+        res.status(400).json({ "error": "Username parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT lastfm FROM users WHERE username = $1", [username]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." });
+            return;
+        }
+
+        res.status(200).json({ "lastfm": user.lastfm });
     })
 }
 

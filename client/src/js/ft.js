@@ -88,6 +88,22 @@ class Forte {
         return response;
     }
 
+    async remove_friend(username) {
+        let response = await fetch(this.server + '/api/friends/remove', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "username": username
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
     async create_playlist(data) {
         let response = await fetch(this.server + '/api/profile/create_playlist', {
             method: "POST",

@@ -24,7 +24,7 @@ import User_Artists from "/components/user_section/Artists.vue";
 import User_Friends from "/components/user_section/Friends.vue";
 import User_History from "/components/user_section/History.vue";
 import User_Playlists from "/components/user_section/Playlists.vue";
-import UserPage from "/components/user_section/UserPage.vue";
+import User_Settings from "/components/user_section/Settings.vue";
 import User_Tracks from "/components/user_section/Tracks.vue";
 
 import GroupSessionLink from "/components/GroupSessionLink.vue"
@@ -108,7 +108,7 @@ const routes = [
         children: [
             {
                 path: '',
-                component: UserPage
+                component: User_Settings
             },
             {
                 path: 'albums',

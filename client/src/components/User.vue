@@ -10,7 +10,18 @@
                     </div>
                 </div>
                 <div class="col">
-                    <h1 class="album-title mb-4">{{ user.username }}</h1>
+                    <h1 class="album-title">{{ user.username }}</h1>
+                    <div class="pt-2">
+                        <button v-show="friend" type="button" class="btn btn-light border text-nowrap"
+                            @click="remove_friend">
+                            <span class="bi bi-emoji-smile-fill me-2"></span>
+                            <span>Friend</span>
+                        </button>
+                        <button v-show="!friend" type="button" class="btn btn-dark text-nowrap" @click="add_friend">
+                            <span class="bi bi-emoji-frown-fill me-2"></span>
+                            <span>Add Friend</span>
+                        </button>
+                    </div>
                     <hr />
                     <router-view />
                 </div>
@@ -20,13 +31,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
 const user = ref({});
 const loaded = ref(false);
+const friend = ref(false);
 
 function get_cover() {
     if (user.value.cover) {
@@ -40,10 +52,31 @@ async function get_user(id) {
     if (!data) return;
 
     user.value = data.user;
+    await check_friends();
     loaded.value = true;
 }
 
-onMounted(() => {
+async function check_friends() {
+    let data = await ft.API('/friends/' + user.value.username);
+    if (!data) return;
+    friend.value = data.friend;
+}
+
+async function add_friend(ev) {
+    ev.target.parentElement.setAttribute("disabled", true);
+    await ft.add_friend(user.value.username);
+    await check_friends();
+    ev.target.parentElement.disabled = false;
+}
+
+async function remove_friend(ev) {
+    ev.target.parentElement.setAttribute("disabled", true);
+    await ft.remove_friend(user.value.username);
+    await check_friends();
+    ev.target.parentElement.disabled = false;
+}
+
+onBeforeMount(() => {
     get_user(router.currentRoute.value.params.id);
 })
 </script>

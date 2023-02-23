@@ -1,6 +1,9 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
+            <router-link :to="'/user/' + username" class="nav-link search-link">Profile</router-link>
+        </li>
+        <li class="nav-item">
             <router-link :to="'/user/' + username + '/history'" class="nav-link bg-dark search-link text-white">Listening
                 History</router-link>
         </li>

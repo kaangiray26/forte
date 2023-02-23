@@ -1,7 +1,7 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link search-link">Settings</router-link>
+            <router-link to="/profile" class="nav-link search-link">Profile</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/history" class="nav-link bg-dark search-link text-white">Listening

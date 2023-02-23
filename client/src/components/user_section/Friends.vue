@@ -1,6 +1,9 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
+            <router-link :to="'/user/' + username" class="nav-link search-link">Profile</router-link>
+        </li>
+        <li class="nav-item">
             <router-link :to="'/user/' + username + '/history'" class="nav-link search-link">Listening
                 History</router-link>
         </li>
@@ -60,7 +63,6 @@ const router = useRouter();
 const username = ref(router.currentRoute.value.params.id);
 
 const friends = ref([]);
-const friend_name = ref(null);
 const searchFinished = ref(true);
 
 function get_cover(cover) {

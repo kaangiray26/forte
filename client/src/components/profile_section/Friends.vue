@@ -1,7 +1,7 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link search-link">Settings</router-link>
+            <router-link to="/profile" class="nav-link search-link">Profile</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/history" class="nav-link search-link">Listening
@@ -27,15 +27,19 @@
         </li>
     </ul>
     <hr />
-    <div class="d-inline-flex mb-4">
-        <div class="input-group flex-nowrap">
-            <span class="input-group-text" id="addon-wrapping">@</span>
-            <input ref="friend_name" type="text" class="form-control" placeholder="Username" aria-label="Username"
-                aria-describedby="addon-wrapping" @keypress.enter="add_friend">
-            <button class="btn btn-dark" @click="add_friend">Add Friend</button>
-        </div>
-    </div>
     <div class="row g-2">
+        <div v-show="!friends.length" class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2">
+            <div class="card h-100 w-100 border-0">
+                <div class="p-3">
+                    <div class="d-inline-flex position-relative">
+                        <img class="playlist-img" src="/images/empty.svg" />
+                    </div>
+                    <div class="d-flex flex-fill">
+                        <h6 class="fw-bold text-break text-wrap p-2 ps-0">No friends added yet</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">

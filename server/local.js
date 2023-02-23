@@ -122,7 +122,9 @@ app.get("/api/random/track", isAuthenticated, db.get_random_track)
 app.get("/api/random/tracks", isAuthenticated, db.get_random_tracks)
 
 app.get("/api/friends", isAuthenticated, db.get_friends)
+app.get("/api/friends/:id", isAuthenticated, db.check_friends)
 app.post("/api/friends/add", isAuthenticated, db.add_friend)
+app.post("/api/friends/remove", isAuthenticated, db.remove_friend)
 
 app.get("/api/playlist/:id", isAuthenticated, db.get_playlist)
 app.get("/api/playlist/:id/delete", isAuthenticated, db.delete_playlist)
@@ -135,6 +137,7 @@ app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
 
 app.post("/api/lastfm/auth", isAuthenticated, db.lastfm_auth)
 app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
+app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 
 // Error Handling
 

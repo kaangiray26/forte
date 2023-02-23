@@ -1,7 +1,7 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link bg-dark search-link text-white">Settings</router-link>
+            <router-link to="/profile" class="nav-link bg-dark search-link text-white">Profile</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/history" class="nav-link search-link">Listening
@@ -30,7 +30,7 @@
     <div class="card">
         <div class="card-body">
             <h3>Last.fm</h3>
-            <div class="d-inline-flex flex-column mb-4">
+            <div class="d-inline-flex flex-column">
                 <div v-if="lastfm_profile" class="d-inline-flex border rounded mb-2 p-2">
                     <div class="d-flex">
                         <img :src="lastfm_profile.image[3]['#text']" class="img-lastfm" width="50" height="50" />
@@ -52,7 +52,7 @@
                 </div>
                 <button v-if="lastfm_profile" class="btn btn-dark mb-2" @click="remove_account">Remove account</button>
             </div>
-            <div class="d-flex flex-column">
+            <div v-if="lastfm_profile" class="d-flex flex-column mt-4">
                 <h5>Top Tracks This Week</h5>
                 <ul class="list-group list-group-flush flex-fill">
                     <li v-for="track in top_tracks" class="list-group-item list-group-item-action clickable"
@@ -119,7 +119,6 @@ async function get_top_tracks() {
 
     let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${JSON.parse(username)}&api_key=48c8147a3ca9e182717a154ab44ab848&format=json`)
         .then((response) => response.json());
-    console.log(response);
 
     top_tracks.value = response.toptracks.track;
 }
