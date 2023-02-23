@@ -33,6 +33,7 @@
     <li><a href="#about-the-project">About the project</a></li>
     <li><a href="#features">Features</a></li>
     <li><a href="#built-with">Built with</a></li>
+    <li><a href="#documentation">Documentation</a></li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#keyboard-shortcuts">Keyboard Shortcuts</a></li>
     <li><a href="#logging-in">Logging in</a></li>
