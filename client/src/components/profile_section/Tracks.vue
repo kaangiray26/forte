@@ -43,13 +43,13 @@
                 </div>
             </div>
         </li>
-        <li class="list-group-item list-group-item-action d-flex justify-content-between" v-for="track in tracks"
-            @contextmenu.prevent="right_click({ item: track, event: $event })">
+        <li class="list-group-item list-group-item-action clickable d-flex justify-content-between" v-for="track in tracks"
+            @contextmenu.prevent="right_click({ item: track, event: $event })" @click="playTrack(track.id)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="track.cover" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link" :content_id="track.id" :content_type="track.type"
-                        @click="playTrack(track.id)" style="display:contents;">
+                        style="display:contents;">
                         {{ track.title }}
                     </button>
                 </div>

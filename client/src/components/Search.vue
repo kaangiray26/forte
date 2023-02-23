@@ -47,6 +47,8 @@ function get_cover(type, cover) {
     }
 
     switch (type) {
+        case 'user':
+            return "/images/default_profile.svg";
         case 'track':
             return "/images/track.svg";
         case 'album':
@@ -66,6 +68,8 @@ async function get_search_results() {
     let response = await ft.API('/search/' + query);
     if (!response) return;
 
+    console.log(response);
+
     results.value = response.data;
 }
 
@@ -74,6 +78,12 @@ async function openResult(result) {
         ft.playTrack(result.id);
         return;
     }
+
+    if (result.type == 'user') {
+        router.push("/user/" + result.title);
+        return;
+    }
+
     router.push("/" + result.type + "/" + result.id);
 }
 

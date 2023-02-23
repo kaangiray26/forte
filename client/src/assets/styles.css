@@ -222,6 +222,11 @@ img {
     background-color: RGBA(25, 135, 84, var(--bs-bg-opacity, 1)) !important;
 }
 
+.user {
+    color: #fff !important;
+    background-color: RGBA(89, 92, 95, var(--bs-bg-opacity, 1)) !important;
+}
+
 .mobile-carousel {
     display: flex;
     overflow-x: scroll;
