@@ -10,7 +10,6 @@ onBeforeMount(() => {
     store.selected_track_id = track_id;
 
     ft.API(`/track/${track_id}/basic`).then((response) => {
-        console.log(response);
         router.push("/album/" + response.track.album);
     })
 })
