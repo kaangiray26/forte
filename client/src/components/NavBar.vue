@@ -9,7 +9,7 @@
                 </div>
                 <div class="d-inline-flex input-group flex-nowrap me-2">
                     <input ref="search_field" type="text" class="form-control" placeholder="Search" aria-label="Search"
-                        @keyup.enter="search">
+                        @input="search">
                 </div>
                 <div @contextmenu.prevent="reset_menu">
                     <router-link to="/profile" class="hide-on-mobile search-link">
@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router'
 
 import Reset from './Reset.vue';
