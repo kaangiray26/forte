@@ -1,11 +1,11 @@
 const express = require('express')
 const session = require('express-session')
 const multer = require('multer')
-const upload = multer({ dest: 'uploads/' })
+const upload = multer({ dest: '../uploads/' })
 
 const cors = require('cors')
 const crypto = require('crypto')
-const db = require('./js/db.js')
+const db = require('./db.js')
 
 const app = express()
 
@@ -20,7 +20,7 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-app.use(express.static('admin/src/dist'))
+app.use(express.static('../dashboard/src/dist'))
 app.use(express.static('uploads'))
 
 function isAdmin(req, res, next) {
