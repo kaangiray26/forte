@@ -1,3 +1,4 @@
+<template></template>
 <script setup>
 import { onBeforeMount } from 'vue';
 import { store } from '/js/store.js';
