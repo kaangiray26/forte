@@ -1,10 +1,11 @@
 'use strict';
 
-var app = require('./js/index.js');
+import app from './app/index.js';
+import greenlock from 'greenlock-express';
 
-require('greenlock-express')
+greenlock
     .init({
-        packageRoot: __dirname,
+        packageRoot: './',
 
         // where to look for configuration
         configDir: './greenlock.d',

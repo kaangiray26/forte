@@ -1,10 +1,11 @@
 {
+  "type": "module",
   "name": "forte_server",
   "version": "1.0.0",
   "description": "Self-hosted, music streaming platform",
   "author": "kaangiray26",
   "license": "GPL-3.0",
-  "main": "server.js",
+  "main": "./server.js",
   "scripts": {
     "start": "sudo node server.js"
   },

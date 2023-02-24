@@ -1,11 +1,11 @@
 const express = require('express')
 const session = require('express-session')
 const multer = require('multer')
-const upload = multer({ dest: '../uploads/' })
+const upload = multer({ dest: 'uploads/' })
 
 const cors = require('cors')
 const crypto = require('crypto')
-const db = require('./db.js')
+const db = require('../js/db.js')
 
 const app = express()
 
@@ -20,7 +20,7 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-app.use(express.static('../dashboard/src/dist'))
+app.use(express.static('dashboard/src/dist'))
 app.use(express.static('uploads'))
 
 function isAdmin(req, res, next) {
@@ -148,4 +148,7 @@ app.use((req, res, next) => {
 
 //
 
-module.exports = app;
+app.listen(3000, 'localhost', () => {
+    db.init(process.argv.slice(2))
+    console.log(`Server:    http://localhost:3000/`)
+});

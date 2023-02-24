@@ -17,10 +17,8 @@ RUN mkdir -p /greenlock.d
 RUN npm install
 
 # # ENV EMAIL=admin@localhost
-# ENV DOMAIN=localhost
-
-# RUN npx greenlock add --subject ${DOMAIN} --altnames ${DOMAIN}
+ENV DOMAIN=localhost
 
 EXPOSE 443
 
-CMD [ "node", "server.js" ]
+CMD echo '{ "sites": [{ "subject": "$DOMAIN", "altnames": ["$DOMAIN"] }] }' > ./greenlock.d/config.json && node server.js
