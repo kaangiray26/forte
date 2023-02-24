@@ -74,6 +74,7 @@ const router = useRouter();
 const username = ref(router.currentRoute.value.params.id);
 
 const lastfm_profile = ref(null);
+const lastfm_api_key = ref(null);
 const top_tracks = ref([]);
 
 async function check_lastfm_profile() {
@@ -87,13 +88,13 @@ async function check_lastfm_profile() {
 }
 
 async function get_lastfm_profile(username) {
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=${lastfm_api_key.value}&format=json`)
         .then((response) => response.json());
     lastfm_profile.value = response.user;
 }
 
 async function get_top_tracks(username) {
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${username}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${username}&api_key=${lastfm_api_key.value}&format=json`)
         .then((response) => response.json());
     top_tracks.value = response.toptracks.track;
 }
@@ -102,7 +103,13 @@ function formatNumber(num) {
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
+    let response = await ft.API('/lastfm/auth');
+    if (response.hasOwnProperty('error')) {
+        return
+    }
+    lastfm_api_key.value = response.api_key;
+
     check_lastfm_profile();
 })
 </script>

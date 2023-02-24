@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 
 const profile = ref({});
 const cover_upload = ref(null);
@@ -65,7 +65,7 @@ async function change_cover() {
     cover_upload.value.click();
 }
 
-onMounted(() => {
+onBeforeMount(() => {
     get_profile();
 })
 </script>

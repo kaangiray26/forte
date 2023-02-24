@@ -11,7 +11,7 @@
                 </div>
                 <div class="col">
                     <h1 class="album-title">{{ user.username }}</h1>
-                    <div class="pt-2">
+                    <div v-show="!is_self" class="pt-2">
                         <button v-show="friend" type="button" class="btn btn-light border text-nowrap"
                             @click="remove_friend">
                             <span class="bi bi-emoji-smile-fill me-2"></span>
@@ -31,14 +31,19 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue';
+import { ref, watch, computed, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const is_self = ref(false);
 
 const user = ref({});
 const loaded = ref(false);
 const friend = ref(false);
+
+const query_param = computed(() => {
+    return router.currentRoute.value.params.id;
+})
 
 function get_cover() {
     if (user.value.cover) {
@@ -76,7 +81,13 @@ async function remove_friend(ev) {
     ev.target.parentElement.disabled = false;
 }
 
+watch(query_param, () => {
+    is_self.value = (router.currentRoute.value.params.id == ft.username);
+    get_user(router.currentRoute.value.params.id);
+})
+
 onBeforeMount(() => {
+    is_self.value = (router.currentRoute.value.params.id == ft.username);
     get_user(router.currentRoute.value.params.id);
 })
 </script>

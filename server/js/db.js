@@ -59,6 +59,7 @@ module.exports = {
     init: _init,
     is_authenticated: _is_authenticated,
     lastfm_auth: _lastfm_auth,
+    get_lastfm_auth: _get_lastfm_auth,
     lastfm_scrobble: _lastfm_scrobble,
     get_lastfm_profile: _get_lastfm_profile,
     love_album: _love_album,
@@ -1667,6 +1668,18 @@ async function _lastfm_auth(req, res, next) {
         }
 
         res.status(400).json({ "error": "Unauthorized" });
+    })
+}
+
+async function _get_lastfm_auth(req, res, next) {
+    db.task(async t => {
+        let lastfm = await t.oneOrNone("SELECT value FROM config WHERE name = 'lastfm_api_key'");
+        if (!lastfm.value) {
+            res.status(400).json({ "error": "Last.fm API key isn't set." })
+            return;
+        }
+
+        res.status(200).json({ "api_key": lastfm.value });
     })
 }
 

@@ -81,6 +81,7 @@ import { onBeforeMount, ref } from 'vue'
 import { store } from '/js/store.js';
 
 const lastfm_config = ref({});
+const lastfm_api_key = ref(null);
 const lastfm_profile = ref(null);
 
 const top_tracks = ref([]);
@@ -91,7 +92,7 @@ async function openTrack(track) {
 
 async function toggle_scrobbling() {
     if (!lastfm_config.value.lastfm_key) {
-        window.location.href = 'https://www.last.fm/api/auth/?api_key=1ff0a732f00d53529d764cf4ce9270e5'
+        window.location.href = `https://www.last.fm/api/auth/?api_key=${lastfm_api_key.value}`
         return
     }
 
@@ -106,7 +107,7 @@ async function get_lastfm_profile() {
         return
     }
 
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${JSON.parse(username)}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${JSON.parse(username)}&api_key=${lastfm_api_key.value}&format=json`)
         .then((response) => response.json());
     lastfm_profile.value = response.user;
 }
@@ -117,7 +118,7 @@ async function get_top_tracks() {
         return
     }
 
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${JSON.parse(username)}&api_key=1ff0a732f00d53529d764cf4ce9270e5&format=json`)
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${JSON.parse(username)}&api_key=${lastfm_api_key.value}&format=json`)
         .then((response) => response.json());
 
     top_tracks.value = response.toptracks.track;
@@ -135,7 +136,7 @@ function formatNumber(num) {
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
     ['lastfm_key', 'scrobbling'].forEach((key) => {
         let value = localStorage.getItem(key);
         if (value) {
@@ -144,6 +145,12 @@ onBeforeMount(() => {
             lastfm_config.value[key] = null
         }
     })
+
+    let response = await ft.API('/lastfm/auth');
+    if (response.hasOwnProperty('error')) {
+        return
+    }
+    lastfm_api_key.value = response.api_key;
 
     get_lastfm_profile();
     get_top_tracks();
