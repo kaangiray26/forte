@@ -135,6 +135,7 @@ app.get("/api/playlist/:id/loved", isAuthenticated, db.get_playlist_loved)
 
 app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
 
+app.get("/api/lastfm/auth", isAuthenticated, db.get_lastfm_auth)
 app.post("/api/lastfm/auth", isAuthenticated, db.lastfm_auth)
 app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
 app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
