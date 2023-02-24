@@ -10,7 +10,7 @@ import mime from 'mime-types';
 import { exit } from 'process';
 
 const pgp = pgPromise();
-const db = pgp('postgres://forte@localhost:5432/forte')
+const db = pgp('postgres://forte:forte@localhost:5432/forte')
 
 async function _init(args) {
     if (args.includes('--reset')) {

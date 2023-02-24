@@ -9,12 +9,16 @@ services:
             - "443:443"
         depends_on:
             - db
+        environment:
+            forte_email: <your email>
+            forte_server: <your server>
     db:
         image: postgres
         restart: always
         environment:
             POSTGRES_USER: forte
             POSTGRES_DB: forte
+            POSTGRES_PASSWORD: forte
         volumes:
             - db-data:/var/lib/postgresql/data
 volumes:
