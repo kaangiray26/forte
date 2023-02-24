@@ -67,12 +67,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { store } from '../js/store';
+import { store } from '/js/store.js';
 import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
+
+const query_param = computed(() => {
+    return router.currentRoute.value.params.id;
+})
 
 const album = ref({});
 const artist = ref({});
@@ -144,6 +148,14 @@ async function play_album(id) {
         operation: "playAlbum"
     })
 }
+
+watch(query_param, () => {
+    if (store.selected_track_id) {
+        selected_track.value = store.selected_track_id;
+        store.selected_track_id = null;
+    }
+    get_album(router.currentRoute.value.params.id);
+})
 
 onMounted(() => {
     if (store.selected_track_id) {
