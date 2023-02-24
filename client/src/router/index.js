@@ -30,6 +30,8 @@ import User_Tracks from "/components/user_section/Tracks.vue";
 import GroupSessionLink from "/components/GroupSessionLink.vue"
 import LastfmAuth from "/components/LastfmAuth.vue"
 
+import TrackRedirect from "/components/TrackRedirect.vue"
+
 const routes = [
     {
         path: "/",
@@ -47,6 +49,10 @@ const routes = [
     {
         path: "/album/:id",
         component: Album
+    },
+    {
+        path: "/track/:id",
+        component: TrackRedirect
     },
     {
         path: "/playlist/:id",
