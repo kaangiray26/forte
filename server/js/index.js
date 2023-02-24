@@ -20,7 +20,7 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-app.use(express.static('../dashboard/src/dist'))
+app.use(express.static('../dist'))
 app.use(express.static('uploads'))
 
 function isAdmin(req, res, next) {

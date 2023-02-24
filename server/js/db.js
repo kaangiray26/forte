@@ -1,13 +1,13 @@
 // db.js
 import { parseFile } from 'music-metadata';
 import pgPromise from 'pg-promise';
-const path = import('path')
-const fs = import('fs')
-var readlineSync = import('readline-sync');
-const axios = import('axios')
-const crypto = import('crypto')
-const mime = import('mime-types')
-const { exit } = import('process')
+import fs from 'fs';
+import crypto from 'crypto';
+import path from 'path';
+import readlineSync from 'readline-sync';
+import axios from 'axios';
+import mime from 'mime-types';
+import { exit } from 'process';
 
 const pgp = pgPromise();
 const db = pgp('postgres://forte@localhost:5432/forte')

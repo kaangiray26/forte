@@ -1,11 +1,11 @@
-const express = require('express')
-const session = require('express-session')
-const multer = require('multer')
-const upload = multer({ dest: 'uploads/' })
+import express from "express";
+import session from "express-session";
+import multer from "multer";
+import cors from "cors";
+import crypto from "crypto";
+import db from "./db.js";
 
-const cors = require('cors')
-const crypto = require('crypto')
-const db = require('./db.js')
+const upload = multer({ dest: '../uploads/' })
 
 const app = express()
 
@@ -20,8 +20,8 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-app.use(express.static('dashboard/src/dist'))
-app.use(express.static('uploads'))
+app.use(express.static('../dist'))
+app.use(express.static('../uploads'))
 
 function isAdmin(req, res, next) {
     if (req.session.user && req.session.user == 'forte') next()

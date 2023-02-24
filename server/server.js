@@ -4,33 +4,36 @@ import app from './js/index.js';
 import greenlock from 'greenlock'
 import greenlock_express from 'greenlock-express';
 
+console.log({
+    "EMAIL": process.env.forte_email,
+    "SERVER": process.env.forte_server,
+})
+
 const g = greenlock.create({
     packageRoot: './',
     configDir: './greenlock.d',
-    maintainerEmail: process.env.email,
+    maintainerEmail: process.env.forte_email,
     cluster: false
 })
-
-console.log("Environment variables:", process.env.email, process.env.domain)
 
 async function init() {
     // Greenlock configuration
     g.manager.defaults({
         agreeToTerms: true,
-        subscriberEmail: process.env.email
+        subscriberEmail: process.env.forte_email
     })
 
     // Check site status
     let sites = await g.sites.get({
-        servername: process.env.domain
+        servername: process.env.forte_server
     })
 
     // Add site if not exists
     if (!sites) {
         // Create site
         await g.sites.add({
-            subject: process.env.domain,
-            altnames: [process.env.domain]
+            subject: process.env.forte_server,
+            altnames: [process.env.forte_server]
         })
     }
 
@@ -42,7 +45,7 @@ async function init() {
             // where to look for configuration
             configDir: './greenlock.d',
 
-            maintainerEmail: process.env.email,
+            maintainerEmail: process.env.forte_email,
 
             // whether or not to run at cloudscale
             cluster: false
