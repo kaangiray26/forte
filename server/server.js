@@ -4,15 +4,14 @@ import app from './js/index.js';
 import greenlock from 'greenlock'
 import greenlock_express from 'greenlock-express';
 
-process.env.email = "kaangiray26@protonmail.com"
-process.env.domain = "home.buzl.uk"
-
 const g = greenlock.create({
     packageRoot: './',
     configDir: './greenlock.d',
     maintainerEmail: process.env.email,
     cluster: false
 })
+
+console.log("Environment variables:", process.env.email, process.env.domain)
 
 async function init() {
     // Greenlock configuration
