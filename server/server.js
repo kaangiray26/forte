@@ -1,6 +1,6 @@
 'use strict';
 
-import app from './app/index.js';
+import app from './js/index.js';
 import greenlock from 'greenlock-express';
 
 greenlock

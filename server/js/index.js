@@ -3,7 +3,7 @@ import session from "express-session";
 import multer from "multer";
 import cors from "cors";
 import crypto from "crypto";
-import db from "../js/db.js";
+import db from "./db.js";
 
 const upload = multer({ dest: '../uploads/' })
 
@@ -145,7 +145,5 @@ app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 app.use((req, res, next) => {
     res.redirect('/')
 })
-
-//
 
 export default app

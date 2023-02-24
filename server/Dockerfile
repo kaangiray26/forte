@@ -3,6 +3,7 @@ WORKDIR /
 
 # Copy files
 ADD dist ./dist
+ADD app ./app
 ADD js ./js
 ADD .greenlockrc ./
 ADD package.json ./

@@ -5,7 +5,7 @@ const upload = multer({ dest: 'uploads/' })
 
 const cors = require('cors')
 const crypto = require('crypto')
-const db = require('../js/db.js')
+const db = require('./db.js')
 
 const app = express()
 
