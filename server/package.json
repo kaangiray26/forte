@@ -6,7 +6,7 @@
   "license": "GPL-3.0",
   "main": "server.js",
   "scripts": {
-    "server": "sudo node server.js",
+    "public": "sudo node server.js",
     "local": "node local.js"
   },
   "dependencies": {
