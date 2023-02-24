@@ -1,28 +1,25 @@
 FROM node:19
-WORKDIR /app
+WORKDIR /
 
 # Copy files
-COPY package.json ./
-COPY server.js ./
-COPY index.js ./
-COPY js ./
-COPY dashboard/src/dist /app/dashboard/dist
-COPY .greenlockrc ./
+ADD dist ./dist
+ADD js ./js
+ADD .greenlockrc ./
+ADD package.json ./
+ADD server.js ./
 
-RUN mkdir -p /app/uploads
-RUN mkdir -p /app/greenlock.d
+# Create directories
+RUN mkdir -p /uploads
+RUN mkdir -p /greenlock.d
 
 # RUN npm install
 # If you are building your code for production
 RUN npm install
 
-# ENV EMAIL=admin@localhost
-ENV DOMAIN=localhost
+# # ENV EMAIL=admin@localhost
+# ENV DOMAIN=localhost
 
-# Bundle app source
-COPY . ./app
-
-RUN npx greenlock add --subject ${DOMAIN} --altnames ${DOMAIN}
+# RUN npx greenlock add --subject ${DOMAIN} --altnames ${DOMAIN}
 
 EXPOSE 443
 
