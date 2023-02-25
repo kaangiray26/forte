@@ -54,6 +54,7 @@
 <br/>
 
 ![image_1](https://raw.githubusercontent.com/kaangiray26/forte/main/images/image_1.png)
+
 [More screenshots](https://github.com/kaangiray26/forte/blob/main/images/screenshots.md)
 
 ---
