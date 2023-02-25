@@ -9,7 +9,7 @@
 <br>
 <div align="center">
     <a href="https://github.com/kaangiray26/forte">
-        <img src="client/src/public/images/favicon.svg" alt="Forte Logo" width="80" height="80">
+        <img src="https://raw.githubusercontent.com/kaangiray26/forte/main/client/src/public/images/favicon.svg" alt="Forte Logo" width="80" height="80">
     </a>
     <h1 align="center">Forte</h1>
     <img alt="Quote" src="https://img.shields.io/badge/OWN%20YOUR%20MUSIC-blue?style=flat-square">
@@ -53,8 +53,8 @@
 </details>
 <br/>
 
-![image_1](images/image_1.png)
-[More screenshots](images/screenshots.md)
+![image_1](https://raw.githubusercontent.com/kaangiray26/forte/main/images/image_1.png)
+[More screenshots](https://raw.githubusercontent.com/kaangiray26/forte/main/images/screenshots.md)
 
 ---
 
@@ -100,7 +100,7 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 ---
 
 ## Documentation
-* Click [here](docs/api_documentation.md) for the API documentation.
+* Click [here](https://raw.githubusercontent.com/kaangiray26/forte/main/docs/api_documentation.md) for the API documentation.
 
 ---
 
@@ -131,7 +131,7 @@ If you want to use forte on your mobile device, we suggest using the [PWA](https
 Once you go to the website, you will be prompted with this dialog:
 
 <div align="center">
-    <img src="images/image_4.png" alt="image_4"/>
+    <img src="https://raw.githubusercontent.com/kaangiray26/forte/main/images/image_4.png" alt="image_4"/>
 </div>
 
 Here's an explanation for the fields:
@@ -146,7 +146,7 @@ If you are wondering about how to create accounts, this will be explained in the
 Here's an example for the authorization:
 
 <div align="center">
-    <img src="images/image_5.png" alt="image_5"/>
+    <img src="https://raw.githubusercontent.com/kaangiray26/forte/main/images/image_5.png" alt="image_5"/>
 </div>
 
 If you log in successfully, you will see the homepage of the application, where some track recommendations can be found. Now you can use the application and listen to some music.
