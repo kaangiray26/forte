@@ -130,7 +130,9 @@ If you want to use forte on your mobile device, we suggest using the [PWA](https
 ## Logging in
 Once you go to the website, you will be prompted with this dialog:
 
-![image_4](images/image_4.png)
+<div align="center">
+    <img src="images/image_4.png" alt="image_4"/>
+</div>
 
 Here's an explanation for the fields:
 ```
@@ -143,7 +145,9 @@ If you are wondering about how to create accounts, this will be explained in the
 
 Here's an example for the authorization:
 
-![image_5](images/image_5.png)
+<div align="center">
+    <img src="images/image_5.png" alt="image_5"/>
+</div>
 
 If you log in successfully, you will see the homepage of the application, where some track recommendations can be found. Now you can use the application and listen to some music.
 
@@ -241,7 +245,8 @@ Distributed under the GPL-3.0 License. See `LICENSE` for more information.
 ## Contact
 Kaan Giray Buzluk - [@kaangiray26](https://twitter.com/kaangiray26) - kaangiray26 (at) protonmail.com
 
-Project Link: [https://github.com/kaangiray26/forte](https://github.com/kaangiray26/forte)
+- Project Link: [https://github.com/kaangiray26/forte](https://github.com/kaangiray26/forte)
+- Docker Image: [https://hub.docker.com/r/kaangiray26/forte](https://hub.docker.com/r/kaangiray26/forte)
 
 ---
 
