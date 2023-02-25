@@ -45,7 +45,7 @@
             <li><a href="#using-publicly">Using publicly</a></li>
       </ul>
     </li>
-    <li><a href="#forte-dashboard"></a></li>
+    <li><a href="#forte-dashboard">Forte Dashboard</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
