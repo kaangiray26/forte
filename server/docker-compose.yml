@@ -9,13 +9,11 @@ services:
         depends_on:
             - postgres
         environment:
-            # Set mode to local to run locally, or public to run publically
-            # mode defaults to local
             mode: local
-            forte_server: host.buzl.uk
-            forte_email: kaangiray26@protonmail.com
+            forte_server: <server>
+            forte_email: <email>
         volumes:
-            - /home/f34rl00/Music/CD:/library
+            - <library>:/library
     postgres:
         image: postgres
         restart: always
