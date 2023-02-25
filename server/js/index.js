@@ -1,11 +1,15 @@
+import path from "path";
 import express from "express";
 import session from "express-session";
 import multer from "multer";
 import cors from "cors";
 import crypto from "crypto";
 import db from "./db.js";
+import { fileURLToPath } from 'url';
 
-const upload = multer({ dest: '../uploads/' })
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const upload = multer({ dest: "../uploads" })
 
 const app = express()
 
@@ -20,8 +24,8 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-app.use(express.static('../dist'))
-app.use(express.static('uploads'))
+app.use(express.static(path.join(__dirname, "../dist")))
+app.use(express.static(path.join(__dirname, "../uploads")))
 
 function isAdmin(req, res, next) {
     if (req.session.user && req.session.user == 'forte') next()
@@ -37,7 +41,6 @@ function isAuthenticated(req, res, next) {
 }
 
 // Dashboard
-
 app.get("/auth", (req, res) => {
     let status = (req.session.user && req.session.user == 'forte');
     res.status(200).json({
@@ -143,7 +146,7 @@ app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 // Error Handling
 
 app.use((req, res, next) => {
-    res.redirect('/')
+    res.status(404).json({ "error": "not found" })
 })
 
 export default app

@@ -16,6 +16,6 @@ RUN mkdir -p /greenlock.d
 # If you are building your code for production
 RUN npm install
 
-EXPOSE 80 443
+EXPOSE 80 443 3000
 
 CMD ["node", "server.js"]

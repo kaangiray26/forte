@@ -24,11 +24,11 @@
                 data-bs-target="#userCollapse">Users</button>
             <div class="collapse" id="userCollapse">
                 <ul class="list-group mt-2">
-                    <li v-if="!users.length">No users.</li>
                     <li class="list-group-item d-flex justify-content-end">
                         <button type="button" class="btn btn-dark" data-bs-toggle="modal"
                             data-bs-target="#addUserModal">Create</button>
                     </li>
+                    <li v-if="!users.length">No users.</li>
                     <li v-for="user in users" class="d-flex justify-content-between align-items-center list-group-item">
                         <div class="d-flex flex-nowrap align-items-center">
                             <img :src="get_user_cover(user.cover)" class="img-profile rounded-5 m-2" width="48" height="48">
@@ -168,7 +168,13 @@
                                 aria-label="Username" aria-describedby="addon-wrapping" @keyup.enter="add_user">
                             <button class="btn btn-dark" @click="add_user">Add</button>
                         </div>
-                        <div id="user_add_alert" class="alert alert-primary invisible mt-2" role="alert"></div>
+                        <div v-if="token_visible">
+                            <div class="d-flex flex-column border rounded mt-3 p-2">
+                                <p class="text-center mb-2">The user has been created. Make sure to save the following token
+                                    or you will not be able to see it again.</p>
+                                <mark class="fw-bold text-center rounded p-2">{{ user_token }}</mark>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -283,6 +289,9 @@ const router = useRouter();
 const username = ref('');
 const users = ref([]);
 const modal = ref(null);
+
+const user_token = ref(null);
+const token_visible = ref(false);
 
 const _artist = ref(null);
 const _album = ref(null);
@@ -600,7 +609,9 @@ async function add_user() {
 
     if (response.hasOwnProperty("success")) {
         get_users();
-        modal.value.hide();
+        // Show token
+        user_token.value = response.success;
+        token_visible.value = true;
     }
 }
 

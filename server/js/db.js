@@ -10,7 +10,8 @@ import mime from 'mime-types';
 import { exit } from 'process';
 
 const pgp = pgPromise();
-const db = pgp('postgres://forte:forte@localhost:5432/forte')
+const db = pgp('postgres://forte:forte@postgres:5432/forte');
+const library_path = '/library';
 
 async function _init(args) {
     if (args.includes('--reset')) {
@@ -18,7 +19,7 @@ async function _init(args) {
         if (answer === 'y') {
             console.log("Resetting tables...");
             await db.none("DROP VIEW IF EXISTS fuzzy");
-            await db.none("DROP TABLE IF EXISTS artists, albums, playlists, tracks, library, auth, users");
+            await db.none("DROP TABLE IF EXISTS config, artists, albums, playlists, tracks, library, auth, users");
 
             console.log("\nRemoving uploads...");
             fs.readdir(path.join(__dirname, "../uploads"), (err, files) => {
@@ -35,7 +36,7 @@ async function _init(args) {
     }
 
     db.tx('creating_tables', t => {
-        console.log("Checking tables...");
+        console.log("=> Checking tables...");
         return t.batch([
             t.none("CREATE TABLE IF NOT EXISTS config (id SERIAL PRIMARY KEY, name TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name))"),
             t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, UNIQUE(title))"),
@@ -50,15 +51,15 @@ async function _init(args) {
     }).then(() => {
         db.manyOrNone("SELECT * from config")
             .then(async function (data) {
-                if (!data) {
+                if (!data.length) {
+                    console.log("=> No config found. Creating a new one...");
                     await db.none("INSERT INTO config(name, value) VALUES ('password', 'a04fe4e390a7c7d5d4583f85d24e164d')")
-                    await db.none("INSERT INTO config(name, value) VALUES ('library_path', '/home/forte/Music')")
-                    await db.none("INSERT INTO config(name, value) VALUES ('genius_token', 'TOKEN')")
-                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', 'TOKEN')")
-                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', 'TOKEN')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('genius_token', 'UNSET')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', 'UNSET')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', 'UNSET')")
                 }
+                refresh_library()
             })
-        refresh_library()
     }).catch(error => {
         console.log("An error occured.\n")
         console.log(error)
@@ -66,7 +67,7 @@ async function _init(args) {
     })
 }
 
-function update_library(library_path) {
+function update_library() {
     let folders = fs.readdirSync(library_path);
     db.oneOrNone("SELECT folders from library")
         .then(async function (data) {
@@ -106,17 +107,16 @@ function update_library(library_path) {
 }
 
 async function refresh_library() {
-    console.log("Checking for any changes...");
+    console.log("\n=> Checking for any changes...");
     console.log("This may take a while.\n");
 
-    let library_path = await db.one("SELECT value FROM config WHERE name = 'library_path'");
-    update_library(library_path.value);
+    update_library();
 
     // Watch for changes
     console.log("Watching for changes...");
-    fs.watch(library_path.value, async function (event) {
+    fs.watch(library_path, async function (event) {
         if (event === 'rename') {
-            update_library(library_path.value);
+            update_library();
         }
     })
 }
