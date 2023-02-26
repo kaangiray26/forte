@@ -186,7 +186,7 @@ Here's an example for the `docker-compose.yml` file:
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:1.3
+        image: kaangiray26/forte:1.4
         ports:
             - "80:80"
             - "443:443"
