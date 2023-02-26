@@ -229,6 +229,37 @@ sudo docker-compose up -d
 
 ---
 
+## Directory Structure for the Music Library
+Here's an example:
+```
+/home/forte/library
+├── Antimatter - Leaving Eden/
+│   ├── 01 - Redemption.flac
+│   ├── 02 - Another Face in a Window.flac
+|   ...
+│   └── cover.jpg
+│
+└── Ayreon - 01011001/
+    ├── CD1/
+    │   ├── 01 - Age Of Shadows_We Are Forever.flac
+    │   ├── 02 - Comatose.flac
+    │   ...
+    │
+    ├── CD2/
+    │   ├── 01 - The Fifth Extinction.flac
+    │   ├── 02 - Waking Dreams.flac
+    │   ...
+    │
+    └── cover.jpg
+```
+
+* Put each album as a folder inside your library directory.
+* For each album folder, follow the format `ARTIST - ALBUM`.
+* For each track, follow the format `TRACK_INDEX - TRACK_TITLE.FORMAT`
+* Have a `cover.jpg` inside the album folder.
+* If the album has multiple CDs, create `CD1`, `CD2`,... directories inside the album folder and follow the same format for tracks.
+---
+
 ## Forte dashboard
 You can access the forte dashboard by going to `http://localhost:3000`. The default login credentials are: `forte` and `alternative`.
 
