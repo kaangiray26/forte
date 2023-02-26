@@ -82,6 +82,7 @@ app.post("/api/cover", isAuthenticated, upload.single('cover'), db.upload_cover)
 
 app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
+app.head("/api/stream/:id", isAuthenticated, db.stream_head)
 
 app.get("/api/profile/", isAuthenticated, db.get_profile)
 app.get("/api/profile/history", isAuthenticated, db.get_history)
@@ -137,6 +138,7 @@ app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
 
 app.get("/api/lastfm/auth", isAuthenticated, db.get_lastfm_auth)
 app.post("/api/lastfm/auth", isAuthenticated, db.lastfm_auth)
+app.post("/api/lastfm/artist", isAuthenticated, db.get_lastfm_artist)
 app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
 app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 

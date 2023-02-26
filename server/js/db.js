@@ -60,6 +60,7 @@ const exports = {
     is_authenticated: _is_authenticated,
     lastfm_auth: _lastfm_auth,
     get_lastfm_auth: _get_lastfm_auth,
+    get_lastfm_artist: _get_lastfm_artist,
     lastfm_scrobble: _lastfm_scrobble,
     get_lastfm_profile: _get_lastfm_profile,
     love_album: _love_album,
@@ -1693,6 +1694,29 @@ async function _get_lastfm_auth(req, res, next) {
         }
 
         res.status(200).json({ "api_key": lastfm.value });
+    })
+}
+
+async function _get_lastfm_artist(req, res, next) {
+    if (!['artist'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Parameters not given correctly."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        let lastfm_api = await t.one("SELECT value FROM config WHERE name = 'lastfm_api_key'");
+        let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist=${req.body.artist}&api_key=${lastfm_api.value}&format=json`)
+            .then(response => response.json());
+
+        if (!response.corrections.hasOwnProperty('correction')) {
+            res.status(400).json({ "error": "Artist not found." })
+            return;
+        }
+
+        res.status(200).json({ "url": response.corrections.correction.artist.url });
     })
 }
 

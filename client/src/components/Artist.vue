@@ -19,8 +19,16 @@
                         <h1 class="artist-title">{{ artist.title }}</h1>
                         <small class="text-muted">{{ albums.length }} albums</small>
                         <div class="pt-2">
-                            <button type="button" class="btn btn-dark" :class="{ 'disabled': about_disabled }"
-                                @click="get_about">{{ about_text }}</button>
+                            <div class="d-flex flex-wrap">
+                                <div class="m-1">
+                                    <button ref="wiki_btn" type="button" class="btn btn-dark"
+                                        :class="{ 'disabled': about_disabled }" @click="get_wiki_page">Wikipedia</button>
+                                </div>
+                                <div class="m-1">
+                                    <button ref="lastfm_btn" type="button" class="btn btn-dark"
+                                        :class="{ 'disabled': about_disabled }" @click="get_lastfm_page">Last.fm</button>
+                                </div>
+                            </div>
                         </div>
                         <hr />
                     </div>
@@ -74,12 +82,14 @@ const albums = ref([]);
 
 const loaded = ref(false);
 const about_disabled = ref(false);
-const about_text = ref("About");
+
+const wiki_btn = ref(null);
+const lastfm_btn = ref(null);
 
 const router = useRouter();
 
-async function get_about() {
-    about_disabled.value = true;
+async function get_wiki_page() {
+    wiki_btn.value.disabled = true;
 
     let search = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=opensearch&search=${artist.value.title}&limit=1&namespace=0&format=json`)
         .then((response) => response.json())
@@ -89,44 +99,24 @@ async function get_about() {
 
     if (search.length) {
         window.open(search[0], "_blank")
-        about_disabled.value = false;
+        wiki_btn.value.disabled = false;
         return;
     }
 
-    // // Query with "(band)"
+    wiki_btn.value.value = "Page not found";
+}
 
-    // let search_1 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)} (band)&gpsnamespace=0&gpslimit=6`)
-    //     .then((response) => response.json())
-    //     .then((data) => {
-    //         return Object.keys(data.query.pages);
-    //     })
-    //     .catch((error) => {
-    //         return [];
-    //     });
+async function get_lastfm_page() {
+    lastfm_btn.value.disabled = true;
 
-    // if (search_1.length) {
-    //     window.open("https://en.wikipedia.org/?curid=" + search_1[0], "_blank")
-    //     about_disabled.value = false;
-    //     return
-    // }
+    let response = await ft.lastfm_artist_page(artist.value.title);
+    if (response.hasOwnProperty('url')) {
+        window.open(response.url, "_blank")
+        lastfm_btn.value.disabled = false;
+        return;
+    }
 
-    // // Query without "(band)"
-
-    // let search_2 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)}&gpsnamespace=0&gpslimit=6`)
-    //     .then((response) => response.json())
-    //     .then((data) => {
-    //         return Object.keys(data.query.pages);
-    //     }).catch((error) => {
-    //         return [];
-    //     });
-
-    // if (search_2.length) {
-    //     window.open("https://en.wikipedia.org/?curid=" + search_2[0], "_blank")
-    //     about_disabled.value = false;
-    //     return
-    // }
-
-    about_text.value = "No information found";
+    lastfm_btn.value.value = "Page not found";
 }
 
 function get_artist_cover(cover) {

@@ -598,6 +598,22 @@ class Forte {
         return response;
     }
 
+    async lastfm_artist_page(artist) {
+        let response = await fetch(this.server + '/api/lastfm/artist', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "artist": artist
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
     async radio() {
         // Disable radio in groupSession
         if (this.inGroupSession()) {
