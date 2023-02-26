@@ -43,9 +43,10 @@
             <li><a href="#building-the-server">Building the server</a></li>
             <li><a href="#using-locally">Using locally</a></li>
             <li><a href="#using-publicly">Using publicly</a></li>
+            <li><a href="#directory-structure-for-the-music-library">Directory Structure for the Music Library</a></li>
       </ul>
     </li>
-    <li><a href="#forte-dashboard"></a></li>
+    <li><a href="#forte-dashboard">Forte Dashboard</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
@@ -54,6 +55,7 @@
 <br/>
 
 ![image_1](https://raw.githubusercontent.com/kaangiray26/forte/main/images/image_1.png)
+
 [More screenshots](https://github.com/kaangiray26/forte/blob/main/images/screenshots.md)
 
 ---
@@ -82,6 +84,7 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 * [x] Admin dashboard
 * [x] User profiles
 * [x] Last.fm Scrobbling
+* [x] Easy encrypted server via Greenlock
 
 ---
 
@@ -226,6 +229,37 @@ If you want to use the server locally, you can edit the `docker-compose.yml` fil
 sudo docker-compose up -d
 ```
 
+---
+
+## Directory Structure for the Music Library
+Here's an example:
+```
+/home/forte/library
+├── Antimatter - Leaving Eden/
+│   ├── 01 - Redemption.flac
+│   ├── 02 - Another Face in a Window.flac
+|   ...
+│   └── cover.jpg
+│
+└── Ayreon - 01011001/
+    ├── CD1/
+    │   ├── 01 - Age Of Shadows_We Are Forever.flac
+    │   ├── 02 - Comatose.flac
+    │   ...
+    │
+    ├── CD2/
+    │   ├── 01 - The Fifth Extinction.flac
+    │   ├── 02 - Waking Dreams.flac
+    │   ...
+    │
+    └── cover.jpg
+```
+
+* Put each album as a folder inside your library directory.
+* For each album folder, follow the format `ARTIST - ALBUM`.
+* For each track, follow the format `TRACK_INDEX - TRACK_TITLE.FORMAT`
+* Have a `cover.jpg` inside the album folder.
+* If the album has multiple CDs, create `CD1`, `CD2`,... directories inside the album folder and follow the same format for tracks.
 ---
 
 ## Forte dashboard
