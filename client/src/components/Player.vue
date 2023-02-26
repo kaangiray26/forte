@@ -4,12 +4,18 @@
             <div class="d-flex flex-column">
                 <div v-show="store.playing.loaded">
                     <div class="d-flex flex-row justify-content-between align-items-center p-2 pb-0 rounded m-0">
-                        <div class="d-flex flex-row align-items-center clickable" @click="openAlbum">
-                            <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
+                        <div class="d-flex flex-row align-items-center">
+                            <div class="clickable-shadow" @click="openAlbum">
+                                <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
+                            </div>
                             <div class="d-flex flex-column">
-                                <span class="fw-bold text-wrap clickable red-on-hover">{{
-                                    store.playing.title
-                                }}</span>
+                                <span class="fw-bold text-wrap clickable red-on-hover mb-1" @click="openAlbum">
+                                    {{ store.playing.title }}
+                                </span>
+                                <div>
+                                    <button class="btn btn-sm btn-light fw-bold" @click="openQuality">{{
+                                        store.playing.quality }}</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -113,6 +119,7 @@
         :play_previous="play_previous" :repeat_icon="repeat_icon" @queue="show_queue" @lyrics="show_lyrics"
         @shuffle="shuffle" @group_session="group_session" />
     <GroupSession ref="groupSession" :key="group_key" />
+    <QualityDisplay ref="qualityDisplay" />
 </template>
 
 <script setup>
@@ -126,6 +133,7 @@ import Queue from './Queue.vue';
 import Lyrics from './Lyrics.vue';
 import MobileView from './MobileView.vue';
 import { action } from '/js/events.js';
+import QualityDisplay from './QualityDisplay.vue';
 
 const router = useRouter();
 
@@ -141,6 +149,8 @@ const volumeTooltip = ref(null);
 
 const groupSession = ref(null);
 const group_key = ref(0);
+
+const qualityDisplay = ref(null);
 
 function get_cover(cover) {
     if (cover) {
@@ -327,6 +337,10 @@ async function radio() {
 
 async function group_session() {
     groupSession.value.show();
+}
+
+async function openQuality() {
+    qualityDisplay.value.show();
 }
 
 defineExpose({

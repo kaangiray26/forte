@@ -13,6 +13,77 @@ const pgp = pgPromise();
 const db = pgp('postgres://forte:forte@postgres:5432/forte');
 const library_path = '/library';
 
+const exports = {
+    add_friend: _add_friend,
+    add_history: _add_history,
+    add_track_to_playlist: _add_track_to_playlist,
+    add_user: _add_user,
+    admin_login: _admin_login,
+    admin_session: _admin_session,
+    auth: _auth,
+    check_friends: _check_friends,
+    create_playlist: _create_playlist,
+    delete_playlist: _delete_playlist,
+    delete_track_to_playlist: _delete_track_to_playlist,
+    get_album: _get_album,
+    get_album_loved: _get_album_loved,
+    get_album_tracks: _get_album_tracks,
+    get_all_albums: _get_all_albums,
+    get_artist: _get_artist,
+    get_artist_loved: _get_artist_loved,
+    get_config: _get_config,
+    get_friends: _get_friends,
+    get_history: _get_history,
+    get_lyrics: _get_lyrics,
+    get_playlist: _get_playlist,
+    get_playlist_loved: _get_playlist_loved,
+    get_playlist_tracks: _get_playlist_tracks,
+    get_profile: _get_profile,
+    get_profile_albums: _get_profile_albums,
+    get_profile_artists: _get_profile_artists,
+    get_profile_playlists: _get_profile_playlists,
+    get_profile_tracks: _get_profile_tracks,
+    get_random_track: _get_random_track,
+    get_random_tracks: _get_random_tracks,
+    get_track: _get_track,
+    get_track_basic: _get_track_basic,
+    get_track_loved: _get_track_loved,
+    get_user: _get_user,
+    get_user_albums: _get_user_albums,
+    get_user_artists: _get_user_artists,
+    get_user_friends: _get_user_friends,
+    get_user_history: _get_user_history,
+    get_user_playlists: _get_user_playlists,
+    get_user_tracks: _get_user_tracks,
+    get_users: _get_users,
+    init: _init,
+    is_authenticated: _is_authenticated,
+    lastfm_auth: _lastfm_auth,
+    get_lastfm_auth: _get_lastfm_auth,
+    lastfm_scrobble: _lastfm_scrobble,
+    get_lastfm_profile: _get_lastfm_profile,
+    love_album: _love_album,
+    love_artist: _love_artist,
+    love_track: _love_track,
+    remove_friend: _remove_friend,
+    remove_user: _remove_user,
+    search: _search,
+    search_album: _search_album,
+    search_artist: _search_artist,
+    search_track: _search_track,
+    session: _session,
+    stream: _stream,
+    stream_head: _stream_head,
+    unlove_album: _unlove_album,
+    unlove_artist: _unlove_artist,
+    unlove_track: _unlove_track,
+    update_album: _update_album,
+    update_artist: _update_artist,
+    update_config: _update_config,
+    update_track: _update_track,
+    upload_cover: _upload_cover,
+}
+
 async function _init(args) {
     if (args.includes('--reset')) {
         let answer = readlineSync.question("Do you really want to reset? (y/n)");
@@ -370,6 +441,19 @@ async function _stream(req, res, next) {
         .then(function (data) {
             res.status(200)
                 .sendFile(data.path)
+        })
+}
+
+async function _stream_head(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+    db.oneOrNone("SELECT path FROM tracks WHERE id = $1", [id])
+        .then(function (data) {
+            res.status(200)
+                .sendFile(data.path, { headers: { 'Content-Type': true, 'Content-Length': true } })
         })
 }
 
@@ -1691,76 +1775,6 @@ function get_api_sig(obj, sig) {
     }
     str += sig;
     return crypto.createHash('md5').update(str).digest("hex");
-}
-
-const exports = {
-    add_friend: _add_friend,
-    add_history: _add_history,
-    add_track_to_playlist: _add_track_to_playlist,
-    add_user: _add_user,
-    admin_login: _admin_login,
-    admin_session: _admin_session,
-    auth: _auth,
-    check_friends: _check_friends,
-    create_playlist: _create_playlist,
-    delete_playlist: _delete_playlist,
-    delete_track_to_playlist: _delete_track_to_playlist,
-    get_album: _get_album,
-    get_album_loved: _get_album_loved,
-    get_album_tracks: _get_album_tracks,
-    get_all_albums: _get_all_albums,
-    get_artist: _get_artist,
-    get_artist_loved: _get_artist_loved,
-    get_config: _get_config,
-    get_friends: _get_friends,
-    get_history: _get_history,
-    get_lyrics: _get_lyrics,
-    get_playlist: _get_playlist,
-    get_playlist_loved: _get_playlist_loved,
-    get_playlist_tracks: _get_playlist_tracks,
-    get_profile: _get_profile,
-    get_profile_albums: _get_profile_albums,
-    get_profile_artists: _get_profile_artists,
-    get_profile_playlists: _get_profile_playlists,
-    get_profile_tracks: _get_profile_tracks,
-    get_random_track: _get_random_track,
-    get_random_tracks: _get_random_tracks,
-    get_track: _get_track,
-    get_track_basic: _get_track_basic,
-    get_track_loved: _get_track_loved,
-    get_user: _get_user,
-    get_user_albums: _get_user_albums,
-    get_user_artists: _get_user_artists,
-    get_user_friends: _get_user_friends,
-    get_user_history: _get_user_history,
-    get_user_playlists: _get_user_playlists,
-    get_user_tracks: _get_user_tracks,
-    get_users: _get_users,
-    init: _init,
-    is_authenticated: _is_authenticated,
-    lastfm_auth: _lastfm_auth,
-    get_lastfm_auth: _get_lastfm_auth,
-    lastfm_scrobble: _lastfm_scrobble,
-    get_lastfm_profile: _get_lastfm_profile,
-    love_album: _love_album,
-    love_artist: _love_artist,
-    love_track: _love_track,
-    remove_friend: _remove_friend,
-    remove_user: _remove_user,
-    search: _search,
-    search_album: _search_album,
-    search_artist: _search_artist,
-    search_track: _search_track,
-    session: _session,
-    stream: _stream,
-    unlove_album: _unlove_album,
-    unlove_artist: _unlove_artist,
-    unlove_track: _unlove_track,
-    update_album: _update_album,
-    update_artist: _update_artist,
-    update_config: _update_config,
-    update_track: _update_track,
-    upload_cover: _upload_cover,
 }
 
 export default exports

@@ -85,6 +85,7 @@ app.post("/api/cover", isAuthenticated, upload.single('cover'), db.upload_cover)
 
 app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
+app.head("/api/stream/:id", isAuthenticated, db.stream_head)
 
 app.get("/api/profile/", isAuthenticated, db.get_profile)
 app.get("/api/profile/history", isAuthenticated, db.get_history)

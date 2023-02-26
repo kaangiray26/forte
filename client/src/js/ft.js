@@ -14,7 +14,7 @@ class Forte {
         this.track = null;
         this.player = new Howl({
             src: [null],
-            format: ['flac'],
+            format: ['flac', 'mp3', 'ogg', 'wav', 'aac', 'm4a', 'opus', 'webm'],
             preload: true,
             html5: true,
             volume: 1,
@@ -23,6 +23,7 @@ class Forte {
         this.player.on('load', () => {
             this.track_loaded()
             this.listen_progress()
+            this.track_quality()
         });
 
         this.player.on('end', () => {
@@ -238,6 +239,34 @@ class Forte {
             store.playing.seek = ft.player.seek();
             store.playing.progress = (store.playing.seek / store.playing.duration) * 100;
         });
+    }
+
+    async track_quality() {
+        fetch(this.server + `/api/stream/${store.playing.id}`, {
+            method: "HEAD",
+            credentials: "include"
+        }).then((response) => {
+            let length = response.headers.get("content-length");
+            let duration = store.playing.duration;
+            let kbit = (length * 8) / 1000;
+
+            store.playing.format = response.headers.get("content-type");;
+            store.playing.bitrate = Math.round(kbit / duration);;
+
+            if (store.playing.bitrate <= 160) {
+                store.playing.quality = "LQ";
+                return;
+            }
+            if (store.playing.bitrate <= 320) {
+                store.playing.quality = "SQ";
+                return;
+            }
+            if (store.playing.bitrate <= 1411) {
+                store.playing.quality = "HQ";
+                return;
+            }
+            store.playing.quality = "Hi-Res";
+        })
     }
 
     async track_finished() {
