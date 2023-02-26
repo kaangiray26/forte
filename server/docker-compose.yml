@@ -14,7 +14,7 @@ services:
             forte_server: <server>
             forte_email: <email>
         volumes:
-            - /home/f34rl00/Music/CD:/library
+            - <library>:/library
     postgres:
         image: kaangiray26/postgres:1.0
         restart: always

@@ -54,9 +54,9 @@ async function _init(args) {
                 if (!data.length) {
                     console.log("=> No config found. Creating a new one...");
                     await db.none("INSERT INTO config(name, value) VALUES ('password', 'a04fe4e390a7c7d5d4583f85d24e164d')")
-                    await db.none("INSERT INTO config(name, value) VALUES ('genius_token', 'UNSET')")
-                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', 'UNSET')")
-                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', 'UNSET')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('genius_token', '-EZLIW0uQaobG3HjE2yJzdl7DPuaIkXXDGX7l8KJm4jv2S4feDYZMUoIRuZOmoO5')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', '1ff0a732f00d53529d764cf4ce9270e5')")
+                    await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', '10853915c49c53886b4c87fa0e27f663')")
                 }
                 refresh_library()
             })
