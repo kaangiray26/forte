@@ -11,7 +11,7 @@ import { exit } from 'process';
 
 const pgp = pgPromise();
 const db = pgp('postgres://forte:forte@postgres:5432/forte');
-const library_path = '/home/f34rl00/Music/CD';
+const library_path = '/library';
 
 async function _init(args) {
     if (args.includes('--reset')) {
