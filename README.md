@@ -43,6 +43,7 @@
             <li><a href="#building-the-server">Building the server</a></li>
             <li><a href="#using-locally">Using locally</a></li>
             <li><a href="#using-publicly">Using publicly</a></li>
+            <li><a href="#directory-structure-for-the-music-library">Directory Structure for the Music Library</a></li>
       </ul>
     </li>
     <li><a href="#forte-dashboard">Forte Dashboard</a></li>
