@@ -216,9 +216,9 @@ class Forte {
 
         // Notification
         if (store.notifications_enabled) {
-            store.notifications.push(new Notification(store.playing.title, {
+            new Notification(store.playing.title, {
                 icon: store.playing.cover
-            }));
+            });
         }
 
         this.player.unload();
