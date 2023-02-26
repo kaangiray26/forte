@@ -23,11 +23,11 @@ class Forte {
         this.player.on('load', () => {
             this.track_loaded()
             this.listen_progress()
-        })
+        });
 
         this.player.on('end', () => {
             this.track_finished()
-        })
+        });
     }
 
     async init() {
@@ -45,6 +45,14 @@ class Forte {
         // Set scrobbling
         if (JSON.parse(localStorage.getItem('scrobbling'))) {
             store.scrobbling = true;
+        }
+
+        // Set notifications
+        if (JSON.parse(localStorage.getItem('notifications_granted'))) {
+            store.notifications_granted = true;
+        }
+        if (JSON.parse(localStorage.getItem('notifications_enabled'))) {
+            store.notifications_enabled = true;
         }
 
         this.token = token;
@@ -205,6 +213,13 @@ class Forte {
                 { src: store.playing.cover, sizes: '250x250', type: 'image/png' },
             ]
         });
+
+        // Notification
+        if (store.notifications_enabled) {
+            store.notifications.push(new Notification(store.playing.title, {
+                icon: store.playing.cover
+            }));
+        }
 
         this.player.unload();
         this.player._src = [ft.server + '/api/stream/' + track.id];
@@ -625,6 +640,16 @@ class Forte {
             return response.json();
         });
         return response;
+    }
+
+    async get_notifications_permission() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(function (result) {
+                if (result === "granted") {
+                    console.log("Notifications granted.")
+                }
+            });
+        }
     }
 }
 
