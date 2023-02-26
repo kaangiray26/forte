@@ -32,6 +32,7 @@ async function setup() {
             altnames: [process.env.forte_server]
         })
     }
+    db.init(process.argv.slice(2));
 }
 
 async function start_public_server() {
