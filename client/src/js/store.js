@@ -31,7 +31,6 @@ const store = reactive({
     scrobbling: false,
     notifications_granted: false,
     notifications_enabled: false,
-    notifications: [],
 });
 
 export { store, isFav }
