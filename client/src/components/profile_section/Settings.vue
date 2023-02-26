@@ -72,6 +72,17 @@
                     </li>
                 </ul>
             </div>
+            <hr />
+            <h3>Notifications</h3>
+            <div class="d-inline-flex">
+                <div class="input-group flex-nowrap mb-2">
+                    <span class="input-group-text" id="basic-addon1">Notifications</span>
+                    <button v-show="!store.notifications_enabled" type="button" class="btn btn-danger flex-fill"
+                        @click="toggle_notifications">Off</button>
+                    <button v-show="store.notifications_enabled" type="button" class="btn btn-success flex-fill"
+                        @click="toggle_notifications">On</button>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -99,6 +110,29 @@ async function toggle_scrobbling() {
     lastfm_config.value.scrobbling = !lastfm_config.value.scrobbling;
     localStorage.setItem('scrobbling', JSON.stringify(lastfm_config.value.scrobbling));
     store.scrobbling = lastfm_config.value.scrobbling;
+}
+
+async function toggle_notifications() {
+    if ("Notification" in window) {
+        if (store.notifications_granted) {
+            store.notifications_enabled = !store.notifications_enabled;
+            localStorage.setItem('notifications_enabled', JSON.stringify(store.notifications_enabled));
+            console.log(store.notifications_granted, store.notifications_enabled)
+            return
+        }
+
+        if (!store.notifications_granted) {
+            Notification.requestPermission().then(function (permission) {
+                if (permission === "granted") {
+                    store.notifications_granted = true;
+                    store.notifications_enabled = true;
+                    localStorage.setItem('notifications_granted', JSON.stringify(true));
+                    localStorage.setItem('notifications_enabled', JSON.stringify(true));
+                }
+            });
+            return
+        }
+    }
 }
 
 async function get_lastfm_profile() {

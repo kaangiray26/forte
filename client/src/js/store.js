@@ -29,6 +29,9 @@ const store = reactive({
     selected_track_id: null,
     peer_status: 'disconnected',
     scrobbling: false,
+    notifications_granted: false,
+    notifications_enabled: false,
+    notifications: [],
 });
 
 export { store, isFav }
