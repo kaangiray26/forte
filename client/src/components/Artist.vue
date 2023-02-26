@@ -36,8 +36,7 @@
                             </div>
                         </li>
                         <li class="list-group-item list-group-item-action clickable d-flex" v-for="album in albums"
-                            @contextmenu.prevent="right_click({ item: album, event: $event })"
-                            @click="openAlbum(album.id)">
+                            @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album.id)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex align-items-start padding-7">
@@ -82,38 +81,50 @@ const router = useRouter();
 async function get_about() {
     about_disabled.value = true;
 
-    // Query with "(band)"
-
-    let search_1 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)} (band)&gpsnamespace=0&gpslimit=6`)
+    let search = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=opensearch&search=${artist.value.title}&limit=1&namespace=0&format=json`)
         .then((response) => response.json())
         .then((data) => {
-            return Object.keys(data.query.pages);
-        })
-        .catch((error) => {
-            return [];
+            return data[3];
         });
 
-    if (search_1.length) {
-        window.open("https://en.wikipedia.org/?curid=" + search_1[0], "_blank")
+    if (search.length) {
+        window.open(search[0], "_blank")
         about_disabled.value = false;
-        return
+        return;
     }
 
-    // Query without "(band)"
+    // // Query with "(band)"
 
-    let search_2 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)}&gpsnamespace=0&gpslimit=6`)
-        .then((response) => response.json())
-        .then((data) => {
-            return Object.keys(data.query.pages);
-        }).catch((error) => {
-            return [];
-        });
+    // let search_1 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)} (band)&gpsnamespace=0&gpslimit=6`)
+    //     .then((response) => response.json())
+    //     .then((data) => {
+    //         return Object.keys(data.query.pages);
+    //     })
+    //     .catch((error) => {
+    //         return [];
+    //     });
 
-    if (search_2.length) {
-        window.open("https://en.wikipedia.org/?curid=" + search_2[0], "_blank")
-        about_disabled.value = false;
-        return
-    }
+    // if (search_1.length) {
+    //     window.open("https://en.wikipedia.org/?curid=" + search_1[0], "_blank")
+    //     about_disabled.value = false;
+    //     return
+    // }
+
+    // // Query without "(band)"
+
+    // let search_2 = await fetch(`https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&generator=prefixsearch&gpssearch=${encodeURIComponent(artist.value.title)}&gpsnamespace=0&gpslimit=6`)
+    //     .then((response) => response.json())
+    //     .then((data) => {
+    //         return Object.keys(data.query.pages);
+    //     }).catch((error) => {
+    //         return [];
+    //     });
+
+    // if (search_2.length) {
+    //     window.open("https://en.wikipedia.org/?curid=" + search_2[0], "_blank")
+    //     about_disabled.value = false;
+    //     return
+    // }
 
     about_text.value = "No information found";
 }
