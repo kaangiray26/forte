@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:1.4
+        image: kaangiray26/forte:1.5
         ports:
             - "80:80"
             - "443:443"
@@ -14,9 +14,9 @@ services:
             forte_server: <server>
             forte_email: <email>
         volumes:
-            - <library>:/library
+            - /home/f34rl00/Music/CD:/library
     postgres:
-        image: postgres
+        image: kaangiray26/postgres:1.0
         restart: always
         environment:
             POSTGRES_DB: forte

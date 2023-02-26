@@ -1,0 +1,2 @@
+FROM postgres
+ADD install-extensions.sql /docker-entrypoint-initdb.d/

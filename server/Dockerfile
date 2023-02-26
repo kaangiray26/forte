@@ -7,7 +7,6 @@ ADD js ./js
 ADD .greenlockrc ./
 ADD package.json ./
 ADD server.js ./
-COPY install-extensions.sql /docker-entrypoint-initdb.d/
 
 # Create directories
 RUN mkdir -p /uploads
