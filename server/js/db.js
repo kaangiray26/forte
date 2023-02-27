@@ -10,7 +10,16 @@ import mime from 'mime-types';
 import { exit } from 'process';
 
 const pgp = pgPromise();
-const db = pgp('postgres://forte:forte@postgres:5432/forte');
+
+// Use environment settings to connect to database.
+const db = pgp({
+    'host': process.env.POSTGRES_HOST ? process.env.POSTGRES_HOST : 'postgres',
+    'database': process.env.POSTGRES_DB ? process.env.POSTGRES_DB : 'forte',
+    'user': process.env.POSTGRES_USER ? process.env.POSTGRES_USER : 'forte',
+    'password': process.env.POSTGRES_PASSWORD ? process.env.POSTGRES_PASSWORD : 'forte',
+    'port': parseInt(process.env.POSTGRES_PORT ? process.env.POSTGRES_PORT : '5432')
+});
+
 const library_path = '/library';
 
 const exports = {
