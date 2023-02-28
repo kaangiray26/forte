@@ -46,8 +46,9 @@
             <li><a href="#directory-structure-for-the-music-library">Directory Structure for the Music Library</a></li>
       </ul>
     </li>
-    <li><a href="#changing-covers">Changing Covers</a></li>
+    <li><a href="#changing-covers">Changing covers</a></li>
     <li><a href="#forte-dashboard">Forte Dashboard</a></li>
+    <li><a href="#supported-formats">Supported Formats</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
@@ -167,7 +168,6 @@ Forte uses docker to build the server. Therefore, you need to have docker instal
 ---
 
 ### Building the server
-
 To run the docker container, you need to have the `docker-compose.yml` file. Download the file here:
 
 [docker-compose.yml](https://cdn.jsdelivr.net/gh/kaangiray26/forte@master/server/docker-compose.yml)
@@ -234,7 +234,6 @@ volumes:
 ---
 
 ### Using locally
-
 If you want to use the server locally, you can edit the `docker-compose.yml` file and change the `mode` field to `local`. Then, you can run the following command to start the server:
 ```
 sudo docker-compose up -d
@@ -303,6 +302,7 @@ Here are two examples for multi-disc albums:
 * To use multi-disc albums, you can both use CD directories or just tracks with CD indexes.
 * Artist folders can be empty.
 * Album folders can be empty.
+
 ---
 
 ## Changing covers
@@ -310,12 +310,20 @@ On each restart of the server, artists and albums with no covers will be found a
 
 To use an external resource as a cover for an artist or an album, go to the Forte dashboard, find the item using the search bar, change the URL of the image and update.
 
-## Forte dashboard
+---
+
+## Forte Dashboard
 You can access the forte dashboard by going to `http://localhost:3000`. The default login credentials are: `forte` and `alternative`.
 
 While in dashboard, don't forget to change the `genius_token`, `lastfm_api_key`, `lastfm_api_secret` fields in the `Config` tab for genius and lastfm extensions.
 
 Also, please change the default password from the `Password` tab.
+
+---
+
+## Supported Formats
+* Audio: mp3, m4a, ogg, flac, wav, aac
+* Image: jpg, jpeg, png, gif, bmp, tiff, svg
 
 ---
 
