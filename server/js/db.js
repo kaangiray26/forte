@@ -12,12 +12,17 @@ import mime from 'mime-types';
 import { exit } from 'process';
 import { fileURLToPath } from 'url';
 
+// Path to library
 const library_path = '/library';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const pgp = pgPromise();
+// Supported file extensions
+const audio_extensions = ["mp3", "m4a", "ogg", "flac", "wav", "aac"];
+const image_extensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "svg"];
 
 // Use environment settings to connect to database.
+const pgp = pgPromise();
+
 const db = pgp({
     host: process.env.POSTGRES_HOST,
     port: parseInt(process.env.POSTGRES_PORT),
@@ -26,6 +31,7 @@ const db = pgp({
     password: process.env.POSTGRES_PASSWORD
 });
 
+// Column sets for pg-promise
 const cs_artists = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'path'], { table: 'artists' });
 const cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'nb_tracks', 'genre', 'year', 'date', 'path'], { table: 'albums' });
 const cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
@@ -289,13 +295,15 @@ async function add_watched_item(item) {
     await db.none("UPDATE library SET items = items || ARRAY[$1]::VARCHAR[] WHERE not(items @> ARRAY[$1]::VARCHAR[])", [item]);
 
     // Check the type of the item
-    if (mime.lookup(item) && mime.lookup(item).startsWith('audio')) {
+
+    if (audio_extensions.some(ext => item.endsWith(ext))) {
         add_track(item);
         return
     }
 
     // Check if the item is a cover
-    if (mime.lookup(item) && mime.lookup(item).startsWith('image')) {
+
+    if (image_extensions.some(ext => item.endsWith(ext))) {
         add_cover(item);
         return
     }
@@ -303,13 +311,13 @@ async function add_watched_item(item) {
 
 async function add_track_cover(item) {
     // Check the type of the item
-    if (mime.lookup(item) && mime.lookup(item).startsWith('audio')) {
+    if (audio_extensions.some(ext => item.endsWith(ext))) {
         add_track(item);
         return
     }
 
     // Check if the item is a cover
-    if (mime.lookup(item) && mime.lookup(item).startsWith('image')) {
+    if (image_extensions.some(ext => item.endsWith(ext))) {
         add_cover(item);
         return
     }
@@ -634,7 +642,7 @@ async function handle_album(item,
         }
     }) {
     // Get number of tracks
-    let tracks = glob.sync(item + "/**/!(*cover*).*");
+    let tracks = glob.sync(item + `/**/*.{${audio_extensions.join()}}`);
 
     // Get metadata
     if (tracks.length) {
