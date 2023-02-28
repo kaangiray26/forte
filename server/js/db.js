@@ -799,9 +799,10 @@ async function get_metadata(track, metadata = null) {
             }
 
             // Get the disc number
-            let disc_number = path.basename(track).split("-")[0].trim()[0];
-            if (disc_number) {
-                metadata.common.disk.no = parseInt(disc_number);
+            metadata.common.disk.no = 1;
+            let trimmed = path.basename(track).split("-")[0].trim();
+            if (trimmed.length == 3) {
+                metadata.common.disk.no = parseInt(trimmed[0]);
             }
         }
     }
