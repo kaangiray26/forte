@@ -200,6 +200,12 @@ async function update_covers() {
 async function update_artist_cover(id, artist) {
     let response = await axios.get(`https://api.deezer.com/search/artist?q=${artist}&limit=1&output=json`);
 
+    if (!response.data.data) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + artist);
+        console.log('\x1b[35m%s\x1b[0m', "=> Quota limit reached while gathering cover, skipping...");
+        return
+    }
+
     if (!response.data.data.length) {
         console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + artist);
         console.log('\x1b[35m%s\x1b[0m', "=> Couldn't find cover for the artist, skipping...");
@@ -223,6 +229,13 @@ async function update_album_cover(id, album, artist_id) {
     }
 
     let response = await axios.get(`https://api.deezer.com/search/album?q=${artist.title + ' ' + album}&limit=1&output=json`);
+
+    if (!response.data.data) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + album);
+        console.log('\x1b[35m%s\x1b[0m', "=> Quota limit reached while gathering cover, skipping...");
+        return
+    }
+
     if (!response.data.data.length) {
         console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + album);
         console.log('\x1b[35m%s\x1b[0m', "=> Couldn't find cover for the album, skipping...");
