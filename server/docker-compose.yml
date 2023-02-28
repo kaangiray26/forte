@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:1.9
+        image: kaangiray26/forte:2.0
         ports:
             - "80:80"
             - "443:443"
@@ -21,7 +21,7 @@ services:
         volumes:
             - <library>:/library
     postgres:
-        image: kaangiray26/postgres:1.0
+        image: kaangiray26/postgres:2.0
         restart: always
         environment:
             POSTGRES_DB: forte       # Set Postgres Database Name
