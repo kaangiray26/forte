@@ -169,7 +169,7 @@ Forte uses docker to build the server. Therefore, you need to have docker instal
 
 To run the docker container, you need to have the `docker-compose.yml` file. Download the file here:
 
-[docker-compose.yml](https://raw.githubusercontent.com/kaangiray26/forte/main/server/docker-compose.yml)
+[docker-compose.yml](https://cdn.jsdelivr.net/gh/kaangiray26/forte@latest/server/docker-compose.yml)
 
 Before running the file, you need to edit some fields:
 ```
@@ -232,34 +232,58 @@ sudo docker-compose up -d
 ---
 
 ## Directory Structure for the Music Library
+* Default structure: `/library/Artist/Album/Track`
+
 Here's an example:
 ```
-/home/forte/library
-├── Antimatter - Leaving Eden/
-│   ├── 01 - Redemption.flac
-│   ├── 02 - Another Face in a Window.flac
-|   ...
-│   └── cover.jpg
-│
-└── Ayreon - 01011001/
-    ├── CD1/
-    │   ├── 01 - Age Of Shadows_We Are Forever.flac
-    │   ├── 02 - Comatose.flac
-    │   ...
-    │
-    ├── CD2/
-    │   ├── 01 - The Fifth Extinction.flac
-    │   ├── 02 - Waking Dreams.flac
-    │   ...
-    │
-    └── cover.jpg
+/library/
+└── Antimatter/
+   ├── Leaving Eden/
+   |   ├── 01 - Redemption.flac
+   |   ├── 02 - Another Face in a Window.flac
+   |   ...
+   |   └── cover.jpg # Cover for the album
+   |
+   └── cover.jpg # Cover for the artist
 ```
 
-* Put each album as a folder inside your library directory.
-* For each album folder, follow the format `ARTIST - ALBUM`.
-* For each track, follow the format `TRACK_INDEX - TRACK_TITLE.FORMAT`
-* Have a `cover.jpg` inside the album folder.
-* If the album has multiple CDs, create `CD1`, `CD2`,... directories inside the album folder and follow the same format for tracks.
+Here are two examples for multi-disc albums:
+```
+/library/
+└── Ayreon/
+    └── 01011001/
+        ├── 101 - Age Of Shadows_We Are Forever.flac
+        ├── 102 - Comatose.flac
+        ...
+        ├── 201 - The Fifth Extinction.flac
+        ├── 202 - Waking Dreams.flac
+        ...
+```
+
+```
+/library/
+└── Ayreon/
+    └── 01011001/
+        ├── CD1/
+        |   ├── 01 - Age Of Shadows_We Are Forever.flac
+        │   ├── 02 - Comatose.flac
+        │   ...
+        │
+        └── CD2/
+           ├── 01 - The Fifth Extinction.flac
+           ├── 02 - Waking Dreams.flac
+           ...
+```
+
+* Artist folders under library directory.
+* Album folders under Artists.
+* Tracks under Albums.
+* For each track, follow the format `INDEX - TRACK_TITLE.FORMAT`
+* To set cover for the album, put a `cover.*` file inside the album folder.
+* To set cover for the artist, put a `cover.*` file inside the artist folder.
+* To use multi-disc albums, you can both use CD directories or just tracks with CD indexes.
+* Artist folders can be empty.
+* Album folders can be empty.
 ---
 
 ## Forte dashboard
