@@ -13,15 +13,21 @@ services:
             mode: local
             forte_server: <server>
             forte_email: <email>
-        volumes:
+            POSTGRES_HOST: # Postgres Host/IP
+            POSTGRES_PORT: # Postgres Database Port (Default=5432)
+            POSTGRES_DB: # Set Postgres Database Name
+            POSTGRES_USER: # Set Postgres Username
+            POSTGRES_PASSWORD: # Set Postgres Password
+            
+       volumes:
             - <library>:/library
     postgres:
         image: kaangiray26/postgres:1.0
         restart: always
         environment:
-            POSTGRES_DB: forte
-            POSTGRES_USER: forte
-            POSTGRES_PASSWORD: forte
+            POSTGRES_DB: # Set Postgres Database Name
+            POSTGRES_USER: # Set Postgres Username
+            POSTGRES_PASSWORD: # Set Postgres Password
         volumes:
             - db-data:/var/lib/postgresql/data
         healthcheck:
