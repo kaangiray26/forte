@@ -170,7 +170,7 @@ Forte uses docker to build the server. Therefore, you need to have docker instal
 ### Building the server
 To run the docker container, you need to have the `docker-compose.yml` file. Download the file here:
 
-[docker-compose.yml](https://cdn.jsdelivr.net/gh/kaangiray26/forte@master/server/docker-compose.yml)
+[docker-compose.yml](https://raw.githubusercontent.com/kaangiray26/forte/main/server/docker-compose.yml)
 
 Before running the file, you need to edit some fields:
 ```
