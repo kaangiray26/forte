@@ -170,22 +170,28 @@ Forte uses docker to build the server. Therefore, you need to have docker instal
 
 To run the docker container, you need to have the `docker-compose.yml` file. Download the file here:
 
-[docker-compose.yml](https://cdn.jsdelivr.net/gh/kaangiray26/forte@latest/server/docker-compose.yml)
+[docker-compose.yml](https://cdn.jsdelivr.net/gh/kaangiray26/forte@master/server/docker-compose.yml)
 
 Before running the file, you need to edit some fields:
 ```
-environment:
-  mode: local                   # local or public, defaults to local
-  forte_server: <server>        # only if mode is public
-  forte_email: <email>          # only if mode is public
-  POSTGRES_HOST: <host/ip>      # hostname/ip of postgres server
-  POSTGRES_PORT: 5432           # postgres port (default=5432)
-  POSTGRES_DB: <db_name>        # Forte Database name
-  POSTGRES_USER: <db_user>      # Forte postgres username
-  POSTGRES_PASSWORD: <db_pw>    # Forte postgres password
-
-volumes:
-  - <library>:/library   # The path to your music library
+app:
+    environment:
+        mode: local               # local or public, defaults to local
+        forte_server: <server>    # only if mode is public
+        forte_email: <email>      # only if mode is public
+        POSTGRES_HOST: postgres   # hostname/ip of postgres server
+        POSTGRES_PORT: 5432       # postgres port (default=5432)
+        POSTGRES_DB: forte        # Forte Database name
+        POSTGRES_USER: forte      # Forte postgres username
+        POSTGRES_PASSWORD: forte  # Forte postgres password
+    volumes:
+        - <library>:/library   # The path to your music library
+  
+ postgres:
+    environment:
+        POSTGRES_DB: forte          # Forte Database name
+        POSTGRES_USER: forte        # Forte postgres username
+        POSTGRES_PASSWORD: forte    # Forte postgres password
 ```
 
 Here's an example for the `docker-compose.yml` file:
@@ -193,7 +199,7 @@ Here's an example for the `docker-compose.yml` file:
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:1.4
+        image: kaangiray26/forte:1.8
         ports:
             - "80:80"
             - "443:443"
@@ -204,7 +210,7 @@ services:
             mode: public
             forte_server: forte.example.com
             forte_email: forte@example.com
-            POSTGRES_HOST: hostname
+            POSTGRES_HOST: postgres
             POSTGRES_PORT: 5432
             POSTGRES_DB: forte
             POSTGRES_USER: forte
