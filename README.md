@@ -46,6 +46,7 @@
             <li><a href="#directory-structure-for-the-music-library">Directory Structure for the Music Library</a></li>
       </ul>
     </li>
+    <li><a href="#changing-covers">Changing Covers</a></li>
     <li><a href="#forte-dashboard">Forte Dashboard</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -285,6 +286,11 @@ Here are two examples for multi-disc albums:
 * Artist folders can be empty.
 * Album folders can be empty.
 ---
+
+## Changing covers
+On each restart of the server, artists and albums with no covers will be found and covers for them will be retrieved. If you want to use your own cover file for an artist or an album, just place the cover file as `cover.*` (cover.jpg, cover.png, etc.) inside the folder respectively.
+
+To use an external resource as a cover for an artist or an album, go to the Forte dashboard, find the item using the search bar, change the URL of the image and update.
 
 ## Forte dashboard
 You can access the forte dashboard by going to `http://localhost:3000`. The default login credentials are: `forte` and `alternative`.
