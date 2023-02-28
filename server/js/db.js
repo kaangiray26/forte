@@ -693,9 +693,30 @@ async function handle_track(track, artist_id, album_id, cover_id, cover) {
     console.log('\x1b[34m%s\x1b[0m', "=> Added track: " + metadata.common.title);
 }
 
-async function get_metadata(track) {
+async function get_metadata(track, metadata = null) {
     // Get metadata
-    let metadata = await parseFile(track);
+    try {
+        metadata = await parseFile(track);
+    } catch (error) {
+        console.log('\x1b[31m%s\x1b[0m', "=> Error parsing metadata for: " + track);
+
+        metadata = {
+            common: {
+                title: null,
+                artist: null,
+                album: null,
+                genre: null,
+                year: null,
+                date: null,
+                track: {
+                    no: null,
+                },
+                disk: {
+                    no: null,
+                }
+            }
+        }
+    }
 
     // Fix fields
     let relative = path.relative(library_path, track);
