@@ -28,17 +28,21 @@ import { right_click, action } from '/js/events.js';
 const router = useRouter();
 
 function get_cover(cover) {
-    if (cover) {
+    if (!cover) {
+        return "/images/track.svg"
+    }
+
+    if (cover.startsWith("http")) {
         return cover;
     }
-    return "/images/track.svg"
+
+    return ft.server + '/' + cover;
 }
 
 async function openTrack() {
     store.selected_track_id = props.track.id;
     router.push("/album/" + props.track.album);
 }
-
 
 // Must be synchronized in groupSession: ok
 async function play(id) {

@@ -23,10 +23,15 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 function get_cover(cover) {
-    if (cover) {
+    if (!cover) {
+        return "/images/album.svg"
+    }
+
+    if (cover.startsWith("http")) {
         return cover;
     }
-    return "/images/album.svg"
+
+    return ft.server + '/' + cover;
 }
 
 async function openAlbum() {
