@@ -175,9 +175,15 @@ To run the docker container, you need to have the `docker-compose.yml` file. Dow
 Before running the file, you need to edit some fields:
 ```
 environment:
-  mode: local            # local or public, defaults to local
-  forte_server: <server> # only if mode is public
-  forte_email: <email>   # only if mode is public
+  mode: local                   # local or public, defaults to local
+  forte_server: <server>        # only if mode is public
+  forte_email: <email>          # only if mode is public
+  POSTGRES_HOST: <host/ip>      # hostname/ip of postgres server
+  POSTGRES_PORT: 5432           # postgres port (default=5432)
+  POSTGRES_DB: <db_name>        # Forte Database name
+  POSTGRES_USER: <db_user>      # Forte postgres username
+  POSTGRES_PASSWORD: <db_pw>    # Forte postgres password
+
 volumes:
   - <library>:/library   # The path to your music library
 ```
@@ -198,6 +204,12 @@ services:
             mode: public
             forte_server: forte.example.com
             forte_email: forte@example.com
+            POSTGRES_HOST: hostname
+            POSTGRES_PORT: 5432
+            POSTGRES_DB: forte
+            POSTGRES_USER: forte
+            POSTGRES_PASSWORD: forte
+
         volumes:
             - /home/forte/library:/library
     postgres:

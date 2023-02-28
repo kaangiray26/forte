@@ -16,7 +16,15 @@ const library_path = '/library';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const pgp = pgPromise();
-const db = pgp('postgres://forte:forte@postgres:5432/forte');
+
+// Use environment settings to connect to database.
+const db = pgp({
+    host: process.env.POSTGRES_HOST,
+    port: parseInt(process.env.POSTGRES_PORT),
+    database: process.env.POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD
+});
 
 const cs_artists = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'path'], { table: 'artists' });
 const cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'nb_tracks', 'genre', 'year', 'date', 'path'], { table: 'albums' });

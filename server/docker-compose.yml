@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:1.7
+        image: kaangiray26/forte:1.8
         ports:
             - "80:80"
             - "443:443"
@@ -13,15 +13,20 @@ services:
             mode: local
             forte_email: <email>
             forte_server: <server>
+            POSTGRES_HOST: postgres  # Postgres Host/IP
+            POSTGRES_PORT: 5432      # Postgres Database Port
+            POSTGRES_DB: forte       # Set Postgres Database Name
+            POSTGRES_USER: forte     # Set Postgres Username
+            POSTGRES_PASSWORD: forte # Set Postgres Password
         volumes:
             - <library>:/library
     postgres:
         image: kaangiray26/postgres:1.0
         restart: always
         environment:
-            POSTGRES_DB: forte
-            POSTGRES_USER: forte
-            POSTGRES_PASSWORD: forte
+            POSTGRES_DB: forte       # Set Postgres Database Name
+            POSTGRES_USER: forte     # Set Postgres Username
+            POSTGRES_PASSWORD: forte # Set Postgres Password
         volumes:
             - db-data:/var/lib/postgresql/data
         healthcheck:
