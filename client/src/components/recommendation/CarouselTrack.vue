@@ -19,10 +19,15 @@ import { right_click } from '/js/events.js';
 const router = useRouter();
 
 function get_cover(cover) {
-    if (cover) {
+    if (!cover) {
+        return "/images/track.svg"
+    }
+
+    if (cover.startsWith("http")) {
         return cover;
     }
-    return "/images/track.svg"
+
+    return ft.server + '/' + cover;
 }
 
 async function openTrack() {
