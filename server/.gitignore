@@ -28,6 +28,5 @@ coverage
 *.sw?
 
 uploads/*
-.greenlockrc
 greenlock.d/*
 .env
