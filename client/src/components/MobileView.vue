@@ -94,10 +94,15 @@ async function openAlbum() {
 }
 
 function get_cover(cover) {
-    if (cover) {
+    if (!cover) {
+        return "/images/track.svg"
+    }
+
+    if (cover.startsWith("http")) {
         return cover;
     }
-    return "/images/track.svg"
+
+    return ft.server + '/' + cover;
 }
 
 function _show() {

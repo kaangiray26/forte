@@ -153,10 +153,15 @@ const group_key = ref(0);
 const qualityDisplay = ref(null);
 
 function get_cover(cover) {
-    if (cover) {
+    if (!cover) {
+        return "/images/track.svg"
+    }
+
+    if (cover.startsWith("http")) {
         return cover;
     }
-    return "/images/track.svg"
+
+    return ft.server + '/' + cover;
 }
 
 async function muteVolume() {

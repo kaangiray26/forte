@@ -1,26 +1,34 @@
 // db.js
+import path from "path";
+import glob from "glob";
+import chokidar from "chokidar";
 import { parseFile } from 'music-metadata';
 import pgPromise from 'pg-promise';
 import fs from 'fs';
 import crypto from 'crypto';
-import path from 'path';
 import readlineSync from 'readline-sync';
 import axios from 'axios';
 import mime from 'mime-types';
 import { exit } from 'process';
+import { fileURLToPath } from 'url';
+
+const library_path = '/library';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const pgp = pgPromise();
 
 // Use environment settings to connect to database.
 const db = pgp({
-    'host': process.env.POSTGRES_HOST ? process.env.POSTGRES_HOST : 'postgres',
-    'database': process.env.POSTGRES_DB ? process.env.POSTGRES_DB : 'forte',
-    'user': process.env.POSTGRES_USER ? process.env.POSTGRES_USER : 'forte',
-    'password': process.env.POSTGRES_PASSWORD ? process.env.POSTGRES_PASSWORD : 'forte',
-    'port': parseInt(process.env.POSTGRES_PORT ? process.env.POSTGRES_PORT : '5432')
+    host: process.env.POSTGRES_HOST,
+    port: parseInt(process.env.POSTGRES_PORT),
+    database: process.env.POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD
 });
 
-const library_path = '/library';
+const cs_artists = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'path'], { table: 'artists' });
+const cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'nb_tracks', 'genre', 'year', 'date', 'path'], { table: 'albums' });
+const cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
 
 const exports = {
     add_friend: _add_friend,
@@ -98,11 +106,9 @@ async function _init(args) {
     if (args.includes('--reset')) {
         let answer = readlineSync.question("Do you really want to reset? (y/n)");
         if (answer === 'y') {
-            console.log("Resetting tables...");
+            console.log("=> Resetting tables...");
             await db.none("DROP VIEW IF EXISTS fuzzy");
             await db.none("DROP TABLE IF EXISTS config, artists, albums, playlists, tracks, library, auth, users");
-
-            console.log("\nRemoving uploads...");
             fs.readdir(path.join(__dirname, "../uploads"), (err, files) => {
                 if (err) throw err;
 
@@ -112,19 +118,19 @@ async function _init(args) {
                     });
                 }
             });
-            console.log("OK\n")
+            console.log("\x1b[32m%s\x1b[0m", "=> OK")
         }
     }
 
     db.tx('creating_tables', t => {
-        console.log("=> Checking tables...");
+        console.log("\n=> Checking tables...");
         return t.batch([
             t.none("CREATE TABLE IF NOT EXISTS config (id SERIAL PRIMARY KEY, name TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name))"),
-            t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, UNIQUE(title))"),
-            t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, UNIQUE(title, artist))"),
+            t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, cover_path TEXT, path TEXT NOT NULL, UNIQUE(title))"),
+            t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, path TEXT NOT NULL, UNIQUE(title, artist))"),
             t.none("CREATE TABLE IF NOT EXISTS playlists(id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'playlist', title TEXT NOT NULL, cover TEXT, author TEXT, tracks INTEGER[], UNIQUE(title, author))"),
-            t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
-            t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, folders VARCHAR[])"),
+            t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
+            t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, items VARCHAR[])"),
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
             t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history INTEGER[10], fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends VARCHAR[], lastfm TEXT, UNIQUE(username, token, session))"),
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.type, playlists.title, playlists.cover FROM playlists UNION SELECT users.id, 'user', users.username, users.cover FROM users;"),
@@ -134,11 +140,13 @@ async function _init(args) {
             .then(async function (data) {
                 if (!data.length) {
                     console.log("=> No config found. Creating a new one...");
+                    await db.none("INSERT INTO library(items) VALUES ($1)", [[]])
                     await db.none("INSERT INTO config(name, value) VALUES ('password', 'a04fe4e390a7c7d5d4583f85d24e164d')")
                     await db.none("INSERT INTO config(name, value) VALUES ('genius_token', '-EZLIW0uQaobG3HjE2yJzdl7DPuaIkXXDGX7l8KJm4jv2S4feDYZMUoIRuZOmoO5')")
                     await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', '1ff0a732f00d53529d764cf4ce9270e5')")
                     await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', '10853915c49c53886b4c87fa0e27f663')")
                 }
+                console.log("\x1b[32m%s\x1b[0m", "=> OK")
                 refresh_library()
             })
     }).catch(error => {
@@ -148,225 +156,629 @@ async function _init(args) {
     })
 }
 
-function update_library() {
-    let folders = fs.readdirSync(library_path);
-    db.oneOrNone("SELECT folders from library")
-        .then(async function (data) {
+async function refresh_library() {
+    // Check the library
+    await check_library();
 
-            if (!data) {
-                await walk_folders(folders, library_path);
-                await db.none("INSERT INTO library(folders) VALUES ($1)", [folders])
-                console.log("\n==> Added a new total of " + folders.length + " folders.");
-                return;
-            }
+    // Update covers in the background
+    update_covers();
 
-            if (folders.length != data.folders.length) {
-                console.log("==> The library has changed.");
-            }
+    // Watch the library
+    let watcher = chokidar.watch(library_path, {
+        ignoreInitial: true
+    })
 
-            // Find out which folders have been added
-            let changes = folders.filter(folder => !data.folders.includes(folder));
-            if (!changes.length) {
-                console.log("==> (Add) No changes in the library.")
-            } else {
-                await walk_folders(changes, library_path);
-                await db.none("UPDATE library SET folders = $1", [folders])
-                console.log("\n==> Added a new total of " + changes.length + " folders.");
-            }
+    watcher.on('addDir', item => add_watched_dir(item))
+    watcher.on('add', item => add_watched_item(item))
 
-            // Find out which folders have been removed
-            changes = data.folders.filter(folder => !folders.includes(folder));
-            if (!changes.length) {
-                console.log("==> (Remove) No changes in the library.")
-            } else {
-                console.log("Folders to remove:", changes)
-                await remove_folders(changes);
-                await db.none("UPDATE library SET folders = $1", [folders])
-                console.log("\n==> Removed a total of " + changes.length + " folders.");
-            }
-        })
+    watcher.on('unlink', item => remove_watched_item(item))
+    watcher.on('unlinkDir', item => remove_watched_dir(item))
 }
 
-async function refresh_library() {
-    console.log("\n=> Checking for any changes...");
-    console.log("This may take a while.\n");
+async function update_covers() {
+    // Get artists and albums without cover
+    let items = await db.manyOrNone("SELECT type, id, title, 0 as artist from artists WHERE cover IS NULL UNION SELECT type, id, title, artist from albums WHERE cover IS NULL");
 
-    update_library();
-
-    // Watch for changes
-    console.log("Watching for changes...");
-    fs.watch(library_path, async function (event) {
-        if (event === 'rename') {
-            update_library();
+    // Update covers
+    // Wait 1 second between each request
+    items.map(async (item) => {
+        if (item.type == "artist") {
+            update_artist_cover(item.id, item.title);
+        } else {
+            update_album_cover(item.id, item.title, item.artist);
         }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
     })
 }
 
-async function remove_folders(folders) {
-    for (let i = 0; i < folders.length; i++) {
-        let folder = folders[i];
+async function update_artist_cover(id, artist) {
+    let response = await axios.get(`https://api.deezer.com/search/artist?q=${artist}&limit=1&output=json`);
 
-        db.task(async t => {
-            let album = await t.oneOrNone("SELECT * FROM albums WHERE (title % $1) AND similarity(title, $1) > 0.2 LIMIT 1", [folder]);
-            let artist_albums = await t.any("SELECT * FROM albums WHERE artist = $1", [album.artist]);
+    if (!response.data.data.length) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + artist);
+        console.log('\x1b[35m%s\x1b[0m', "=> Couldn't find cover for the artist, skipping...");
+        return
+    }
 
-            // If the artist has only one album, remove it
-            if (artist_albums.length === 1) {
-                await t.none("DELETE FROM artists WHERE id = $1", [album.artist]);
+    let cover = response.data.data[0].picture_medium;
+    await db.none("UPDATE artists SET cover = $1 WHERE id = $2", [cover, id]);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Updated cover for the artist: " + artist);
+}
+
+async function update_album_cover(id, album, artist_id) {
+    // Get artist title
+    let artist = await db.oneOrNone("SELECT title from artists WHERE id = $1", artist_id);
+
+    if (!artist) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + album);
+        console.log('\x1b[35m%s\x1b[0m', "=> Can't get cover for the album because artist is missing, skipping...");
+        return
+    }
+
+    let response = await axios.get(`https://api.deezer.com/search/album?q=${artist.title + ' ' + album}&limit=1&output=json`);
+    if (!response.data.data.length) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + album);
+        console.log('\x1b[35m%s\x1b[0m', "=> Couldn't find cover for the album, skipping...");
+        return
+    }
+
+    let cover = response.data.data[0].cover_medium;
+    await db.none("UPDATE albums SET cover = $1 WHERE id = $2", [cover, id]);
+    await db.none("UPDATE tracks SET cover = $1 WHERE album = $2", [cover, id]);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Updated cover for the album: " + album);
+}
+
+async function check_library() {
+    // Check if the library is empty
+    let items = glob.sync(library_path + "/**/*");
+    if (!items.length) {
+        console.log("=> The library is empty.");
+        return;
+    }
+
+    // Check if the old library exists
+    let library = await db.oneOrNone("SELECT items from library");
+
+    // Update the library
+    db.none("UPDATE library SET items = $1", [items]);
+
+    // If the library is empty, add all the folders
+    if (!library) {
+        console.log("=> The library is empty. Adding all the items...");
+        items.map(item => add_item(item));
+        return;
+    }
+
+    // Get added items
+    let added_items = items.filter(item => !library.items.includes(item));
+
+    // Get newly added directories
+    let new_dirs = added_items.filter(item => fs.lstatSync(item).isDirectory());
+    new_dirs.map(dir => add_artist_album(dir));
+
+    // Get newly added tracks and covers
+    let new_tracks_covers = added_items.filter(item => (!new_dirs.some(dir => item.startsWith(dir))));
+    new_tracks_covers.map(item => add_track_cover(item));
+
+    // Get removed items
+    let removed_items = library.items.filter(item => !items.includes(item));
+    removed_items.map(item => remove_item(item));
+}
+
+async function add_watched_dir(item) {
+    await db.none("UPDATE library SET items = items || ARRAY[$1]::VARCHAR[] WHERE not(items @> ARRAY[$1]::VARCHAR[])", [item]);
+
+    // Check the type of the item
+    let relative = path.relative(library_path, item);
+    let depth = relative.split(path.sep).length;
+
+    if (depth == 2) {
+        handle_album(item);
+        return
+    }
+
+    if (depth == 1) {
+        handle_artist(item);
+        return
+    }
+}
+
+async function add_watched_item(item) {
+    await db.none("UPDATE library SET items = items || ARRAY[$1]::VARCHAR[] WHERE not(items @> ARRAY[$1]::VARCHAR[])", [item]);
+
+    // Check the type of the item
+    if (mime.lookup(item) && mime.lookup(item).startsWith('audio')) {
+        add_track(item);
+        return
+    }
+
+    // Check if the item is a cover
+    if (mime.lookup(item) && mime.lookup(item).startsWith('image')) {
+        add_cover(item);
+        return
+    }
+}
+
+async function add_track_cover(item) {
+    // Check the type of the item
+    if (mime.lookup(item) && mime.lookup(item).startsWith('audio')) {
+        add_track(item);
+        return
+    }
+
+    // Check if the item is a cover
+    if (mime.lookup(item) && mime.lookup(item).startsWith('image')) {
+        add_cover(item);
+        return
+    }
+}
+
+async function remove_watched_dir(item) {
+    // Check the type of the directory
+    let relative = path.relative(library_path, item);
+    let seps = relative.split(path.sep);
+
+    // Check if the item is an album directory
+    if (seps.length == 2) {
+        remove_album(item);
+        return
+    }
+
+    // Check if the item is an artist directory
+    if (seps.length == 1) {
+        remove_artist(item)
+        return
+    }
+}
+
+async function remove_watched_item(item) {
+    // Check if the item is a cover
+    if (mime.lookup(item) && mime.lookup(item).startsWith('image')) {
+        remove_cover(item);
+        return
+    }
+
+    // Check if the item is a track
+    if (mime.lookup(item) && mime.lookup(item).startsWith('audio')) {
+        remove_track(item);
+        return
+    }
+}
+
+async function remove_item(item) {
+    // Check if the item is a cover
+    if (mime.lookup(item) && mime.lookup(item).startsWith('image')) {
+        remove_cover(item);
+        return
+    }
+
+    // Check if the item is a track
+    if (mime.lookup(item) && mime.lookup(item).startsWith('audio')) {
+        remove_track(item);
+        return
+    }
+
+    // Check the type of the directory
+    let relative = path.relative(library_path, item);
+    let seps = relative.split(path.sep);
+
+    // Check if the item is an album directory
+    if (seps.length == 2) {
+        remove_album(item);
+        return
+    }
+
+    // Check if the item is an artist directory
+    if (seps.length == 1) {
+        remove_artist(item)
+        return
+    }
+}
+
+async function remove_album(item) {
+    // Get the album
+    let album = await db.oneOrNone("DELETE FROM albums WHERE path = $1 RETURNING id", item);
+
+    if (!album) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + item);
+        console.log('\x1b[35m%s\x1b[0m', "=> The album is already possibly removed, skipping...");
+        return;
+    }
+
+    // Remove the tracks
+    await db.none("DELETE FROM tracks WHERE album = $1", album.id);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Removed album: " + item);
+}
+
+async function remove_artist(item) {
+    // Get the artist
+    let artist = await db.oneOrNone("DELETE FROM artists WHERE path = $1 RETURNING id", item);
+
+    if (!artist) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Error: " + item);
+        console.log('\x1b[35m%s\x1b[0m', "=> The artist is already possibly removed, skipping...");
+        return;
+    }
+
+    // Remove the albums
+    await db.any("DELETE FROM albums WHERE artist = $1", artist.id);
+
+    // Remove the tracks
+    await db.none("DELETE FROM tracks WHERE artist = $1", artist.id);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Removed artist: " + item);
+}
+
+async function add_cover(cover) {
+    let relative = path.relative(library_path, cover);
+    let seps = relative.split(path.sep);
+
+    // Check if the cover is for an album or an artist
+    if (seps.length == 2) {
+        add_artist_cover(cover);
+        return
+    }
+
+    if (seps.length == 3) {
+        add_album_cover(cover);
+        return
+    }
+}
+
+async function add_artist_cover(cover) {
+    let dir = path.dirname(cover);
+
+    // Copy the cover to the uploads folder
+    let cover_id = crypto.randomBytes(16).toString("hex");
+    fs.copyFileSync(cover, path.join(__dirname, "../uploads", cover_id));
+
+    // Get the artist
+    let artist = await db.oneOrNone("SELECT id from artists WHERE path = $1", dir);
+    if (!artist) {
+        console.log('\x1b[31m%s\x1b[0m', "=> Error: " + cover);
+        console.log('\x1b[31m%s\x1b[0m', "=> The artist for the cover is unknown, skipping...");
+        return
+    }
+
+    // Add the cover to the artist
+    await db.none("UPDATE artists SET cover = $1, cover_path = $2 WHERE id = $3", [cover_id, cover, artist.id]);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Added cover: " + cover);
+}
+
+async function add_album_cover(cover) {
+    let dir = path.dirname(cover);
+
+    // Copy the cover to the uploads folder
+    let cover_id = crypto.randomBytes(16).toString("hex");
+    fs.copyFileSync(cover, path.join(__dirname, "../uploads", cover_id));
+
+    // Get the album
+    let album = await db.oneOrNone("SELECT id from albums WHERE path = $1", dir);
+    if (!album) {
+        console.log('\x1b[31m%s\x1b[0m', "=> Error: " + cover);
+        console.log('\x1b[31m%s\x1b[0m', "=> The album for the cover is unknown, skipping...");
+        return
+    }
+
+    // Add the cover to the album
+    await db.none("UPDATE albums SET cover = $1, cover_path = $2 WHERE id = $3", [cover_id, cover, album.id]);
+
+    // Add the cover to the tracks
+    await db.none("UPDATE tracks SET cover = $1, cover_path = $2 WHERE album = $3", [cover_id, cover, album.id]);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Added cover: " + cover);
+}
+
+async function add_track(track,
+    metadata = {
+        common: {
+            album: null,
+            artist: null,
+            genre: null,
+            year: null,
+            data: null,
+        }
+    }) {
+
+
+    // Get metadata
+    metadata = await get_metadata(track);
+
+    // Get the artist
+    let artist = await db.oneOrNone("SELECT id from artists WHERE path = $1", metadata.common.artist_path);
+
+    // Get the album
+    let album = await db.oneOrNone("SELECT id from albums WHERE path = $1", metadata.common.album_path);
+
+    // If the artist or album doesn't exist, raise an error
+    if (!artist || !album) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + track);
+        console.log('\x1b[35m%s\x1b[0m', "=> The album or artist for the track is unknown, skipping...");
+        return
+    }
+
+    // Add the track to the database
+    await db.none("INSERT INTO tracks (title, cover, cover_path, artist, album, track_position, disc_number, path) SELECT $1, cover, cover_path, $2, $3, $4, $5, $6 FROM albums WHERE id = $3 ON CONFLICT (title, artist, album) DO NOTHING", [metadata.common.title, artist.id, album.id, metadata.common.track.no, metadata.common.disk.no, track])
+
+    // Add the track to the album
+    await db.none("UPDATE albums SET nb_tracks = nb_tracks + 1 WHERE id = $1", album.id);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Added track: " + track);
+}
+
+async function add_artist_album(item) {
+    // Check the type of the item
+    let relative = path.relative(library_path, item);
+    let depth = relative.split(path.sep).length;
+
+    if (depth == 2) {
+        handle_album(item);
+    }
+}
+
+async function remove_track(item) {
+    // Remove the track from the database
+    let track = await db.oneOrNone("DELETE FROM tracks WHERE path = $1 RETURNING album", item);
+
+    if (!track) {
+        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + item);
+        console.log('\x1b[35m%s\x1b[0m', "=> The track is already possibly removed, skipping...");
+        return
+    }
+
+    // Remove the track from the album
+    await db.none("UPDATE albums SET nb_tracks = nb_tracks - 1 WHERE id = $1", track.album);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Removed track: " + item);
+}
+
+async function remove_artist_cover(cover) {
+    // Get cover id
+    let artist = await db.oneOrNone("SELECT cover FROM artists WHERE cover_path = $1", cover);
+    if (artist) {
+        // Remove the cover from the uploads folder
+        fs.unlinkSync(path.join(__dirname, "../uploads", artist.cover));
+    }
+
+    // Update the artist cover
+    await db.none("UPDATE artists SET cover = NULL, cover_path = NULL WHERE cover_path = $1", cover);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Removed cover: " + cover);
+}
+
+async function remove_album_cover(cover) {
+    // Get cover id
+    let album = await db.oneOrNone("SELECT cover FROM albums WHERE cover_path = $1", cover);
+    if (album) {
+        // Remove the cover from the uploads folder
+        fs.unlinkSync(path.join(__dirname, "../uploads", album.cover));
+    }
+
+    // Update the album cover
+    await db.none("UPDATE albums SET cover = NULL, cover_path = NULL WHERE cover_path = $1", cover);
+
+    // Update the tracks cover
+    await db.none("UPDATE tracks SET cover = NULL, cover_path = NULL WHERE cover_path = $1", cover);
+
+    console.log('\x1b[34m%s\x1b[0m', "=> Removed cover: " + cover);
+}
+
+async function remove_cover(cover) {
+    let relative = path.relative(library_path, cover);
+    let seps = relative.split(path.sep);
+
+    // Check if the cover is for an album or an artist
+    if (seps.length == 2) {
+        remove_artist_cover(cover);
+        return
+    }
+
+    if (seps.length == 3) {
+        remove_album_cover(cover);
+        return
+    }
+}
+
+async function add_item(item) {
+    // Check if the item is a directory
+    let is_dir = fs.lstatSync(item).isDirectory()
+    if (is_dir) {
+        // Check the type of the item
+        let relative = path.relative(library_path, item);
+        let depth = relative.split(path.sep).length;
+
+        if (depth == 2) {
+            handle_album(item);
+        }
+    }
+}
+
+async function handle_artist(item, artist_name = null) {
+    // Get the artist name
+    if (!artist_name) {
+        artist_name = path.basename(item);
+    }
+
+    // Get the artist cover
+    let cover = glob.sync(item + "/cover.*")[0];
+
+    // Copy the cover to the uploads folder
+    let cover_id = null;
+    if (cover) {
+        cover_id = crypto.randomBytes(16).toString("hex");
+        fs.copyFileSync(cover, path.join(__dirname, "../uploads", cover_id));
+    }
+
+    // Add the artist to the database
+    console.log('\x1b[34m%s\x1b[0m', "=> Added artist: " + artist_name);
+    return await db.one(pgp.helpers.insert({
+        "title": artist_name,
+        "cover": cover_id,
+        "cover_path": cover,
+        "path": item
+    }, cs_artists) + " ON CONFLICT (title) DO UPDATE SET id = artists.id RETURNING id");
+}
+
+async function handle_album(item,
+    metadata = {
+        common: {
+            album: null,
+            artist: null,
+            genre: null,
+            year: null,
+            data: null,
+        }
+    }) {
+    // Get number of tracks
+    let tracks = glob.sync(item + "/**/!(*cover*).*");
+
+    // Get metadata
+    if (tracks.length) {
+        metadata = await get_metadata(tracks[0]);
+    } else {
+        // Get the album name
+        metadata.common.album = path.basename(item);
+    }
+
+    // Get the artist ID
+    let artist = await handle_artist(path.dirname(item), metadata.common.artist);
+
+    // Get the album cover
+    let cover = glob.sync(item + "/cover.*")[0];
+
+    // Copy the cover to the uploads folder
+    let cover_id = null;
+    if (cover) {
+        cover_id = crypto.randomBytes(16).toString("hex");
+        fs.copyFileSync(cover, path.join(__dirname, "../uploads", cover_id));
+    }
+
+    // Add the album to the database
+    console.log('\x1b[34m%s\x1b[0m', "=> Added album: " + metadata.common.album);
+    let album = await db.one(pgp.helpers.insert({
+        "title": metadata.common.album,
+        "cover": cover_id,
+        "cover_path": cover,
+        "artist": artist.id,
+        "nb_tracks": tracks.length,
+        "genre": metadata.common.genre,
+        "year": metadata.common.year,
+        "date": format_date(metadata.common.date),
+        "path": item
+    }, cs_albums) + " ON CONFLICT (title, artist) DO UPDATE SET id = albums.id RETURNING id");
+
+    // Add the tracks to the database
+    tracks.map((track) => handle_track(track, artist.id, album.id, cover_id, cover));
+}
+
+async function handle_track(track, artist_id, album_id, cover_id, cover) {
+    // Get metadata
+    let metadata = await get_metadata(track);
+
+    // Add the track to the database
+    await db.none(pgp.helpers.insert({
+        "title": metadata.common.title,
+        "cover": cover_id,
+        "cover_path": cover,
+        "artist": artist_id,
+        "album": album_id,
+        "track_position": metadata.common.track.no,
+        "disc_number": metadata.common.disk.no,
+        "path": track,
+    }, cs_tracks) + ' ON CONFLICT (title, artist, album) DO NOTHING');
+    console.log('\x1b[34m%s\x1b[0m', "=> Added track: " + metadata.common.title);
+}
+
+async function get_metadata(track) {
+    // Get metadata
+    let metadata = await parseFile(track);
+
+    // Fix fields
+    let relative = path.relative(library_path, track);
+    let seps = relative.split(path.sep);
+
+    // Fix title
+    if (!metadata.common.title) {
+        metadata.common.title = path.basename(track).split("-")[1].trim().split(".").slice(0, -1).join(".");
+    }
+
+    // Fix genre
+    if (!metadata.common.genre) {
+        metadata.common.genre = [];
+    }
+
+    // Check if under CD directory
+    if (seps.some((sep) => sep.startsWith("CD"))) {
+        // Fix album
+        if (!metadata.common.album) {
+            metadata.common.album = path.dirname(path.dirname(track));
+        }
+
+        // Fix artist
+        if (!metadata.common.artist) {
+            metadata.common.artist = path.dirname(path.dirname(path.dirname(track)));
+        }
+
+        // Add album path
+        metadata.common.album_path = path.dirname(path.dirname(track));
+
+        // Add artist path
+        metadata.common.artist_path = path.dirname(path.dirname(path.dirname(track)));
+
+        // Fix track_position and disc_number
+        if (!metadata.common.track.no || !metadata.common.disk.no) {
+            // Get the track position
+            let track_position = path.basename(track).split("-")[0].trim();
+            if (track_position) {
+                metadata.common.track.no = parseInt(track_position);
             }
 
-            // Remove the album
-            await t.none("DELETE FROM albums WHERE id = $1", [album.id]);
+            // Get the disc number
+            let disc_number = path.dirname(track).slice(-1);
+            if (disc_number) {
+                metadata.common.disk.no = parseInt(disc_number);
+            }
+        }
 
-            // Remove the tracks
-            await t.none("DELETE FROM tracks WHERE album = $1", [album.id]);
-        })
-    }
-}
+    } else {
+        // Fix album
+        if (!metadata.common.album) {
+            metadata.common.album = path.dirname(track);
+        }
 
-async function walk_folders(folders, library_path) {
-    let cs_artists = new pgp.helpers.ColumnSet(['title', 'cover'], { table: 'artists' });
-    let cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'nb_tracks', 'genre', 'year', 'date'], { table: 'albums' });
-    let cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
+        // Fix artist
+        if (!metadata.common.artist) {
+            metadata.common.artist = path.dirname(path.dirname(track));
+        }
 
-    for (let i = 0; i < folders.length; i++) {
-        console.log(`    Adding folder ${i + 1}/${folders.length}...`);
-        let folder = folders[i];
+        // Add album path
+        metadata.common.album_path = path.dirname(track);
 
-        // Get tags
-        let tags = await get_tags(path.join(library_path, folder));
+        // Add artist path
+        metadata.common.artist_path = path.dirname(path.dirname(track));
 
-        // Get tracks
-        let tracks = await get_tracks(path.join(library_path, folder), tags.album_cover);
-
-        // Insert artist record
-        let artist = await get_artist(tags.artist, tags.artist_cover);
-        let artist_id = await db.one(pgp.helpers.insert(artist, cs_artists) + ' ON CONFLICT (title) DO UPDATE SET id = artists.id RETURNING id');
-
-        // Insert album records
-        let album = await get_album(tags.album, artist_id.id, tracks.length, tags.album_cover, tags.genre, tags.year, tags.date);
-        let album_id = await db.one(pgp.helpers.insert(album, cs_albums) + ' ON CONFLICT (title, artist) DO UPDATE SET id = albums.id RETURNING id');
-
-        // Insert track records
-        tracks = update_tracks(tracks, album_id.id, artist_id.id);
-        await db.none(pgp.helpers.insert(tracks, cs_tracks) + ' ON CONFLICT (title, artist, album) DO NOTHING');
-    }
-}
-
-async function get_tags(folderpath) {
-    let files = fs.readdirSync(folderpath);
-
-    // Return null if the folder is empty
-    if (!files.length) {
-        return {};
-    }
-
-    // Check for CDs
-    let cds = files.filter(f => f.startsWith('CD'));
-
-    // Do CD routine
-    if (cds.length) {
-        let cd_files = fs.readdirSync(path.join(folderpath, cds[0]));
-        return await check_files_for_metadata(cd_files, path.join(folderpath, cds[0]));
-    }
-
-    // Do normal routine
-    return await check_files_for_metadata(files, folderpath);
-}
-
-async function check_files_for_metadata(files, folderpath) {
-    for (let file of files) {
-        if (mime.lookup(file) && mime.lookup(file).startsWith('audio')) {
-            const metadata = await parseFile(path.join(folderpath, file));
-
-            let album_cover = null;
-            let artist_cover = null;
-            let data = await axios.get(`https://api.deezer.com/search/track?q=${metadata.common.album.toLowerCase() + ' ' + metadata.common.title.toLowerCase()}`);
-
-            if (typeof data.data.data[0] !== "undefined") {
-                album_cover = data.data.data[0].album.cover_medium
-                artist_cover = data.data.data[0].artist.picture_medium
+        // Fix track_position and disc_number
+        if (!metadata.common.track.no || !metadata.common.disk.no) {
+            // Get the track position
+            let track_position = path.basename(track).split("-")[0].trim().slice(-2);
+            if (track_position) {
+                metadata.common.track.no = parseInt(track_position);
             }
 
-            return ({
-                "artist": metadata.common.artist,
-                "album": metadata.common.album,
-                "genre": metadata.common.genre,
-                "year": metadata.common.year,
-                "date": format_date(metadata.common.date),
-                "album_cover": album_cover,
-                "artist_cover": artist_cover
-            })
+            // Get the disc number
+            let disc_number = path.basename(track).split("-")[0].trim()[0];
+            if (disc_number) {
+                metadata.common.disk.no = parseInt(disc_number);
+            }
         }
     }
-    return {}
+    return metadata;
 }
 
-function update_tracks(tracks, album_id, artist_id) {
-    for (let track of tracks) {
-        track.album = album_id;
-        track.artist = artist_id;
-    }
-    return tracks
-}
-
-async function get_artist(artist_title, cover) {
-    return { "title": artist_title, "cover": cover }
-}
-
-async function get_album(album_title, artist_id, nb_tracks, cover, genre, year, date) {
-    return { "title": album_title, "artist": artist_id, "nb_tracks": nb_tracks, "cover": cover, "genre": genre, "year": year, "date": date }
-}
-
-async function get_tracks(folderpath, cover) {
-    let tracks = [];
-    let files = fs.readdirSync(folderpath);
-
-    // Return null if the folder is empty
-    if (!files.length) {
-        return null;
-    }
-
-    // Check for CDs
-    let cds = files.filter(f => f.startsWith('CD'));
-
-    // Do CD routine
-    if (cds.length) {
-        // Check for cover
-        for (let cd of cds) {
-            let cd_files = fs.readdirSync(path.join(folderpath, cd));
-            await get_tracks_from(cd_files, tracks, path.join(folderpath, cd), cover);
-        }
-        return tracks;
-    }
-
-    // Do normal routine
-    await get_tracks_from(files, tracks, folderpath, cover);
-    return tracks;
-}
-
-async function get_tracks_from(files, tracks, folderpath, cover) {
-    for (let file of files) {
-        if (mime.lookup(file) && mime.lookup(file).startsWith('audio')) {
-            const metadata = await parseFile(path.join(folderpath, file));
-            tracks.push({
-                "title": metadata.common.title,
-                "track_position": metadata.common.track.no,
-                "disc_number": metadata.common.disk.no,
-                "path": path.join(folderpath, file),
-                "cover": cover
-            })
-        }
-    }
-}
-/**
- * Formats a year string into the DATE format.
- * @example
- * // returns 2022-01-01
- * format_date(2022)
- * @param {string} dt A string representing a year or a DATE
- * @returns {string} DATE
- */
 function format_date(dt) {
     if (new RegExp('^[0-9]{4}$').test(dt)) {
         return dt + "-01-01"
@@ -475,6 +887,12 @@ async function _get_artist(req, res, next) {
     }
     db.task(async t => {
         let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+
+        if (!artist) {
+            res.status(404).json({ "error": "Artist not found." });
+            return;
+        }
+
         let albums = await t.manyOrNone("SELECT * FROM albums wHERE artist = $1", [id]);
         res.status(200)
             .send(JSON.stringify({
@@ -520,6 +938,12 @@ async function _get_album(req, res, next) {
     }
     db.task(async t => {
         let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+
+        if (!album) {
+            res.status(404).json({ "error": "Album not found." });
+            return;
+        }
+
         let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [album.artist]);
         let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [id]);
         res.status(200)
@@ -554,6 +978,12 @@ async function _get_track(req, res, next) {
     }
     db.task(async t => {
         let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+
+        if (!track) {
+            res.status(404).json({ "error": "Track not found." });
+            return;
+        }
+
         let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [track.artist]);
         let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [track.album]);
         res.status(200)
