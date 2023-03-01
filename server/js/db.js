@@ -1,6 +1,6 @@
 // db.js
 import path from "path";
-import glob from "glob";
+import glob from 'glob'
 import chokidar from "chokidar";
 import { parseFile } from 'music-metadata';
 import pgPromise from 'pg-promise';
@@ -251,7 +251,11 @@ async function update_album_cover(id, album, artist_id) {
 
 async function check_library() {
     // Check if the library is empty
-    let items = glob.sync(library_path + "/**/*");
+    let items = await glob("**/*", {
+        cwd: library_path,
+        absolute: true,
+    });
+
     if (!items.length) {
         console.log("=> The library is empty.");
         return;
@@ -264,7 +268,7 @@ async function check_library() {
     db.none("UPDATE library SET items = $1", [items]);
 
     // If the library is empty, add all the folders
-    if (!library) {
+    if (!library.items.length) {
         console.log("=> The library is empty. Adding all the items...");
         items.map(item => add_item(item));
         return;
@@ -625,7 +629,15 @@ async function handle_artist(item, artist_name = null) {
     }
 
     // Get the artist cover
-    let cover = glob.sync(item + "/cover.*")[0];
+    let covers = await glob("cover.*", {
+        cwd: item,
+        absolute: true,
+    })
+
+    let cover = null;
+    if (covers) {
+        cover = covers[0];
+    }
 
     // Copy the cover to the uploads folder
     let cover_id = null;
@@ -655,7 +667,10 @@ async function handle_album(item,
         }
     }) {
     // Get number of tracks
-    let tracks = glob.sync(item + `/**/*.{${audio_extensions.join()}}`);
+    let tracks = await glob(`**/*.{${audio_extensions.join()}}`, {
+        cwd: item,
+        absolute: true,
+    });
 
     // Get metadata
     if (tracks.length) {
@@ -669,7 +684,15 @@ async function handle_album(item,
     let artist = await handle_artist(path.dirname(item), metadata.common.artist);
 
     // Get the album cover
-    let cover = glob.sync(item + "/cover.*")[0];
+    let covers = await glob("cover.*", {
+        cwd: item,
+        absolute: true,
+    });
+
+    let cover = null;
+    if (covers) {
+        cover = covers[0];
+    }
 
     // Copy the cover to the uploads folder
     let cover_id = null;

@@ -17,7 +17,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
-    "glob": "^8.1.0",
+    "glob": "^9.0.2",
     "greenlock": "^4.0.4",
     "greenlock-express": "^4.0.3",
     "mime-types": "^2.1.35",
