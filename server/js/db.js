@@ -13,7 +13,7 @@ import { exit } from 'process';
 import { fileURLToPath } from 'url';
 
 // Path to library
-const library_path = '/home/f34rl00/Music/CD';
+const library_path = '/library';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Supported file extensions
@@ -23,15 +23,13 @@ const image_extensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "svg"];
 // Use environment settings to connect to database.
 const pgp = pgPromise();
 
-const db = pgp("postgres://forte:forte@postgres:5432/forte");
-
-// const db = pgp({
-//     host: process.env.POSTGRES_HOST,
-//     port: parseInt(process.env.POSTGRES_PORT),
-//     database: process.env.POSTGRES_DB,
-//     user: process.env.POSTGRES_USER,
-//     password: process.env.POSTGRES_PASSWORD
-// });
+const db = pgp({
+    host: process.env.POSTGRES_HOST,
+    port: parseInt(process.env.POSTGRES_PORT),
+    database: process.env.POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD
+});
 
 // Column sets for pg-promise
 const cs_artists = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'path'], { table: 'artists' });
