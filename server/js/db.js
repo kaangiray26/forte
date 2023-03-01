@@ -952,19 +952,17 @@ async function _get_artist(req, res, next) {
         return;
     }
     db.task(async t => {
-        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
-
-        if (!artist) {
-            res.status(404).json({ "error": "Artist not found." });
-            return;
+        try {
+            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+            let albums = await t.manyOrNone("SELECT * FROM albums wHERE artist = $1", [id]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "artist": artist,
+                    "albums": albums
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-
-        let albums = await t.manyOrNone("SELECT * FROM albums wHERE artist = $1", [id]);
-        res.status(200)
-            .send(JSON.stringify({
-                "artist": artist,
-                "albums": albums
-            }))
     })
 }
 
@@ -988,11 +986,15 @@ async function _update_config(req, res, next) {
     }
 
     db.task(async t => {
-        await t.none("UPDATE config SET value = $1 WHERE name = $2", [req.body.value, req.body.name]);
-        res.status(200)
-            .json({
-                "success": "Config updated."
-            })
+        try {
+            await t.none("UPDATE config SET value = $1 WHERE name = $2", [req.body.value, req.body.name]).then(data => data);
+            res.status(200)
+                .json({
+                    "success": "Config updated."
+                })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
     })
 }
 
@@ -1002,22 +1004,27 @@ async function _get_album(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
     db.task(async t => {
-        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+        try {
+            let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
 
-        if (!album) {
-            res.status(404).json({ "error": "Album not found." });
-            return;
+            if (!album) {
+                res.status(404).json({ "error": "Album not found." });
+                return;
+            }
+
+            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [album.artist]);
+            let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [id]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "album": album,
+                    "artist": artist,
+                    "tracks": tracks
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-
-        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [album.artist]);
-        let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [id]);
-        res.status(200)
-            .send(JSON.stringify({
-                "album": album,
-                "artist": artist,
-                "tracks": tracks
-            }))
     })
 }
 
@@ -1028,11 +1035,15 @@ async function _get_album_tracks(req, res, next) {
         return;
     }
     db.task(async t => {
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE album = $1", [id]);
-        res.status(200)
-            .send(JSON.stringify({
-                "tracks": tracks
-            }))
+        try {
+            let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE album = $1", [id]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "tracks": tracks
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
     })
 }
 
@@ -1043,21 +1054,25 @@ async function _get_track(req, res, next) {
         return;
     }
     db.task(async t => {
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+        try {
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
 
-        if (!track) {
-            res.status(404).json({ "error": "Track not found." });
-            return;
+            if (!track) {
+                res.status(404).json({ "error": "Track not found." });
+                return;
+            }
+
+            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [track.artist]);
+            let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [track.album]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "track": track,
+                    "artist": artist,
+                    "album": album
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-
-        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [track.artist]);
-        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [track.album]);
-        res.status(200)
-            .send(JSON.stringify({
-                "track": track,
-                "artist": artist,
-                "album": album
-            }))
     })
 }
 
@@ -1068,11 +1083,15 @@ async function _get_track_basic(req, res, next) {
         return;
     }
     db.task(async t => {
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
-        res.status(200)
-            .send(JSON.stringify({
-                "track": track
-            }))
+        try {
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "track": track
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
     })
 }
 
@@ -1083,16 +1102,20 @@ async function _get_track_loved(req, res, next) {
         return;
     }
     db.task(async t => {
-        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_tracks)", [req.session.id, id]);
-        if (!loved) {
+        try {
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_tracks)", [req.session.id, id]);
+            if (!loved) {
+                res.status(200).json({
+                    "loved": false
+                })
+                return;
+            }
             res.status(200).json({
-                "loved": false
+                "loved": true
             })
-            return;
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-        res.status(200).json({
-            "loved": true
-        })
     })
 }
 
@@ -1103,16 +1126,20 @@ async function _get_artist_loved(req, res, next) {
         return;
     }
     db.task(async t => {
-        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_artists)", [req.session.id, id]);
-        if (!loved) {
+        try {
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_artists)", [req.session.id, id]);
+            if (!loved) {
+                res.status(200).json({
+                    "loved": false
+                })
+                return;
+            }
             res.status(200).json({
-                "loved": false
+                "loved": true
             })
-            return;
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-        res.status(200).json({
-            "loved": true
-        })
     })
 }
 
@@ -1123,16 +1150,20 @@ async function _get_album_loved(req, res, next) {
         return;
     }
     db.task(async t => {
-        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_albums)", [req.session.id, id]);
-        if (!loved) {
+        try {
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_albums)", [req.session.id, id]);
+            if (!loved) {
+                res.status(200).json({
+                    "loved": false
+                })
+                return;
+            }
             res.status(200).json({
-                "loved": false
+                "loved": true
             })
-            return;
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-        res.status(200).json({
-            "loved": true
-        })
     })
 }
 
@@ -1143,16 +1174,20 @@ async function _get_playlist_loved(req, res, next) {
         return;
     }
     db.task(async t => {
-        let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_playlists)", [req.session.id, id]);
-        if (!loved) {
+        try {
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_playlists)", [req.session.id, id]);
+            if (!loved) {
+                res.status(200).json({
+                    "loved": false
+                })
+                return;
+            }
             res.status(200).json({
-                "loved": false
+                "loved": true
             })
-            return;
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-        res.status(200).json({
-            "loved": true
-        })
     })
 }
 
@@ -1222,18 +1257,22 @@ async function _add_history(req, res, next) {
         return;
     }
     db.task(async t => {
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
-        if (!track) {
-            res.status(400).json({
-                "error": "Track not found."
-            });
-            return;
+        try {
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+            if (!track) {
+                res.status(400).json({
+                    "error": "Track not found."
+                });
+                return;
+            }
+            await t.oneOrNone("UPDATE users SET history = array_prepend($1, history[0:9]) WHERE session = $2", [req.body.track, req.session.id]);
+            res.status(200)
+                .json({
+                    "success": "History updated."
+                });
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-        await t.oneOrNone("UPDATE users SET history = array_prepend($1, history[0:9]) WHERE session = $2", [req.body.track, req.session.id]);
-        res.status(200)
-            .json({
-                "success": "History updated."
-            });
     })
 }
 
@@ -1376,7 +1415,13 @@ async function _session(req, res, next) {
     let buff = Buffer.from(data, "base64").toString("ascii").split(':');
 
     db.task(async t => {
-        await t.none("UPDATE users SET session = $1 WHERE username = $2 AND token = $3", [req.session.id, buff[0], buff[1]]);
+        let user = await t.oneOrNone("UPDATE users SET session = $1 WHERE username = $2 AND token = $3 RETURNING id", [req.session.id, buff[0], buff[1]]);
+        if (!user) {
+            res.status(400).json({
+                "error": "User not found."
+            });
+            return;
+        }
         res.status(200)
             .send(JSON.stringify({
                 "success": "Session refreshed."
@@ -1439,11 +1484,16 @@ async function _update_artist(req, res, next) {
     }
 
     db.task(async t => {
-        await t.none("UPDATE artists SET cover = $1, title = $2 WHERE id = $3", [req.body.cover, req.body.title, req.body.id]);
-        res.status(200)
-            .json({
-                "success": "Artist updated."
-            })
+        try {
+            await t.none("UPDATE artists SET cover = $1, title = $2 WHERE id = $3", [req.body.cover, req.body.title, req.body.id]);
+            res.status(200)
+                .json({
+                    "success": "Artist updated."
+                })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return;
+        }
     })
 }
 
@@ -1459,12 +1509,17 @@ async function _update_album(req, res, next) {
     console.log(req.body.genre)
 
     db.task(async t => {
-        await t.none("UPDATE albums SET cover = $1, title = $2, date = $3, year = $4, genre = ARRAY[$5] WHERE id = $6", [req.body.cover, req.body.title, req.body.date, req.body.year, req.body.genre, req.body.id]);
-        await t.none("UPDATE tracks SET cover = $1 WHERE album = $2", [req.body.cover, req.body.id]);
-        res.status(200)
-            .json({
-                "success": "Album updated."
-            })
+        try {
+            await t.none("UPDATE albums SET cover = $1, title = $2, date = $3, year = $4, genre = ARRAY[$5] WHERE id = $6", [req.body.cover, req.body.title, req.body.date, req.body.year, req.body.genre, req.body.id]);
+            await t.none("UPDATE tracks SET cover = $1 WHERE album = $2", [req.body.cover, req.body.id]);
+            res.status(200)
+                .json({
+                    "success": "Album updated."
+                })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return;
+        }
     })
 }
 
@@ -1478,11 +1533,17 @@ async function _update_track(req, res, next) {
     }
 
     db.task(async t => {
-        await t.none("UPDATE tracks SET cover = $1, title = $2 WHERE id = $3", [req.body.cover, req.body.title, req.body.id]);
-        res.status(200)
-            .json({
-                "success": "Track updated."
-            })
+        try {
+            await t.none("UPDATE tracks SET cover = $1, title = $2 WHERE id = $3", [req.body.cover, req.body.title, req.body.id])
+            res.status(200)
+                .json({
+                    "success": "Track updated."
+                })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return;
+        }
+
     })
 }
 
@@ -1618,13 +1679,18 @@ async function _get_playlist(req, res, next) {
         return;
     }
     db.task(async t => {
-        let playlist = await t.oneOrNone("SELECT * from playlists WHERE id = $1", [id]);
-        if (!playlist) {
-            res.status(400).json({ "error": "Playlist not found." })
-            return;
+        try {
+            let playlist = await t.oneOrNone("SELECT * from playlists WHERE id = $1", [id]);
+            if (!playlist) {
+                res.status(400).json({ "error": "Playlist not found." })
+                return;
+            }
+            let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
+            res.status(200).json({ "playlist": playlist, "tracks": tracks })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return
         }
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
-        res.status(200).json({ "playlist": playlist, "tracks": tracks })
     })
 }
 
@@ -1846,23 +1912,28 @@ async function _add_track_to_playlist(req, res, next) {
     }
 
     db.task(async t => {
-        // Checking if the track exists
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
-        if (!track) {
-            res.status(400).json({ "error": "Track not found." })
+        try {
+            // Checking if the track exists
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+            if (!track) {
+                res.status(400).json({ "error": "Track not found." })
+                return;
+            }
+
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Add to playlist
+            await t.none("UPDATE playlists SET tracks = array_append(tracks, $1) WHERE id = $2 AND author = $3", [req.body.track, id, user.username]);
+            res.status(200).json({ "success": "Track addded." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
-            return;
-        }
-
-        // Add to playlist
-        await t.none("UPDATE playlists SET tracks = array_append(tracks, $1) WHERE id = $2 AND author = $3", [req.body.track, id, user.username]);
-        res.status(200).json({ "success": "Track addded." })
     })
 }
 
@@ -1882,23 +1953,28 @@ async function _delete_track_to_playlist(req, res, next) {
     }
 
     db.task(async t => {
-        // Checking if the track exists
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
-        if (!track) {
-            res.status(400).json({ "error": "Track not found." })
+        try {
+            // Checking if the track exists
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+            if (!track) {
+                res.status(400).json({ "error": "Track not found." })
+                return;
+            }
+
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Add to playlist
+            await t.none("UPDATE playlists SET tracks = array_remove(tracks, $1) WHERE id = $2 AND author = $3", [req.body.track, id, user.username]);
+            res.status(200).json({ "success": "Track removed." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
-            return;
-        }
-
-        // Add to playlist
-        await t.none("UPDATE playlists SET tracks = array_remove(tracks, $1) WHERE id = $2 AND author = $3", [req.body.track, id, user.username]);
-        res.status(200).json({ "success": "Track removed." })
     })
 }
 
@@ -1910,16 +1986,21 @@ async function _get_playlist_tracks(req, res, next) {
     }
 
     db.task(async t => {
-        let playlist = await t.oneOrNone("SELECT * from playlists WHERE id = $1", [id]);
-        if (!playlist) {
-            res.status(400).json({ "error": "Playlist not found." })
+        try {
+            let playlist = await t.oneOrNone("SELECT * from playlists WHERE id = $1", [id]);
+            if (!playlist) {
+                res.status(400).json({ "error": "Playlist not found." })
+                return;
+            }
+            let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "tracks": tracks
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
-        res.status(200)
-            .send(JSON.stringify({
-                "tracks": tracks
-            }))
     })
 }
 
@@ -1931,16 +2012,21 @@ async function _delete_playlist(req, res, next) {
     }
 
     db.task(async t => {
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Delete playlist
+            await t.none("DELETE FROM playlists WHERE id = $1 AND author = $2", [id, user.username])
+            res.status(200).json({ "success": "Playlist deleted." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Delete playlist
-        await t.none("DELETE FROM playlists WHERE id = $1 AND author = $2", [id, user.username]);
-        res.status(200).json({ "success": "Playlist deleted." })
     })
 }
 
@@ -1952,23 +2038,28 @@ async function _love_track(req, res, next) {
     }
 
     db.task(async t => {
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get track
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id])
+            if (!track) {
+                res.status(400).json({ "error": "Track not found." })
+                return;
+            }
+
+            // Add track to loved
+            await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Track added to loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get track
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
-        if (!track) {
-            res.status(400).json({ "error": "Track not found." })
-            return;
-        }
-
-        // Add track to loved
-        await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1) WHERE username = $2", [id, user.username]);
-        res.status(200).json({ "success": "Track added to loved." })
     })
 }
 
@@ -1980,23 +2071,28 @@ async function _unlove_track(req, res, next) {
     }
 
     db.task(async t => {
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get track
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id])
+            if (!track) {
+                res.status(400).json({ "error": "Track not found." })
+                return;
+            }
+
+            // Add track to loved
+            await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Track removed from loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get track
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
-        if (!track) {
-            res.status(400).json({ "error": "Track not found." })
-            return;
-        }
-
-        // Add track to loved
-        await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE username = $2", [id, user.username]);
-        res.status(200).json({ "success": "Track removed from loved." })
     })
 }
 
@@ -2008,23 +2104,28 @@ async function _love_artist(req, res, next) {
     }
 
     db.task(async t => {
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get artist
+            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+            if (!artist) {
+                res.status(400).json({ "error": "Artist not found." })
+                return;
+            }
+
+            // Add artist to loved
+            await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Artist added to loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get artist
-        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
-        if (!artist) {
-            res.status(400).json({ "error": "Artist not found." })
-            return;
-        }
-
-        // Add artist to loved
-        await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1) WHERE username = $2", [id, user.username]);
-        res.status(200).json({ "success": "Artist added to loved." })
     })
 }
 
@@ -2036,23 +2137,28 @@ async function _unlove_artist(req, res, next) {
     }
 
     db.task(async t => {
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get artist
+            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+            if (!artist) {
+                res.status(400).json({ "error": "Artist not found." })
+                return;
+            }
+
+            // Remove artist from loved
+            await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Artist removed from loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get artist
-        let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
-        if (!artist) {
-            res.status(400).json({ "error": "Artist not found." })
-            return;
-        }
-
-        // Remove artist from loved
-        await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE username = $2", [id, user.username]);
-        res.status(200).json({ "success": "Artist removed from loved." })
     })
 }
 
@@ -2064,23 +2170,28 @@ async function _love_album(req, res, next) {
     }
 
     db.task(async t => {
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get album
+            let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+            if (!album) {
+                res.status(400).json({ "error": "Album not found." })
+                return;
+            }
+
+            // Add album to loved
+            await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Album added to loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get album
-        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
-        if (!album) {
-            res.status(400).json({ "error": "Album not found." })
-            return;
-        }
-
-        // Add album to loved
-        await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1) WHERE username = $2", [id, user.username]);
-        res.status(200).json({ "success": "Album added to loved." })
     })
 }
 
@@ -2092,23 +2203,28 @@ async function _unlove_album(req, res, next) {
     }
 
     db.task(async t => {
-        // Get user
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get album
+            let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id])
+            if (!album) {
+                res.status(400).json({ "error": "Album not found." })
+                return;
+            }
+
+            // Remove album from loved
+            await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Album removed from loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-
-        // Get album
-        let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
-        if (!album) {
-            res.status(400).json({ "error": "Album not found." })
-            return;
-        }
-
-        // Remove album from loved
-        await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE username = $2", [id, user.username]);
-        res.status(200).json({ "success": "Album removed from loved." })
     })
 }
 
@@ -2235,45 +2351,49 @@ async function _lastfm_scrobble(req, res, next) {
     }
 
     db.task(async t => {
-        let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
-        if (!track) {
-            res.status(400).json({ "error": "Track not found." })
-            return;
+        try {
+            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track])
+            if (!track) {
+                res.status(400).json({ "error": "Track not found." })
+                return;
+            }
+
+            let artist = await t.oneOrNone("SELECT title FROM artists WHERE id = $1", [track.artist]);
+            if (!artist) {
+                res.status(400).json({ "error": "Artist not found." })
+                return;
+            }
+
+            let lastfm_api = await t.many("SELECT value FROM config WHERE name = 'lastfm_api_key' OR name = 'lastfm_api_secret'");
+            let params = {
+                method: 'track.scrobble',
+                artist: artist.title,
+                track: track.title,
+                timestamp: Math.floor(Date.now() / 1000),
+                api_key: lastfm_api[0].value,
+                sk: req.body.sk,
+            }
+
+            let sig = get_api_sig(params, lastfm_api[1].value);
+            params['api_sig'] = sig;
+            params['format'] = 'json';
+
+            let response = await fetch("https://ws.audioscrobbler.com/2.0/", {
+                method: 'POST',
+                body: new URLSearchParams(params)
+            }).then((res) => {
+                return res.json()
+            });
+
+            if (response.scrobbles['@attr'].accepted) {
+                res.status(200).json({ "success": "Scrobbled" });
+                return
+            }
+
+            res.status(400).json({ "error": "Scrobble failed." });
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
         }
-
-        let artist = await t.oneOrNone("SELECT title FROM artists WHERE id = $1", [track.artist]);
-        if (!artist) {
-            res.status(400).json({ "error": "Artist not found." })
-            return;
-        }
-
-        let lastfm_api = await t.many("SELECT value FROM config WHERE name = 'lastfm_api_key' OR name = 'lastfm_api_secret'");
-        let params = {
-            method: 'track.scrobble',
-            artist: artist.title,
-            track: track.title,
-            timestamp: Math.floor(Date.now() / 1000),
-            api_key: lastfm_api[0].value,
-            sk: req.body.sk,
-        }
-
-        let sig = get_api_sig(params, lastfm_api[1].value);
-        params['api_sig'] = sig;
-        params['format'] = 'json';
-
-        let response = await fetch("https://ws.audioscrobbler.com/2.0/", {
-            method: 'POST',
-            body: new URLSearchParams(params)
-        }).then((res) => {
-            return res.json()
-        });
-
-        if (response.scrobbles['@attr'].accepted) {
-            res.status(200).json({ "success": "Scrobbled" });
-            return
-        }
-
-        res.status(400).json({ "error": "Scrobble failed." });
     })
 }
 

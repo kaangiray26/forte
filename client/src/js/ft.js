@@ -37,7 +37,6 @@ class Forte {
         let username = localStorage.getItem('username');
 
         if (!token || !server || !username) {
-            console.log("Not authorized.")
             this.ready = false;
             localStorage.setItem('init', 'false');
             return
@@ -61,10 +60,14 @@ class Forte {
         this.username = username;
 
         let session = await this.session();
-
         if (session.hasOwnProperty('success')) {
             this.ready = true;
             localStorage.setItem('init', 'true');
+            return
+        }
+        if (session.hasOwnProperty('error')) {
+            this.ready = false;
+            localStorage.setItem('init', 'false');
             return
         }
     }
@@ -149,25 +152,23 @@ class Forte {
     }
 
     async session() {
-        try {
-            let auth = btoa(this.username + ":" + this.token);
-            let response = await fetch(this.server + '/api/session', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + auth
-                },
-                credentials: "include"
-            }).then((response) => {
-                return response.json();
-            });
+        let auth = btoa(this.username + ":" + this.token);
+        return await fetch(this.server + '/api/session', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + auth
+            },
+            credentials: "include"
+        }).then((response) => {
             localStorage.setItem('offline', 'false');
-            return response;
-        } catch (error) {
+            return response.json();
+        }).catch((error) => {
+            // Check if NetworkError
             if (error.message.startsWith('NetworkError')) {
                 localStorage.setItem('offline', 'true');
                 return { "error": "Server is down." }
             }
-        }
+        });
     }
 
     async connect(server, username, token) {
@@ -198,6 +199,18 @@ class Forte {
         return false
     }
 
+    get_cover(cover) {
+        if (!cover) {
+            return "/images/track.svg"
+        }
+
+        if (cover.startsWith("http")) {
+            return cover;
+        }
+
+        return ft.server + '/' + cover;
+    }
+
     async load_track(track) {
         store.playing.id = track.id;
         store.playing.type = track.type;
@@ -207,18 +220,22 @@ class Forte {
         store.playing.artist = track.artist;
         store.playing.loaded = true;
 
+        // Cover
+        let cover = this.get_cover(store.playing.cover);
+
         // mediaSession metadata
         navigator.mediaSession.metadata = new MediaMetadata({
             title: store.playing.title,
             artwork: [
-                { src: store.playing.cover, sizes: '250x250', type: 'image/png' },
+                { src: cover, sizes: '250x250', type: 'image/png' },
             ]
         });
 
         // Notification
         if (store.notifications_enabled) {
             new Notification(store.playing.title, {
-                icon: store.playing.cover
+                icon: cover,
+                body: "https://forte.buzl.uk/album/" + store.playing.album,
             });
         }
 

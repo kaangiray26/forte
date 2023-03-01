@@ -12,20 +12,23 @@
                             </div>
                             <div class="overflow-hidden text-center clickable mt-0 m-4" @click="openAlbum">
                                 <div class="text-wrap">
-                                    <h5 class="fw-bold bg-dark text-white rounded p-2 m-0">{{ store.playing.title }}</h5>
+                                    <h5 class="fw-bold bg-dark text-white rounded p-2 mb-2">{{ store.playing.title }}
+                                    </h5>
+                                    <button class="btn btn-sm btn-dark fw-bold" @click="emit('quality')">{{
+                                        store.playing.quality }}</button>
                                 </div>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-center">
-                            <button v-show="store.playing.radio" type="button" class="btn btn-sm btn-success fw-bold"
-                                @click="radio">ON
-                                AIR</button>
-                            <button v-show="!store.playing.radio" type="button" class="btn btn-sm btn-danger fw-bold"
-                                @click="radio">OFF
-                                AIR</button>
-                        </div>
                         <div class="card-body d-flex align-items-end p-2">
                             <div class="d-flex flex-fill flex-column">
+                                <div class="d-flex justify-content-center">
+                                    <button v-show="store.playing.radio" type="button"
+                                        class="btn btn-sm btn-success fw-bold" @click="radio">ON
+                                        AIR</button>
+                                    <button v-show="!store.playing.radio" type="button"
+                                        class="btn btn-sm btn-danger fw-bold" @click="radio">OFF
+                                        AIR</button>
+                                </div>
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center font-monospace me-2">
                                         <small>{{ formatTime(store.playing.seek) }}</small>
@@ -81,7 +84,7 @@ import Hammer from "hammerjs";
 
 const router = useRouter();
 
-const emit = defineEmits(['queue', 'lyrics', 'shuffle', 'group_session']);
+const emit = defineEmits(['queue', 'lyrics', 'shuffle', 'group_session', 'quality']);
 
 let offcanvas = null;
 const offcanvasEl = ref(null);

@@ -117,7 +117,7 @@
     <Queue ref="queueEl" />
     <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
         :play_previous="play_previous" :repeat_icon="repeat_icon" @queue="show_queue" @lyrics="show_lyrics"
-        @shuffle="shuffle" @group_session="group_session" />
+        @shuffle="shuffle" @group_session="group_session" @quality="openQuality" />
     <GroupSession ref="groupSession" :key="group_key" />
     <QualityDisplay ref="qualityDisplay" />
 </template>

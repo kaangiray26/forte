@@ -12,13 +12,13 @@
                 <div class="modal-body">
                     <div class="input-group flex-nowrap">
                         <span class="input-group-text bi bi-universal-access"></span>
-                        <input ref="server" type="text" class="form-control" placeholder="Forte server"
-                            aria-label="Server" aria-describedby="addon-wrapping">
+                        <input ref="server" type="text" class="form-control" placeholder="Forte server" aria-label="Server"
+                            aria-describedby="addon-wrapping">
                     </div>
                     <div class="input-group flex-nowrap">
                         <span class="input-group-text bi bi-person-circle"></span>
-                        <input ref="username" type="text" class="form-control" placeholder="Username"
-                            aria-label="Username" aria-describedby="addon-wrapping">
+                        <input ref="username" type="text" class="form-control" placeholder="Username" aria-label="Username"
+                            aria-describedby="addon-wrapping">
                     </div>
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text bi bi-key-fill"></span>
@@ -83,6 +83,11 @@ onMounted(() => {
     loginModal = new Modal(loginModalEl.value, {
         keyboard: false
     });
+
+    let offline = JSON.parse(localStorage.getItem('offline'));
+    if (offline) {
+        return
+    }
 
     let initialized = JSON.parse(localStorage.getItem('init'));
     if (!initialized) {
