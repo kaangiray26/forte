@@ -148,7 +148,7 @@ app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 // Error Handling
 
 app.use((req, res, next) => {
-    res.status(404).json({ "error": "not found" })
+    res.redirect("/")
 })
 
 export default app
