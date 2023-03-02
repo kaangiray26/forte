@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:2.3
+        image: kaangiray26/forte:2.4
         restart: on-failure
         ports:
             - "80:80"
@@ -13,6 +13,8 @@ services:
         environment:
             mode: local              # Set to local, public or greenlock
             port: 3000               # Set Port
+            forte_server: <server>   # Set Server to be used with greenlock
+            forte_email: <email>     # Set Email to be used with greenlock
             NODE_ENV: production     # Set Node Environment
             POSTGRES_HOST: postgres  # Postgres Host/IP
             POSTGRES_PORT: 5432      # Postgres Database Port
