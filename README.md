@@ -177,14 +177,14 @@ Before running the file, you need to edit some fields:
 ```
 app:
     environment:
-        mode: local               # local or public, defaults to local
-        forte_server: <server>    # only if mode is public
-        forte_email: <email>      # only if mode is public
-        POSTGRES_HOST: postgres   # hostname/ip of postgres server
-        POSTGRES_PORT: 5432       # postgres port (default=5432)
-        POSTGRES_DB: forte        # Forte Database name
-        POSTGRES_USER: forte      # Forte postgres username
-        POSTGRES_PASSWORD: forte  # Forte postgres password
+        mode: local              # Set to local, public or greenlock
+        port: 3000               # Set Port
+        NODE_ENV: production     # Set Node Environment
+        POSTGRES_HOST: postgres  # Postgres Host/IP
+        POSTGRES_PORT: 5432      # Postgres Database Port
+        POSTGRES_DB: forte       # Set Postgres Database Name
+        POSTGRES_USER: forte     # Set Postgres Username
+        POSTGRES_PASSWORD: forte # Set Postgres Password
     volumes:
         - <library>:/library   # The path to your music library
   
@@ -200,34 +200,40 @@ Here's an example for the `docker-compose.yml` file:
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:1.8
+        image: kaangiray26/forte:2.4
+        restart: on-failure
         ports:
             - "80:80"
             - "443:443"
             - "3000:3000"
         depends_on:
-            - postgres
+            postgres:
+                condition: service_healthy
         environment:
-            mode: public
-            forte_server: forte.example.com
-            forte_email: forte@example.com
-            POSTGRES_HOST: postgres
-            POSTGRES_PORT: 5432
-            POSTGRES_DB: forte
-            POSTGRES_USER: forte
-            POSTGRES_PASSWORD: forte
-
+            mode: public              # Set to local, public or greenlock
+            port: 3000               # Set Port
+            NODE_ENV: production     # Set Node Environment
+            POSTGRES_HOST: postgres  # Postgres Host/IP
+            POSTGRES_PORT: 5432      # Postgres Database Port
+            POSTGRES_DB: forte       # Set Postgres Database Name
+            POSTGRES_USER: forte     # Set Postgres Username
+            POSTGRES_PASSWORD: forte # Set Postgres Password
         volumes:
-            - /home/forte/library:/library
+            - /home/forte/music:/library
     postgres:
-        image: postgres
+        image: kaangiray26/postgres:2.0
         restart: always
         environment:
-            POSTGRES_DB: forte
-            POSTGRES_USER: forte
-            POSTGRES_PASSWORD: forte
+            POSTGRES_DB: forte       # Set Postgres Database Name
+            POSTGRES_USER: forte     # Set Postgres Username
+            POSTGRES_PASSWORD: forte # Set Postgres Password
         volumes:
             - db-data:/var/lib/postgresql/data
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U forte" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 volumes:
     db-data:
 ```
@@ -235,7 +241,7 @@ volumes:
 ---
 
 ### Using locally
-If you want to use the server locally, you can edit the `docker-compose.yml` file and change the `mode` field to `local`. Then, you can run the following command to start the server:
+If you want to use the server locally, you can edit the `docker-compose.yml` file and change the `mode` field to `local`. The server will be hosted at `http://localhost:3000`. Then, you can run the following command to start the server via:
 ```
 sudo docker-compose up -d
 ```
@@ -243,7 +249,15 @@ sudo docker-compose up -d
 ---
 
 ### Using publicly
-If you want to use the server locally, you can edit the `docker-compose.yml` file and change the `mode` field to `public`. Also, you need to set the fields `forte_server` and `forte_email`. Then, you can run the following command to start the server:
+If you want to use the server publically, you can edit the `docker-compose.yml` file and change the `mode` field to `public`. This setting wil host the server at `0.0.0.0:3000`, which will be accessible from outside the network if you forward your port 3000. Then, you can run the following command to start the server via:
+```
+sudo docker-compose up -d
+```
+
+---
+
+### Using greenlock
+If you want to use the server publically with a SSL certificate, you can edit the `docker-compose.yml` file and change the `mode` field to `greenlock`. Apart from that you also need to set the fields `forte_server` and `forte_email`. Greenlock will do the certificate renewal for your. But, for this to work, you also need to forward ports `80` and `443` along with port `3000`. This setting wil host the server at `https://<forte_server>:443`. Then, you can run the following command to start the server via:
 ```
 sudo docker-compose up -d
 ```
