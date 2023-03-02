@@ -35,7 +35,8 @@ async function setup() {
     db.init(process.argv.slice(2));
 }
 
-async function start_public_server() {
+async function start_greenlock_server() {
+    console.log(`Server:    http://${process.env.forte_server}/`);
     // Start server
     greenlock_express
         .init({
@@ -54,14 +55,23 @@ async function start_public_server() {
         .serve(app);
 }
 
+async function start_public_server() {
+    app.listen(process.env.port, '0.0.0.0', () => {
+        db.init(process.argv.slice(2));
+        console.log(`Server:    http://0.0.0.0:${process.env.port}/`);
+    });
+}
+
 async function start_local_server() {
-    app.listen(3000, '0.0.0.0', () => {
-        db.init(process.argv.slice(2))
-        console.log(`Server:    http://localhost:3000/`)
+    app.listen(process.env.port, 'localhost', () => {
+        db.init(process.argv.slice(2));
+        console.log(`Server:    http://localhost:${process.env.port}/`);
     });
 }
 
 async function init() {
+    console.log("\x1b[32m%s\x1b[0m", "..: Starting forte :..");
+    console.log("\x1b[32m%s\x1b[0m", "..: Open the web player at https://forte.buzl.uk/ :..");
     switch (process.env.mode) {
         case 'public':
             await setup();
@@ -70,6 +80,11 @@ async function init() {
 
         case 'local':
             start_local_server();
+            break;
+
+        case 'greenlock':
+            await setup();
+            start_greenlock_server();
             break;
 
         default:

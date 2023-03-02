@@ -36,6 +36,7 @@ const cs_artists = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'p
 const cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'nb_tracks', 'genre', 'year', 'date', 'path'], { table: 'albums' });
 const cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
 
+// Exported functions
 const exports = {
     add_friend: _add_friend,
     add_history: _add_history,
@@ -108,11 +109,23 @@ const exports = {
     upload_cover: _upload_cover,
 }
 
+// Logger
+function log(message) {
+    const timestamp = new Date().toISOString();
+    const logLine = `${timestamp}: ${message}\n`;
+
+    fs.appendFile(path.join(__dirname, "../forte.log"), logLine, (err) => {
+        if (err) {
+            console.error(`Error writing to log file: ${err}`);
+        }
+    });
+}
+
 async function _init(args) {
     if (args.includes('--reset')) {
         let answer = readlineSync.question("Do you really want to reset? (y/n)");
         if (answer === 'y') {
-            console.log("=> Resetting tables...");
+            log("=> Resetting tables...");
             await db.none("DROP VIEW IF EXISTS fuzzy");
             await db.none("DROP TABLE IF EXISTS config, artists, albums, playlists, tracks, library, auth, users");
             fs.readdir(path.join(__dirname, "../uploads"), (err, files) => {
@@ -124,12 +137,12 @@ async function _init(args) {
                     });
                 }
             });
-            console.log("\x1b[32m%s\x1b[0m", "=> OK")
+            log("=> OK")
         }
     }
 
     db.tx('creating_tables', t => {
-        console.log("\n=> Checking tables...");
+        log("\n=> Checking tables...");
         return t.batch([
             t.none("CREATE TABLE IF NOT EXISTS config (id SERIAL PRIMARY KEY, name TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name))"),
             t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, cover_path TEXT, path TEXT NOT NULL, UNIQUE(title))"),
@@ -145,19 +158,19 @@ async function _init(args) {
         db.manyOrNone("SELECT * from config")
             .then(async function (data) {
                 if (!data.length) {
-                    console.log("=> No config found. Creating a new one...");
+                    log("=> No config found. Creating a new one...");
                     await db.none("INSERT INTO library(items) VALUES ($1)", [[]])
                     await db.none("INSERT INTO config(name, value) VALUES ('password', 'a04fe4e390a7c7d5d4583f85d24e164d')")
                     await db.none("INSERT INTO config(name, value) VALUES ('genius_token', '-EZLIW0uQaobG3HjE2yJzdl7DPuaIkXXDGX7l8KJm4jv2S4feDYZMUoIRuZOmoO5')")
                     await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', '1ff0a732f00d53529d764cf4ce9270e5')")
                     await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', '10853915c49c53886b4c87fa0e27f663')")
                 }
-                console.log("\x1b[32m%s\x1b[0m", "=> OK")
+                log("=> OK")
                 refresh_library()
             })
     }).catch(error => {
-        console.log("An error occured.\n")
-        console.log(error)
+        log("An error occured.\n")
+        log(error)
         exit(1)
     })
 }
@@ -201,21 +214,21 @@ async function update_artist_cover(id, artist) {
     let response = await axios.get(`https://api.deezer.com/search/artist?q=${artist}&limit=1&output=json`);
 
     if (!response.data.data) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + artist);
-        console.log('\x1b[35m%s\x1b[0m', "=> Quota limit reached while gathering cover, skipping...");
+        log("=> Warning: " + artist);
+        log("=> Quota limit reached while gathering cover, skipping...");
         return
     }
 
     if (!response.data.data.length) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + artist);
-        console.log('\x1b[35m%s\x1b[0m', "=> Couldn't find cover for the artist, skipping...");
+        log("=> Warning: " + artist);
+        log("=> Couldn't find cover for the artist, skipping...");
         return
     }
 
     let cover = response.data.data[0].picture_medium;
     await db.none("UPDATE artists SET cover = $1 WHERE id = $2", [cover, id]);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Updated cover for the artist: " + artist);
+    log("=> Updated cover for the artist: " + artist);
 }
 
 async function update_album_cover(id, album, artist_id) {
@@ -223,22 +236,22 @@ async function update_album_cover(id, album, artist_id) {
     let artist = await db.oneOrNone("SELECT title from artists WHERE id = $1", artist_id);
 
     if (!artist) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + album);
-        console.log('\x1b[35m%s\x1b[0m', "=> Can't get cover for the album because artist is missing, skipping...");
+        log("=> Warning: " + album);
+        log("=> Can't get cover for the album because artist is missing, skipping...");
         return
     }
 
     let response = await axios.get(`https://api.deezer.com/search/album?q=${artist.title + ' ' + album}&limit=1&output=json`);
 
     if (!response.data.data) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + album);
-        console.log('\x1b[35m%s\x1b[0m', "=> Quota limit reached while gathering cover, skipping...");
+        log("=> Warning: " + album);
+        log("=> Quota limit reached while gathering cover, skipping...");
         return
     }
 
     if (!response.data.data.length) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + album);
-        console.log('\x1b[35m%s\x1b[0m', "=> Couldn't find cover for the album, skipping...");
+        log("=> Warning: " + album);
+        log("=> Couldn't find cover for the album, skipping...");
         return
     }
 
@@ -246,7 +259,7 @@ async function update_album_cover(id, album, artist_id) {
     await db.none("UPDATE albums SET cover = $1 WHERE id = $2", [cover, id]);
     await db.none("UPDATE tracks SET cover = $1 WHERE album = $2", [cover, id]);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Updated cover for the album: " + album);
+    log("=> Updated cover for the album: " + album);
 }
 
 async function check_library() {
@@ -257,7 +270,7 @@ async function check_library() {
     });
 
     if (!items.length) {
-        console.log("=> The library is empty.");
+        log("=> The library is empty.");
         return;
     }
 
@@ -269,7 +282,7 @@ async function check_library() {
 
     // If the library is empty, add all the folders
     if (!library.items.length) {
-        console.log("=> The library is empty. Adding all the items...");
+        log("=> The library is empty. Adding all the items...");
         items.map(item => add_item(item));
         return;
     }
@@ -312,14 +325,12 @@ async function add_watched_item(item) {
     await db.none("UPDATE library SET items = items || ARRAY[$1]::VARCHAR[] WHERE not(items @> ARRAY[$1]::VARCHAR[])", [item]);
 
     // Check the type of the item
-
     if (audio_extensions.some(ext => item.endsWith(ext))) {
         add_track(item);
         return
     }
 
     // Check if the item is a cover
-
     if (image_extensions.some(ext => item.endsWith(ext))) {
         add_cover(item);
         return
@@ -407,15 +418,15 @@ async function remove_album(item) {
     let album = await db.oneOrNone("DELETE FROM albums WHERE path = $1 RETURNING id", item);
 
     if (!album) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + item);
-        console.log('\x1b[35m%s\x1b[0m', "=> The album is already possibly removed, skipping...");
+        log("=> Warning: " + item);
+        log("=> The album is already possibly removed, skipping...");
         return;
     }
 
     // Remove the tracks
     await db.none("DELETE FROM tracks WHERE album = $1", album.id);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Removed album: " + item);
+    log("=> Removed album: " + item);
 }
 
 async function remove_artist(item) {
@@ -423,8 +434,8 @@ async function remove_artist(item) {
     let artist = await db.oneOrNone("DELETE FROM artists WHERE path = $1 RETURNING id", item);
 
     if (!artist) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Error: " + item);
-        console.log('\x1b[35m%s\x1b[0m', "=> The artist is already possibly removed, skipping...");
+        log("=> Error: " + item);
+        log("=> The artist is already possibly removed, skipping...");
         return;
     }
 
@@ -434,7 +445,7 @@ async function remove_artist(item) {
     // Remove the tracks
     await db.none("DELETE FROM tracks WHERE artist = $1", artist.id);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Removed artist: " + item);
+    log("=> Removed artist: " + item);
 }
 
 async function add_cover(cover) {
@@ -463,15 +474,15 @@ async function add_artist_cover(cover) {
     // Get the artist
     let artist = await db.oneOrNone("SELECT id from artists WHERE path = $1", dir);
     if (!artist) {
-        console.log('\x1b[31m%s\x1b[0m', "=> Error: " + cover);
-        console.log('\x1b[31m%s\x1b[0m', "=> The artist for the cover is unknown, skipping...");
+        log("=> Error: " + cover);
+        log("=> The artist for the cover is unknown, skipping...");
         return
     }
 
     // Add the cover to the artist
     await db.none("UPDATE artists SET cover = $1, cover_path = $2 WHERE id = $3", [cover_id, cover, artist.id]);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Added cover: " + cover);
+    log("=> Added cover: " + cover);
 }
 
 async function add_album_cover(cover) {
@@ -484,8 +495,8 @@ async function add_album_cover(cover) {
     // Get the album
     let album = await db.oneOrNone("SELECT id from albums WHERE path = $1", dir);
     if (!album) {
-        console.log('\x1b[31m%s\x1b[0m', "=> Error: " + cover);
-        console.log('\x1b[31m%s\x1b[0m', "=> The album for the cover is unknown, skipping...");
+        log("=> Error: " + cover);
+        log("=> The album for the cover is unknown, skipping...");
         return
     }
 
@@ -495,7 +506,7 @@ async function add_album_cover(cover) {
     // Add the cover to the tracks
     await db.none("UPDATE tracks SET cover = $1, cover_path = $2 WHERE album = $3", [cover_id, cover, album.id]);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Added cover: " + cover);
+    log("=> Added cover: " + cover);
 }
 
 async function add_track(track,
@@ -521,8 +532,8 @@ async function add_track(track,
 
     // If the artist or album doesn't exist, raise an error
     if (!artist || !album) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + track);
-        console.log('\x1b[35m%s\x1b[0m', "=> The album or artist for the track is unknown, skipping...");
+        log("=> Warning: " + track);
+        log("=> The album or artist for the track is unknown, skipping...");
         return
     }
 
@@ -532,7 +543,7 @@ async function add_track(track,
     // Add the track to the album
     await db.none("UPDATE albums SET nb_tracks = nb_tracks + 1 WHERE id = $1", album.id);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Added track: " + track);
+    log("=> Added track: " + track);
 }
 
 async function add_artist_album(item) {
@@ -550,15 +561,15 @@ async function remove_track(item) {
     let track = await db.oneOrNone("DELETE FROM tracks WHERE path = $1 RETURNING album", item);
 
     if (!track) {
-        console.log('\x1b[35m%s\x1b[0m', "=> Warning: " + item);
-        console.log('\x1b[35m%s\x1b[0m', "=> The track is already possibly removed, skipping...");
+        log("=> Warning: " + item);
+        log("=> The track is already possibly removed, skipping...");
         return
     }
 
     // Remove the track from the album
     await db.none("UPDATE albums SET nb_tracks = nb_tracks - 1 WHERE id = $1", track.album);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Removed track: " + item);
+    log("=> Removed track: " + item);
 }
 
 async function remove_artist_cover(cover) {
@@ -572,7 +583,7 @@ async function remove_artist_cover(cover) {
     // Update the artist cover
     await db.none("UPDATE artists SET cover = NULL, cover_path = NULL WHERE cover_path = $1", cover);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Removed cover: " + cover);
+    log("=> Removed cover: " + cover);
 }
 
 async function remove_album_cover(cover) {
@@ -589,7 +600,7 @@ async function remove_album_cover(cover) {
     // Update the tracks cover
     await db.none("UPDATE tracks SET cover = NULL, cover_path = NULL WHERE cover_path = $1", cover);
 
-    console.log('\x1b[34m%s\x1b[0m', "=> Removed cover: " + cover);
+    log("=> Removed cover: " + cover);
 }
 
 async function remove_cover(cover) {
@@ -647,7 +658,7 @@ async function handle_artist(item, artist_name = null) {
     }
 
     // Add the artist to the database
-    console.log('\x1b[34m%s\x1b[0m', "=> Added artist: " + artist_name);
+    log("=> Added artist: " + artist_name);
     return await db.one(pgp.helpers.insert({
         "title": artist_name,
         "cover": cover_id,
@@ -702,7 +713,7 @@ async function handle_album(item,
     }
 
     // Add the album to the database
-    console.log('\x1b[34m%s\x1b[0m', "=> Added album: " + metadata.common.album);
+    log("=> Added album: " + metadata.common.album);
     let album = await db.one(pgp.helpers.insert({
         "title": metadata.common.album,
         "cover": cover_id,
@@ -734,7 +745,7 @@ async function handle_track(track, artist_id, album_id, cover_id, cover) {
         "disc_number": metadata.common.disk.no,
         "path": track,
     }, cs_tracks) + ' ON CONFLICT (title, artist, album) DO NOTHING');
-    console.log('\x1b[34m%s\x1b[0m', "=> Added track: " + metadata.common.title);
+    log("=> Added track: " + metadata.common.title);
 }
 
 async function get_metadata(track, metadata = null) {
@@ -742,7 +753,7 @@ async function get_metadata(track, metadata = null) {
     try {
         metadata = await parseFile(track);
     } catch (error) {
-        console.log('\x1b[31m%s\x1b[0m', "=> Error parsing metadata for: " + track);
+        log("=> Error parsing metadata for: " + track);
 
         metadata = {
             common: {
@@ -1375,7 +1386,7 @@ async function _auth(req, res, next) {
             }));
         return;
     }
-    console.log(req.session.id, "Auth request.");
+    log(req.session.id, "Auth request.");
     let data = req.headers.authorization.split("Basic ")[1];
     let buff = Buffer.from(data, "base64").toString("ascii").split(":");
 
@@ -1410,7 +1421,7 @@ async function _session(req, res, next) {
             }));
         return;
     }
-    console.log(req.session.id, "Session request.");
+    log(req.session.id, "Session request.");
     let data = req.headers.authorization.split("Basic ")[1];
     let buff = Buffer.from(data, "base64").toString("ascii").split(':');
 
@@ -1506,7 +1517,7 @@ async function _update_album(req, res, next) {
         return;
     }
 
-    console.log(req.body.genre)
+    log(req.body.genre)
 
     db.task(async t => {
         try {

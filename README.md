@@ -1,5 +1,6 @@
 <!-- TOP -->
 <div align="center">
+    <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/kaangiray26/forte?style=flat-square">
     <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/kaangiray26/forte?style=flat-square">
     <img alt="GitHub issues" src="https://img.shields.io/github/issues/kaangiray26/forte?style=flat-square">
     <img alt="License" src="https://img.shields.io/github/license/kaangiray26/forte.svg?style=flat-square">

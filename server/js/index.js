@@ -1,39 +1,48 @@
 import path from "path";
 import express from "express";
 import session from "express-session";
+import memorystore from "memorystore";
 import multer from "multer";
 import cors from "cors";
 import crypto from "crypto";
 import db from "./db.js";
 import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Session store
+const MemoryStore = memorystore(session);
 
+// Path
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const upload = multer({ dest: "../uploads" })
 
+// Express
 const app = express()
 
+// Middleware
 app.use(cors({ credentials: true, origin: true }))
-
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-
 app.use(session({
     secret: crypto.randomBytes(64).toString('hex'),
     resave: false,
     saveUninitialized: true,
+    store: new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+    }),
+    cookie: {
+        maxAge: 86400000,
+    }
 }))
-
 app.use(express.static(path.join(__dirname, "../dist")))
 app.use(express.static(path.join(__dirname, "../uploads")))
 
+// Authentication functions
 function isAdmin(req, res, next) {
     if (req.session.user && req.session.user == 'forte') next()
     else next('route')
 }
 
 function isAuthenticated(req, res, next) {
-    console.log(req.session.id, req.originalUrl);
     db.is_authenticated(req.session.id).then((ok) => {
         if (ok) next()
         else res.status(401).json({ "error": "session expired." })
@@ -73,7 +82,6 @@ app.put("/album/:id", isAdmin, db.update_album)
 app.put("/track/:id", isAdmin, db.update_track)
 
 // API
-
 app.get("/api/test", isAuthenticated, (req, res, next) => {
     res.status(200).json({ "success": "session up to date." })
 })
@@ -146,7 +154,6 @@ app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
 app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 
 // Error Handling
-
 app.use((req, res, next) => {
     res.redirect("/")
 })
