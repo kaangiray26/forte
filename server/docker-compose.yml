@@ -1,11 +1,9 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:2.6
+        image: kaangiray26/forte:2.7
         restart: on-failure
         ports:
-            - "80:80"
-            - "443:443"
             - "3000:3000"
         depends_on:
             postgres:
@@ -13,8 +11,6 @@ services:
         environment:
             port: 3000               # Set Port
             mode: public             # Set to public or greenlock
-            forte_server: <server>   # Set Server to be used with greenlock
-            forte_email: <email>     # Set Email to be used with greenlock
             NODE_ENV: production     # Set Node Environment
             POSTGRES_HOST: postgres  # Postgres Host/IP
             POSTGRES_PORT: 5432      # Postgres Database Port
@@ -22,7 +18,7 @@ services:
             POSTGRES_USER: forte     # Set Postgres Username
             POSTGRES_PASSWORD: forte # Set Postgres Password
         volumes:
-            - /home/f34rl00/Music/library:/library
+            - <library>:/library
     postgres:
         image: kaangiray26/postgres:2.0
         restart: always
