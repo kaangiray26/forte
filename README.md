@@ -177,8 +177,6 @@ Before running the file, you need to edit some fields:
 ```
 app:
     environment:
-        mode: local              # Set to local, public or greenlock
-        port: 3000               # Set Port
         NODE_ENV: production     # Set Node Environment
         POSTGRES_HOST: postgres  # Postgres Host/IP
         POSTGRES_PORT: 5432      # Postgres Database Port
@@ -200,18 +198,16 @@ Here's an example for the `docker-compose.yml` file:
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:2.4
+        image: kaangiray26/forte:2.7
         restart: on-failure
         ports:
-            - "80:80"
-            - "443:443"
             - "3000:3000"
         depends_on:
             postgres:
                 condition: service_healthy
         environment:
-            mode: public              # Set to local, public or greenlock
-            port: 3000               # Set Port
+            mode: public
+            port: 3000
             NODE_ENV: production     # Set Node Environment
             POSTGRES_HOST: postgres  # Postgres Host/IP
             POSTGRES_PORT: 5432      # Postgres Database Port
@@ -240,24 +236,149 @@ volumes:
 
 ---
 
-### Using locally
-If you want to use the server locally, you can edit the `docker-compose.yml` file and change the `mode` field to `local`. The server will be hosted at `http://localhost:3000`. Then, you can run the following command to start the server via:
-```
-sudo docker-compose up -d
-```
-
----
-
 ### Using publicly
-If you want to use the server publically, you can edit the `docker-compose.yml` file and change the `mode` field to `public`. This setting wil host the server at `0.0.0.0:3000`, which will be accessible from outside the network if you forward your port 3000. Then, you can run the following command to start the server via:
+If you want to use the server publically, you can edit the `docker-compose.yml` file and change the `mode` field to `public`. This setting wil host the server at `0.0.0.0:3000`, which will be accessible from outside the network if you forward your port 3000. Follow the next section to configure a reverse proxy with nginx. If you don't want to use a reverse proxy, you can use the server publically with the following command:
+
 ```
-sudo docker-compose up -d
+docker-compose up -d
 ```
 
 ---
 
-### Using greenlock
-If you want to use the server publically with a SSL certificate, you can edit the `docker-compose.yml` file and change the `mode` field to `greenlock`. Apart from that you also need to set the fields `forte_server` and `forte_email`. Greenlock will do the certificate renewal for your. But, for this to work, you also need to forward ports `80` and `443` along with port `3000`. This setting wil host the server at `https://<forte_server>:443`. Then, you can run the following command to start the server via:
+### Using Nginx as a reverse proxy with SSL
+If you want to use the server publically with a SSL certificate, you can use Nginx as a reverse proxy. Here are some example configurations for Nginx:
+
+Let's put an example html file in `/var/www/html/index.html`:
+
+/var/www/html/index.html
+```
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+We will be using the following nginx configuration as an example:
+
+/etc/nginx/nginx.conf
+```
+worker_processes auto;
+worker_cpu_affinity auto;
+
+events {
+    multi_accept on;
+    worker_connections 1024;
+}
+
+http {
+    charset utf-8;
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    server_tokens off;
+    log_not_found off;
+    types_hash_max_size 4096;
+    client_max_body_size 16M;
+
+    # MIME
+    include mime.types;
+    default_type application/octet-stream;
+
+    # logging
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log warn;
+
+    # load configs
+    include /etc/nginx/conf.d/*.conf;
+}
+```
+
+Now we will be using certbot to generate a SSL certificate. You can find the installation instructions for your operating system [here](https://certbot.eff.org/instructions?ws=nginx&os=arch).
+
+### Before certbot
+
+We create a new configuration file for nginx in `/etc/nginx/conf.d/forte.conf`. Don't forget to change the `example.com` and `www.example.com` fields to your domain name.
+
+/etc/nginx/conf.d/forte.conf
+```
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    root /var/www/html;
+    server_name example.com www.example.com;
+}
+```
+
+### Restart nginx
+Now, we can test the configuration and restart nginx:
+
+```
+sudo nginx -t && sudo nginx -s reload
+```
+
+### Running certbot
+Now, we can run certbot to generate a SSL certificate:
+
+```
+sudo certbot --nginx -d example.com -d www.example.com
+```
+
+### After certbot and editing the file
+After running certbot, it will edit the `/etc/nginx/conf.d/forte.conf` file to include the SSL certificate. With some minor changes, we have the following configuration at the end:
+
+/etc/nginx/conf.d/forte.conf
+```
+server {
+    root /var/www/html;
+    server_name example.com www.example.com;
+
+    listen [::]:443 ssl ipv6only=on;                                         # managed by Certbot
+    listen 443 ssl;                                                          # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/www.example.com/fullchain.pem;     # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/www.example.com/privkey.pem;   # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf;                         # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;                           # managed by Certbot
+
+	location / {
+		proxy_pass http://localhost:3000;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto https;
+	    proxy_redirect off;
+	}
+}
+```
+
+### Restarting Nginx
+With everything set up, we can restart nginx to apply the changes:
+
+```
+sudo systemctl restart nginx
+```
+
+### Running the server
+Finally, we can run forte with the following command:
+
 ```
 sudo docker-compose up -d
 ```
