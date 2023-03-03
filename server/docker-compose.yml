@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:2.5
+        image: kaangiray26/forte:2.6
         restart: on-failure
         ports:
             - "80:80"
@@ -11,8 +11,8 @@ services:
             postgres:
                 condition: service_healthy
         environment:
-            mode: local              # Set to local, public or greenlock
             port: 3000               # Set Port
+            mode: public             # Set to public or greenlock
             forte_server: <server>   # Set Server to be used with greenlock
             forte_email: <email>     # Set Email to be used with greenlock
             NODE_ENV: production     # Set Node Environment
@@ -22,7 +22,7 @@ services:
             POSTGRES_USER: forte     # Set Postgres Username
             POSTGRES_PASSWORD: forte # Set Postgres Password
         volumes:
-            - <library>:/library
+            - /home/f34rl00/Music/library:/library
     postgres:
         image: kaangiray26/postgres:2.0
         restart: always

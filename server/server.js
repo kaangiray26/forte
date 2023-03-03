@@ -36,7 +36,7 @@ async function setup() {
 }
 
 async function start_greenlock_server() {
-    console.log(`Server:    http://${process.env.forte_server}/`);
+    console.log("\x1b[32m%s\x1b[0m", `..: Server:    http://${process.env.forte_server}/ :..`);
     // Start server
     greenlock_express
         .init({
@@ -58,14 +58,7 @@ async function start_greenlock_server() {
 async function start_public_server() {
     app.listen(process.env.port, '0.0.0.0', () => {
         db.init(process.argv.slice(2));
-        console.log(`Server:    http://0.0.0.0:${process.env.port}/`);
-    });
-}
-
-async function start_local_server() {
-    app.listen(process.env.port, 'localhost', () => {
-        db.init(process.argv.slice(2));
-        console.log(`Server:    http://localhost:${process.env.port}/`);
+        console.log("\x1b[32m%s\x1b[0m", `..: Server:    http://0.0.0.0:${process.env.port}/ :..`);
     });
 }
 
@@ -77,17 +70,13 @@ async function init() {
             start_public_server();
             break;
 
-        case 'local':
-            start_local_server();
-            break;
-
         case 'greenlock':
             await setup();
             start_greenlock_server();
             break;
 
         default:
-            start_local_server();
+            start_public_server();
     }
 }
 

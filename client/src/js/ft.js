@@ -60,14 +60,19 @@ class Forte {
         this.username = username;
 
         let session = await this.session();
-        if (session.hasOwnProperty('success')) {
-            this.ready = true;
-            localStorage.setItem('init', 'true');
+        if (!session) {
+            this.ready = false;
+            localStorage.setItem('init', 'false');
             return
         }
         if (session.hasOwnProperty('error')) {
             this.ready = false;
             localStorage.setItem('init', 'false');
+            return
+        }
+        if (session.hasOwnProperty('success')) {
+            this.ready = true;
+            localStorage.setItem('init', 'true');
             return
         }
     }
@@ -168,6 +173,7 @@ class Forte {
                 localStorage.setItem('offline', 'true');
                 return { "error": "Server is down." }
             }
+            return { "error": error.toString() }
         });
     }
 
