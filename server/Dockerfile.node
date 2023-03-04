@@ -1,5 +1,5 @@
 FROM node:19-alpine
-WORKDIR /
+WORKDIR /forte
 
 # Copy files
 ADD dist ./dist
@@ -9,8 +9,8 @@ ADD package.json ./
 ADD server.js ./
 
 # Create directories
-RUN mkdir -p /uploads
-RUN mkdir -p /greenlock.d
+RUN mkdir -p ./uploads
+RUN mkdir -p ./greenlock.d
 
 # RUN npm install
 # If you are building your code for production

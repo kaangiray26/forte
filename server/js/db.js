@@ -44,7 +44,6 @@ const exports = {
     add_user: _add_user,
     admin_login: _admin_login,
     admin_session: _admin_session,
-    auth: _auth,
     check_friends: _check_friends,
     create_playlist: _create_playlist,
     delete_playlist: _delete_playlist,
@@ -865,12 +864,14 @@ function format_date(dt) {
 
 // API Methods
 
-async function _is_authenticated(session) {
-    let user = await db.oneOrNone("SELECT * from users WHERE session = $1", [session]);
+async function _is_authenticated(args) {
+    if (!args.hasOwnProperty('session')) {
+        return false
+    }
+    let user = await db.oneOrNone("SELECT * from users WHERE session = $1", [args.session]);
     if (!user) {
         return false;
     }
-
     return true;
 }
 
@@ -1114,7 +1115,7 @@ async function _get_track_loved(req, res, next) {
     }
     db.task(async t => {
         try {
-            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_tracks)", [req.session.id, id]);
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_tracks)", [req.query.session, id]);
             if (!loved) {
                 res.status(200).json({
                     "loved": false
@@ -1138,7 +1139,7 @@ async function _get_artist_loved(req, res, next) {
     }
     db.task(async t => {
         try {
-            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_artists)", [req.session.id, id]);
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_artists)", [req.query.session, id]);
             if (!loved) {
                 res.status(200).json({
                     "loved": false
@@ -1162,7 +1163,7 @@ async function _get_album_loved(req, res, next) {
     }
     db.task(async t => {
         try {
-            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_albums)", [req.session.id, id]);
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_albums)", [req.query.session, id]);
             if (!loved) {
                 res.status(200).json({
                     "loved": false
@@ -1186,7 +1187,7 @@ async function _get_playlist_loved(req, res, next) {
     }
     db.task(async t => {
         try {
-            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_playlists)", [req.session.id, id]);
+            let loved = await t.oneOrNone("SELECT true FROM users WHERE session = $1 AND $2 = ANY(fav_playlists)", [req.query.session, id]);
             if (!loved) {
                 res.status(200).json({
                     "loved": false
@@ -1276,7 +1277,7 @@ async function _add_history(req, res, next) {
                 });
                 return;
             }
-            await t.oneOrNone("UPDATE users SET history = array_prepend($1, history[0:9]) WHERE session = $2", [req.body.track, req.session.id]);
+            await t.oneOrNone("UPDATE users SET history = array_prepend($1, history[0:9]) WHERE session = $2", [req.body.track, req.query.session]);
             res.status(200)
                 .json({
                     "success": "History updated."
@@ -1289,7 +1290,7 @@ async function _add_history(req, res, next) {
 
 async function _get_history(req, res, next) {
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT history FROM users WHERE session = $1", [req.session.id]);
+        let user = await t.oneOrNone("SELECT history FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({
                 "error": "User not found."
@@ -1378,42 +1379,7 @@ async function _remove_user(req, res, next) {
     })
 }
 
-async function _auth(req, res, next) {
-    if (!['authorization'].every(key => req.headers.hasOwnProperty(key))) {
-        res.status(400)
-            .send(JSON.stringify({
-                "error": "Basic authorization not given."
-            }));
-        return;
-    }
-    log(req.session.id, "Auth request.");
-    let data = req.headers.authorization.split("Basic ")[1];
-    let buff = Buffer.from(data, "base64").toString("ascii").split(":");
-
-    db.task(async t => {
-        let user = await t.oneOrNone("SELECT * FROM users WHERE username = $1 AND token = $2", buff);
-        if (!user) {
-            res.status(400)
-                .send(JSON.stringify({
-                    "error": "Authorization failed."
-                }));
-            return;
-        }
-        await t.none("UPDATE users SET session = $1 WHERE username = $2", [req.session.id, buff[0]]);
-        res.status(200)
-            .send(JSON.stringify({
-                "success": "Authorization successful."
-            }))
-    })
-}
-
 async function _session(req, res, next) {
-    let auth = await _is_authenticated(req.session.id);
-    if (auth) {
-        res.status(200).json({ "success": "session up to date." })
-        return;
-    }
-
     if (!['authorization'].every(key => req.headers.hasOwnProperty(key))) {
         res.status(400)
             .send(JSON.stringify({
@@ -1429,20 +1395,23 @@ async function _session(req, res, next) {
         let user = await t.oneOrNone("UPDATE users SET session = $1 WHERE username = $2 AND token = $3 RETURNING id", [req.session.id, buff[0], buff[1]]);
         if (!user) {
             res.status(400).json({
-                "error": "User not found."
+                "status": "error",
+                "message": "User not found."
             });
             return;
         }
         res.status(200)
             .send(JSON.stringify({
-                "success": "Session refreshed."
+                "status": "success",
+                "message": "Session created.",
+                "session": req.session.id
             }))
     })
 }
 
 async function _get_profile(req, res, next) {
     db.task(async t => {
-        let profile = await t.oneOrNone("SELECT username, cover FROM users WHERE session = $1", [req.session.id]);
+        let profile = await t.oneOrNone("SELECT username, cover FROM users WHERE session = $1", [req.query.session]);
         if (!profile) {
             res.status(400)
                 .json({
@@ -1477,7 +1446,7 @@ async function _get_user(req, res, next) {
 
 async function _upload_cover(req, res, next) {
     db.task(async t => {
-        await t.none("UPDATE users SET cover = $1 WHERE session = $2", [req.file.filename, req.session.id]);
+        await t.none("UPDATE users SET cover = $1 WHERE session = $2", [req.file.filename, req.query.session]);
         res.status(200)
             .json({
                 "cover": req.file.filename
@@ -1591,7 +1560,7 @@ async function _get_random_tracks(req, res, next) {
 
 async function _get_friends(req, res, next) {
     db.task(async t => {
-        let data = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.session.id]);
+        let data = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.query.session]);
         let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE username = ANY($1)", [data.friends]);
         res.status(200).json({
             "friends": friends
@@ -1607,7 +1576,7 @@ async function _check_friends(req, res, next) {
     }
 
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.session.id]);
+        let user = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." });
             return
@@ -1658,7 +1627,7 @@ async function _add_friend(req, res, next) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
-        await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.username, req.session.id]);
+        await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
         res.status(200).json({ "success": "Friend addded." })
     })
 }
@@ -1678,7 +1647,7 @@ async function _remove_friend(req, res, next) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
-        await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.username, req.session.id]);
+        await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
         res.status(200).json({ "success": "Friend removed." })
     })
 }
@@ -1707,7 +1676,7 @@ async function _get_playlist(req, res, next) {
 
 async function _get_profile_playlists(req, res, next) {
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
@@ -1724,7 +1693,7 @@ async function _get_profile_tracks(req, res, next) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
-        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE session = $1", [req.session.id]);
+        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
@@ -1842,7 +1811,7 @@ async function _get_profile_albums(req, res, next) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
-        let user = await t.oneOrNone("SELECT fav_albums FROM users WHERE session = $1", [req.session.id]);
+        let user = await t.oneOrNone("SELECT fav_albums FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
@@ -1863,7 +1832,7 @@ async function _get_profile_artists(req, res, next) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
-        let user = await t.oneOrNone("SELECT fav_artists FROM users WHERE session = $1", [req.session.id]);
+        let user = await t.oneOrNone("SELECT fav_artists FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
@@ -1890,7 +1859,7 @@ async function _create_playlist(req, res, next) {
     }
 
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
@@ -1932,7 +1901,7 @@ async function _add_track_to_playlist(req, res, next) {
             }
 
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -1973,7 +1942,7 @@ async function _delete_track_to_playlist(req, res, next) {
             }
 
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2025,7 +1994,7 @@ async function _delete_playlist(req, res, next) {
     db.task(async t => {
         try {
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2051,7 +2020,7 @@ async function _love_track(req, res, next) {
     db.task(async t => {
         try {
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2084,7 +2053,7 @@ async function _unlove_track(req, res, next) {
     db.task(async t => {
         try {
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2117,7 +2086,7 @@ async function _love_artist(req, res, next) {
     db.task(async t => {
         try {
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2150,7 +2119,7 @@ async function _unlove_artist(req, res, next) {
     db.task(async t => {
         try {
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2183,7 +2152,7 @@ async function _love_album(req, res, next) {
     db.task(async t => {
         try {
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2216,7 +2185,7 @@ async function _unlove_album(req, res, next) {
     db.task(async t => {
         try {
             // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.session.id]);
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
                 res.status(400).json({ "error": "User not found." })
                 return;
@@ -2305,7 +2274,7 @@ async function _lastfm_auth(req, res, next) {
         }).then((res) => res.json());
 
         if (response.hasOwnProperty('session')) {
-            await t.none("UPDATE users SET lastfm = $1 WHERE session = $2", [response.session.name, req.session.id]);
+            await t.none("UPDATE users SET lastfm = $1 WHERE session = $2", [response.session.name, req.query.session]);
             res.status(200).json({
                 "key": response.session.key,
                 "username": response.session.name

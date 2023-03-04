@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:2.7
+        image: kaangiray26/forte:2.8
         restart: on-failure
         ports:
             - "3000:3000"
@@ -10,7 +10,6 @@ services:
                 condition: service_healthy
         environment:
             port: 3000               # Set Port
-            mode: public             # Set to public or greenlock
             NODE_ENV: production     # Set Node Environment
             POSTGRES_HOST: postgres  # Postgres Host/IP
             POSTGRES_PORT: 5432      # Postgres Database Port

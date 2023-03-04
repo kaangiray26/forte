@@ -43,9 +43,9 @@ function isAdmin(req, res, next) {
 }
 
 function isAuthenticated(req, res, next) {
-    db.is_authenticated(req.session.id).then((ok) => {
+    db.is_authenticated(req.query).then((ok) => {
         if (ok) next()
-        else res.status(401).json({ "error": "session expired." })
+        else res.status(401).json({ "status": "error", "message": "session expired." })
     })
 }
 
@@ -86,8 +86,10 @@ app.get("/api/test", isAuthenticated, (req, res, next) => {
     res.status(200).json({ "success": "session up to date." })
 })
 
-app.get("/api/auth", db.auth)
 app.get("/api/session", db.session)
+app.get("/api/session/check", isAuthenticated, (req, res, next) => {
+    res.status(200).json({ "status": "success" })
+})
 
 app.post("/api/cover", isAuthenticated, upload.single('cover'), db.upload_cover)
 
@@ -95,7 +97,7 @@ app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
 app.head("/api/stream/:id", isAuthenticated, db.stream_head)
 
-app.get("/api/profile/", isAuthenticated, db.get_profile)
+app.get("/api/profile", isAuthenticated, db.get_profile)
 app.get("/api/profile/history", isAuthenticated, db.get_history)
 app.post("/api/profile/history/add", isAuthenticated, db.add_history)
 app.get("/api/profile/tracks/:offset", isAuthenticated, db.get_profile_tracks)

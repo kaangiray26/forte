@@ -10,6 +10,7 @@ class Forte {
         this.token = null;
         this.server = null;
         this.username = null;
+        this.session = null;
 
         this.track = null;
         this.player = new Howl({
@@ -32,55 +33,46 @@ class Forte {
     }
 
     async init() {
-        let token = localStorage.getItem('token');
-        let server = localStorage.getItem('server');
-        let username = localStorage.getItem('username');
-
-        if (!token || !server || !username) {
-            this.ready = false;
-            localStorage.setItem('init', 'false');
-            return
-        }
+        let token = JSON.parse(localStorage.getItem('token'));
+        let server = JSON.parse(localStorage.getItem('server'));
+        let username = JSON.parse(localStorage.getItem('username'));
+        let session = JSON.parse(localStorage.getItem('session'));
 
         // Set scrobbling
         if (JSON.parse(localStorage.getItem('scrobbling'))) {
             store.scrobbling = true;
         }
 
-        // Set notifications
-        if (JSON.parse(localStorage.getItem('notifications_granted'))) {
-            store.notifications_granted = true;
-        }
-        if (JSON.parse(localStorage.getItem('notifications_enabled'))) {
-            store.notifications_enabled = true;
+        // Check if all data is present
+        if (!token || !server || !username) {
+            this.ready = false;
+            localStorage.setItem('init', JSON.stringify(false));
+            return
         }
 
         this.token = token;
         this.server = server;
         this.username = username;
 
-        let session = await this.session();
-        if (!session) {
-            this.ready = false;
-            localStorage.setItem('init', 'false');
-            return
+        // Check session
+        if (session) {
+            let response = await this.check_session(session);
+            if (response.status == "success") {
+                this.ready = true;
+                this.session = session;
+                localStorage.setItem('init', JSON.stringify(true));
+                return
+            }
         }
-        if (session.hasOwnProperty('error')) {
-            this.ready = false;
-            localStorage.setItem('init', 'false');
-            return
-        }
-        if (session.hasOwnProperty('success')) {
-            this.ready = true;
-            localStorage.setItem('init', 'true');
-            return
-        }
+
+        // Create session
+        await this.connect(this.server, this.username, this.token);
     }
 
     async API(query) {
         if (!this.ready) return null;
 
-        let response = await fetch(this.server + '/api' + query, {
+        let response = await fetch(this.server + '/api' + query + `?session=${this.session}`, {
             method: "GET",
             credentials: "include"
         }).then((response) => {
@@ -90,7 +82,7 @@ class Forte {
     }
 
     async add_friend(username) {
-        let response = await fetch(this.server + '/api/friends/add', {
+        let response = await fetch(this.server + '/api/friends/add' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -106,7 +98,7 @@ class Forte {
     }
 
     async remove_friend(username) {
-        let response = await fetch(this.server + '/api/friends/remove', {
+        let response = await fetch(this.server + '/api/friends/remove' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -122,7 +114,7 @@ class Forte {
     }
 
     async create_playlist(data) {
-        let response = await fetch(this.server + '/api/profile/create_playlist', {
+        let response = await fetch(this.server + '/api/profile/create_playlist' + `?session=${this.session}`, {
             method: "POST",
             body: data,
             credentials: "include"
@@ -133,7 +125,7 @@ class Forte {
     }
 
     async get_all_albums(offset) {
-        let response = await fetch(this.server + '/api/all/albums', {
+        let response = await fetch(this.server + '/api/all/albums' + `?session=${this.session}`, {
             method: "GET",
             headers: {
                 "offset": offset
@@ -146,7 +138,7 @@ class Forte {
     }
 
     async upload_cover(data) {
-        let response = await fetch(this.server + '/api/cover', {
+        let response = await fetch(this.server + '/api/cover' + `?session=${this.session}`, {
             method: "POST",
             body: data,
             credentials: "include"
@@ -156,52 +148,62 @@ class Forte {
         return response;
     }
 
-    async session() {
-        let auth = btoa(this.username + ":" + this.token);
-        return await fetch(this.server + '/api/session', {
+    async check_session(session) {
+        return await fetch(this.server + `/api/session/check?session=${session}`)
+            .then((response) => {
+                localStorage.setItem('offline', JSON.stringify(false));
+                return response.json();
+            })
+            .catch(error => {
+                if (error.message.startsWith('NetworkError')) {
+                    localStorage.setItem('offline', JSON.stringify(true));
+                    return { "status": "error", "message": "Server is down." }
+                }
+                return { "status": "error" }
+            });
+    }
+
+    async get_session(server, username, token) {
+        let auth = btoa(username + ":" + token);
+        return await fetch(server + '/api/session', {
             method: 'GET',
             headers: {
                 'Authorization': 'Basic ' + auth
-            },
-            credentials: "include"
+            }
         }).then((response) => {
-            localStorage.setItem('offline', 'false');
+            localStorage.setItem('offline', JSON.stringify(false));
             return response.json();
         }).catch((error) => {
             // Check if NetworkError
             if (error.message.startsWith('NetworkError')) {
-                localStorage.setItem('offline', 'true');
-                return { "error": "Server is down." }
+                localStorage.setItem('offline', JSON.stringify(true));
+                return { "status": "error", "message": "Server is down." }
             }
-            return { "error": error.toString() }
+            return { "status": "error" }
         });
     }
 
     async connect(server, username, token) {
-        let auth = btoa(username + ":" + token);
-        let response = await fetch(server + '/api/auth', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + auth
-            },
-            credentials: "include"
-        }).then((response) => {
-            return response.json();
-        }).catch((error) => {
-            return { "error": error.toString() }
-        })
+        let response = await this.get_session(server, username, token);
+        if (response.status == 'success') {
+            this.ready = true;
+            this.session = response.session;
 
-        if (response.hasOwnProperty('success')) {
-            localStorage.setItem('server', server);
-            localStorage.setItem('username', username);
-            localStorage.setItem('token', token);
-            localStorage.setItem('volume', '1');
-            localStorage.setItem('init', 'true');
+            localStorage.setItem('init', JSON.stringify(true));
+            localStorage.setItem('session', JSON.stringify(response.session));
+            localStorage.setItem('server', JSON.stringify(server));
+            localStorage.setItem('username', JSON.stringify(username));
+            localStorage.setItem('token', JSON.stringify(token));
+            localStorage.setItem('volume', JSON.stringify('1'));
             localStorage.setItem('groupSession', JSON.stringify([]));
-            localStorage.setItem('groupSessionID', '');
+            localStorage.setItem('groupSessionID', JSON.stringify(''));
             return true
         }
 
+        if (response.status == 'error') {
+            this.ready = false;
+            localStorage.setItem('init', JSON.stringify(false));
+        }
         return false
     }
 
@@ -237,14 +239,6 @@ class Forte {
             ]
         });
 
-        // Notification
-        if (store.notifications_enabled) {
-            new Notification(store.playing.title, {
-                icon: cover,
-                body: "https://forte.buzl.uk/album/" + store.playing.album,
-            });
-        }
-
         this.player.unload();
         this.player._src = [ft.server + '/api/stream/' + track.id];
         this.player.load();
@@ -265,7 +259,7 @@ class Forte {
     }
 
     async track_quality() {
-        fetch(this.server + `/api/stream/${store.playing.id}`, {
+        fetch(this.server + `/api/stream/${store.playing.id}` + `?session=${this.session}`, {
             method: "HEAD",
             credentials: "include"
         }).then((response) => {
@@ -419,7 +413,7 @@ class Forte {
     }
 
     async addTrackToPlaylist(track_id, playlist_id) {
-        let response = await fetch(this.server + `/api/playlist/${playlist_id}/add_track`, {
+        let response = await fetch(this.server + `/api/playlist/${playlist_id}/add_track` + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -435,7 +429,7 @@ class Forte {
     }
 
     async addTrackToHistory(track) {
-        let response = await fetch(this.server + `/api/profile/history/add`, {
+        let response = await fetch(this.server + `/api/profile/history/add` + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -460,7 +454,7 @@ class Forte {
             return;
         }
 
-        let response = await fetch(this.server + '/api/lastfm/scrobble', {
+        let response = await fetch(this.server + '/api/lastfm/scrobble' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -540,7 +534,7 @@ class Forte {
     async downloadTrack(track_id) {
         if (!this.ready) return null;
 
-        let response = await fetch(this.server + '/api/stream/' + track_id, {
+        let response = await fetch(this.server + '/api/stream/' + track_id + `?session=${this.session}`, {
             method: "GET",
             credentials: "include"
         }).then((response) => {
@@ -550,7 +544,7 @@ class Forte {
     }
 
     async deletePlaylist(playlist_id) {
-        let response = await fetch(this.server + `/api/playlist/${playlist_id}/delete`, {
+        let response = await fetch(this.server + `/api/playlist/${playlist_id}/delete` + `?session=${this.session}`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json',
@@ -563,7 +557,7 @@ class Forte {
     }
 
     async deleteTrackFromPlaylist(playlist_id, track_id) {
-        let response = await fetch(this.server + `/api/playlist/${playlist_id}/delete_track`, {
+        let response = await fetch(this.server + `/api/playlist/${playlist_id}/delete_track` + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -579,7 +573,7 @@ class Forte {
     }
 
     async love(type, id) {
-        let response = await fetch(this.server + `/api/${type}/${id}/love`, {
+        let response = await fetch(this.server + `/api/${type}/${id}/love` + `?session=${this.session}`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json',
@@ -592,7 +586,7 @@ class Forte {
     }
 
     async unlove(type, id) {
-        let response = await fetch(this.server + `/api/${type}/${id}/unlove`, {
+        let response = await fetch(this.server + `/api/${type}/${id}/unlove` + `?session=${this.session}`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json',
@@ -605,7 +599,7 @@ class Forte {
     }
 
     async lyrics(artist_id, title) {
-        let response = await fetch(this.server + '/api/lyrics', {
+        let response = await fetch(this.server + '/api/lyrics' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -622,7 +616,7 @@ class Forte {
     }
 
     async lastfm_artist_page(artist) {
-        let response = await fetch(this.server + '/api/lastfm/artist', {
+        let response = await fetch(this.server + '/api/lastfm/artist' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -695,7 +689,7 @@ class Forte {
     }
 
     async lastfm_auth(token) {
-        let response = await fetch(this.server + `/api/lastfm/auth`, {
+        let response = await fetch(this.server + `/api/lastfm/auth` + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -708,16 +702,6 @@ class Forte {
             return response.json();
         });
         return response;
-    }
-
-    async get_notifications_permission() {
-        if ("Notification" in window) {
-            Notification.requestPermission().then(function (result) {
-                if (result === "granted") {
-                    console.log("Notifications granted.")
-                }
-            });
-        }
     }
 }
 
