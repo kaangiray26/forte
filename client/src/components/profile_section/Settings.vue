@@ -74,6 +74,11 @@
             </div>
         </div>
     </div>
+    <hr />
+    <div>
+        <a class="link-dark" href="https://github.com/kaangiray26/forte/tree/gh-pages" target="_blank">Forte Mar 4
+            Version.</a>
+    </div>
 </template>
 
 <script setup>

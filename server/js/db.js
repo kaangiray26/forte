@@ -240,25 +240,41 @@ async function update_album_cover(id, album, artist_id) {
         return
     }
 
-    let response = await axios.get(`https://api.deezer.com/search/album?q=${artist.title + ' ' + album}&limit=1&output=json`);
+    let cover = await get_lastfm_cover(artist.title, album);
 
-    if (!response.data.data) {
-        log("=> Warning: " + album);
-        log("=> Quota limit reached while gathering cover, skipping...");
-        return
-    }
-
-    if (!response.data.data.length) {
-        log("=> Warning: " + album);
-        log("=> Couldn't find cover for the album, skipping...");
-        return
-    }
-
-    let cover = response.data.data[0].cover_medium;
     await db.none("UPDATE albums SET cover = $1 WHERE id = $2", [cover, id]);
     await db.none("UPDATE tracks SET cover = $1 WHERE album = $2", [cover, id]);
 
     log("=> Updated cover for the album: " + album);
+}
+
+async function get_lastfm_cover(artist, album) {
+    let lastfm_api_key = await db.oneOrNone("SELECT value from config WHERE name = 'lastfm_api_key'");
+    if (!lastfm_api_key.value) {
+        log("=> Warning: " + album);
+        log("=> Can't get cover for the album because Last.fm API key is missing, skipping...");
+        return null
+    }
+    let response = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${lastfm_api_key.value}&artist=${artist}&album=${album}&format=json`);
+    if (!response.data || !response.data.hasOwnProperty('album')) {
+        return null
+    }
+    return response.data.album.image.slice(-1)[0]['#text'];
+}
+
+async function get_deezer_cover(artist, album) {
+    let response = await axios.get(`https://api.deezer.com/search/album?q=${artist + ' ' + album}&limit=1&output=json`);
+    if (!response.data.data) {
+        log("=> Warning: " + album);
+        log("=> Quota limit reached while gathering cover, skipping...");
+        return null
+    }
+    if (!response.data.data.length) {
+        log("=> Warning: " + album);
+        log("=> Couldn't find cover for the album, skipping...");
+        return null
+    }
+    return response.data.data[0].cover_medium;
 }
 
 async function check_library() {

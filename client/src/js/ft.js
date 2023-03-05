@@ -240,7 +240,7 @@ class Forte {
         });
 
         this.player.unload();
-        this.player._src = [ft.server + '/api/stream/' + track.id];
+        this.player._src = [ft.server + '/api/stream/' + track.id + `?session=${this.session}`];
         this.player.load();
         document.title = track.title;
     }
