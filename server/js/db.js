@@ -256,7 +256,7 @@ async function get_lastfm_cover(artist, album) {
         return null
     }
     let response = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${lastfm_api_key.value}&artist=${artist}&album=${album}&format=json`);
-    if (!response.data || !response.data.hasOwnProperty('album')) {
+    if (!response.data || !response.data.album || !response.data.album.image || !response.data.album.image.length) {
         return null
     }
     return response.data.album.image.slice(-1)[0]['#text'];
