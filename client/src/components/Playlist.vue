@@ -120,7 +120,7 @@ async function get_playlist(id) {
     playlist.value = data.playlist;
     tracks.value = data.tracks;
 
-    if (localStorage.getItem('username') == playlist.value.author) {
+    if (JSON.parse(localStorage.getItem('username')) == playlist.value.author) {
         isAuthor.value = true;
     }
 

@@ -18,7 +18,7 @@ const router = useRouter();
 
 onBeforeMount(() => {
     if (router.currentRoute.value.params.hasOwnProperty('id')) {
-        localStorage.setItem('group_session_id', router.currentRoute.value.params.id)
+        localStorage.setItem('group_session_id', JSON.stringify(router.currentRoute.value.params.id))
     }
     router.push("/");
 });

@@ -28,5 +28,6 @@ coverage
 *.sw?
 
 uploads/*
-greenlock.d/*
 .env
+
+docker-compose-dev.yml

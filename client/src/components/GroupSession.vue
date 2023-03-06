@@ -75,7 +75,7 @@ async function createConnection() {
         conn.value.send({
             type: 'connect',
             peer_id: peer_id.value,
-            username: localStorage.getItem('username'),
+            username: JSON.parse(localStorage.getItem('username')),
         });
     });
 }
@@ -90,7 +90,7 @@ async function createConnectionWithStoredID(stored_id) {
         conn.value.send({
             type: 'connect',
             peer_id: peer_id.value,
-            username: localStorage.getItem('username'),
+            username: JSON.parse(localStorage.getItem('username')),
         });
     });
 }
@@ -150,7 +150,7 @@ onMounted(() => {
         store.func_stack = [];
 
         // Group session
-        let group_session_id = localStorage.getItem('group_session_id');
+        let group_session_id = JSON.parse(localStorage.getItem('group_session_id'));
         if (group_session_id) {
             createConnectionWithStoredID(group_session_id);
             localStorage.removeItem('group_session_id');

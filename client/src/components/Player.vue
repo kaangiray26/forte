@@ -260,7 +260,7 @@ async function raiseVolume() {
         return;
     }
     ft.player.volume(volume.value / 100);
-    localStorage.setItem('volume', volume.value / 100);
+    localStorage.setItem('volume', JSON.stringify(volume.value / 100));
 }
 
 async function lowerVolume() {
@@ -270,7 +270,7 @@ async function lowerVolume() {
         return;
     }
     ft.player.volume(volume.value / 100);
-    localStorage.setItem('volume', volume.value / 100);
+    localStorage.setItem('volume', JSON.stringify(volume.value / 100));
 }
 
 // Must be synchronized in groupSession: ok
@@ -357,12 +357,12 @@ defineExpose({
 })
 
 onMounted(() => {
-    let vol = localStorage.getItem('volume');
+    let vol = JSON.parse(localStorage.getItem('volume'));
     if (vol) {
         volume.value = parseInt(parseFloat(vol) * 100);
         ft.player.volume(volume.value / 100);
     } else {
-        localStorage.setItem('volume', volume.value / 100);
+        localStorage.setItem('volume', JSON.stringify(volume.value / 100));
     }
 
     // Swipe events

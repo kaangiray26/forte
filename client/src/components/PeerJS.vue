@@ -122,7 +122,7 @@ async function acceptRequest() {
     props.conn.send({
         type: 'accept',
         peer_id: props.peer_id,
-        username: localStorage.getItem('username'),
+        username: JSON.parse(localStorage.getItem('username')),
     });
     contacts.value.requester = {};
     store.peer_status = 'connected';
@@ -133,7 +133,7 @@ async function rejectRequest() {
     props.conn.send({
         type: 'reject',
         peer_id: props.peer_id,
-        username: localStorage.getItem('username'),
+        username: JSON.parse(localStorage.getItem('username')),
     });
     cleanup();
     emit('reset');
@@ -143,7 +143,7 @@ async function disconnect() {
     props.conn.send({
         type: 'disconnect',
         peer_id: peer_id.value,
-        username: localStorage.getItem('username'),
+        username: JSON.parse(localStorage.getItem('username')),
     });
     cleanup();
 }

@@ -55,7 +55,7 @@
             </div>
         </li>
     </ul>
-    <div class="d-flex justify-content-end mt-2">
+    <div class="d-flex justify-content-end mt-3">
         <button v-show="searchFinished" type="button" class="btn btn-dark" @click="get_history">Refresh</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

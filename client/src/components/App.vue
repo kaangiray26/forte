@@ -3,9 +3,14 @@
         <Messages />
         <Toasts />
         <Animation />
-        <div class="content-view pb-4" style="flex: 1 1 auto;">
-            <NavBar ref="thisNavBar" />
-            <ContentView ref="thisContentView" />
+        <div class="side-view d-flex">
+            <div class="d-none d-sm-block d-flex flex-column flex-shrink-0">
+                <SideBar />
+            </div>
+            <div class="content-view pb-4">
+                <NavBar ref="thisNavBar" />
+                <ContentView ref="thisContentView" />
+            </div>
         </div>
         <div class="player-view">
             <Player ref="thisPlayer" />
@@ -17,6 +22,7 @@
 import { ref, onBeforeMount } from 'vue';
 import { action } from '/js/events.js';
 import NavBar from './NavBar.vue';
+import SideBar from './SideBar.vue';
 import ContentView from './ContentView.vue';
 import Player from './Player.vue';
 import Toasts from './Toasts.vue';

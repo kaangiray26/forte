@@ -3,6 +3,9 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Recommendations from "/components/Recommendations.vue";
 import Search from "/components/Search.vue";
 
+import AllArtists from "/components/Artists.vue";
+import AllAlbums from "/components/Albums.vue";
+
 import Artist from "/components/Artist.vue";
 import Album from "/components/Album.vue";
 import Playlist from "/components/Playlist.vue";
@@ -37,6 +40,14 @@ const routes = [
         path: "/",
         component: Recommendations,
 
+    },
+    {
+        path: "/artists",
+        component: AllArtists
+    },
+    {
+        path: "/albums",
+        component: AllAlbums
     },
     {
         path: "/search/:query",

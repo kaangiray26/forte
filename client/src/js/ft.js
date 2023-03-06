@@ -449,7 +449,7 @@ class Forte {
             return;
         }
 
-        let sk = localStorage.getItem("lastfm_key");
+        let sk = JSON.parse(localStorage.getItem("lastfm_key"));
         if (!sk) {
             return;
         }

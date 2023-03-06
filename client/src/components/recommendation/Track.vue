@@ -13,7 +13,7 @@
             </div>
             <div class="d-flex flex-fill">
                 <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0" @click="openTrack">{{
-                    track.title
+                    props.track.title
                 }}</h6>
             </div>
         </div>

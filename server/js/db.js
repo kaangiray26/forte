@@ -13,6 +13,7 @@ import { exit } from 'process';
 import { fileURLToPath } from 'url';
 
 // Path to library
+// const library_path = '/library';
 const library_path = '/library';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,12 +52,17 @@ const exports = {
     get_album: _get_album,
     get_album_loved: _get_album_loved,
     get_album_tracks: _get_album_tracks,
+    get_albums: _get_albums,
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
     get_artist_loved: _get_artist_loved,
+    get_artists: _get_artists,
     get_config: _get_config,
     get_friends: _get_friends,
     get_history: _get_history,
+    get_lastfm_artist: _get_lastfm_artist,
+    get_lastfm_auth: _get_lastfm_auth,
+    get_lastfm_profile: _get_lastfm_profile,
     get_lyrics: _get_lyrics,
     get_playlist: _get_playlist,
     get_playlist_loved: _get_playlist_loved,
@@ -82,10 +88,7 @@ const exports = {
     init: _init,
     is_authenticated: _is_authenticated,
     lastfm_auth: _lastfm_auth,
-    get_lastfm_auth: _get_lastfm_auth,
-    get_lastfm_artist: _get_lastfm_artist,
     lastfm_scrobble: _lastfm_scrobble,
-    get_lastfm_profile: _get_lastfm_profile,
     love_album: _love_album,
     love_artist: _love_artist,
     love_track: _love_track,
@@ -988,6 +991,44 @@ async function _get_artist(req, res, next) {
                     "artist": artist,
                     "albums": albums
                 }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
+async function _get_artists(req, res, next) {
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        try {
+            let artists = await t.manyOrNone("SELECT id, type, title, cover FROM artists ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
+            res.status(200)
+                .json({
+                    "artists": artists
+                })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
+async function _get_albums(req, res, next) {
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+    db.task(async t => {
+        try {
+            let albums = await t.manyOrNone("SELECT id, type, title, cover FROM albums ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
+            res.status(200)
+                .json({
+                    "albums": albums
+                })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
         }

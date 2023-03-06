@@ -50,6 +50,12 @@ img {
     height: calc(var(--vh, 1vh) * 100);
 }
 
+.side-view {
+    flex: 1 1 auto;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
 .content-view {
     flex: 1 1 auto;
     overflow-y: scroll;

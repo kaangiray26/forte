@@ -97,6 +97,9 @@ app.get("/api/search/:query", isAuthenticated, db.search)
 app.get("/api/stream/:id", isAuthenticated, db.stream)
 app.head("/api/stream/:id", isAuthenticated, db.stream_head)
 
+app.get("/api/artists/:offset", isAuthenticated, db.get_artists)
+app.get("/api/albums/:offset", isAuthenticated, db.get_albums)
+
 app.get("/api/profile", isAuthenticated, db.get_profile)
 app.get("/api/profile/history", isAuthenticated, db.get_history)
 app.post("/api/profile/history/add", isAuthenticated, db.add_history)

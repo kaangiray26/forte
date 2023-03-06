@@ -27,7 +27,7 @@
         </li>
     </ul>
     <hr />
-    <div class="card">
+    <div class="card mb-3">
         <div class="card-body">
             <h3>Last.fm</h3>
             <div class="d-inline-flex flex-column">
@@ -74,22 +74,36 @@
             </div>
         </div>
     </div>
+    <div class="card">
+        <div class="card-body">
+            <button class="btn btn-dark" @click="reset_menu">Reset menu</button>
+        </div>
+    </div>
     <hr />
     <div>
-        <a class="link-dark" href="https://github.com/kaangiray26/forte/tree/gh-pages" target="_blank">Forte Mar 4
+        <a class="link-dark" href="https://github.com/kaangiray26/forte/tree/gh-pages" target="_blank">Forte Mar 6
             Version.</a>
     </div>
+    <Reset ref="resetModal" />
 </template>
 
 <script setup>
 import { onBeforeMount, ref } from 'vue'
 import { store } from '/js/store.js';
+import Reset from '/components/Reset.vue';
+
+const resetModal = ref(null);
 
 const lastfm_config = ref({});
 const lastfm_api_key = ref(null);
 const lastfm_profile = ref(null);
 
 const top_tracks = ref([]);
+
+async function reset_menu(ev) {
+    ev.preventDefault();
+    resetModal.value.show();
+}
 
 async function openTrack(track) {
     window.open(track.url, '_blank');
@@ -107,7 +121,7 @@ async function toggle_scrobbling() {
 }
 
 async function get_lastfm_profile() {
-    let username = localStorage.getItem('lastfm_username');
+    let username = JSON.parse(localStorage.getItem('lastfm_username'));
     if (!username) {
         return
     }
@@ -118,7 +132,7 @@ async function get_lastfm_profile() {
 }
 
 async function get_top_tracks() {
-    let username = localStorage.getItem('lastfm_username');
+    let username = JSON.parse(localStorage.getItem('lastfm_username'));
     if (!username) {
         return
     }
@@ -143,7 +157,7 @@ function formatNumber(num) {
 
 onBeforeMount(async () => {
     ['lastfm_key', 'scrobbling'].forEach((key) => {
-        let value = localStorage.getItem(key);
+        let value = JSON.parse(localStorage.getItem(key));
         if (value) {
             lastfm_config.value[key] = JSON.parse(value);
         } else {
