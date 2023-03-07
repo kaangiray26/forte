@@ -4,7 +4,8 @@
             <div class="d-flex justify-content-center">
                 <div class="d-flex align-items-center">
                     <div class="me-1">
-                        <img src="/images/favicon.svg" width="32" height="32">
+                        <img v-if="store.theme == 'light'" src="/images/favicon.svg" width="32" height="32">
+                        <img v-if="store.theme == 'dark'" src="/images/favicon_dark.svg" width="32" height="32">
                     </div>
                     <div>
                         <h3 class="side-bar-text fw-bold m-0">Forte</h3>
@@ -46,6 +47,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { store } from '/js/store.js';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
