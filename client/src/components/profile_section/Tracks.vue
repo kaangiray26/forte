@@ -1,10 +1,10 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link search-link">Profile</router-link>
+            <router-link to="/profile" class="nav-link red-on-hover theme-color">Profile</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/history" class="nav-link search-link">Listening
+            <router-link to="/profile/history" class="nav-link red-on-hover theme-color">Listening
                 History</router-link>
         </li>
         <li class="nav-item">
@@ -12,24 +12,24 @@
                 Tracks</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/playlists" class="nav-link search-link">Playlists</router-link>
+            <router-link to="/profile/playlists" class="nav-link red-on-hover theme-color">Playlists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/albums" class="nav-link search-link">Albums</router-link>
+            <router-link to="/profile/albums" class="nav-link red-on-hover theme-color">Albums</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/artists" class="nav-link search-link">Artists</router-link>
+            <router-link to="/profile/artists" class="nav-link red-on-hover theme-color">Artists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/stations" class="nav-link search-link">Stations</router-link>
+            <router-link to="/profile/stations" class="nav-link red-on-hover theme-color">Stations</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/friends" class="nav-link search-link">Friends</router-link>
+            <router-link to="/profile/friends" class="nav-link red-on-hover theme-color">Friends</router-link>
         </li>
     </ul>
     <hr />
     <ul class="list-group">
-        <li class="list-group-item bg-dark text-light d-flex">
+        <li class="list-group-item theme-btn text-light d-flex">
             <div class="d-flex w-100 justify-content-between">
                 <div>
                     <span class="fw-bold">{{ total }} liked tracks</span>
@@ -43,12 +43,12 @@
                 </div>
             </div>
         </li>
-        <li class="list-group-item list-group-item-action clickable d-flex justify-content-between" v-for="track in tracks"
+        <li class="list-group-item theme-list-item clickable d-flex justify-content-between" v-for="track in tracks"
             @contextmenu.prevent="right_click({ item: track, event: $event })" @click="playTrack(track.id)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="track.cover" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
-                    <button class="btn btn-link search-link" :content_id="track.id" :content_type="track.type"
+                    <button class="btn btn-link theme-color red-on-hover" :content_id="track.id" :content_type="track.type"
                         style="display:contents;">
                         {{ track.title }}
                     </button>
@@ -57,7 +57,7 @@
         </li>
     </ul>
     <div class="d-flex justify-content-end mt-3">
-        <button v-show="searchFinished" type="button" class="btn btn-dark" @click="get_tracks">Load more</button>
+        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn" @click="get_tracks">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Loading...

@@ -7,7 +7,7 @@
                 </div>
             </div>
             <div class="d-flex flex-fill">
-                <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0" @click="openArtist">{{
+                <h6 class="theme-color red-on-hover fw-bold text-break text-wrap clickable p-2 ps-0" @click="openArtist">{{
                     props.artist.title
                 }}</h6>
             </div>

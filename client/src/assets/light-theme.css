@@ -1,0 +1,99 @@
+:root {
+    --background-color: #fff;
+    --text-color: #000;
+}
+
+.theme-color {
+    color: var(--text-color) !important;
+}
+
+body {
+    background-color: var(--background-color) !important;
+}
+
+.btn-white {
+    --bs-btn-color: #000;
+    --bs-btn-bg: #fff;
+    --bs-btn-border-color: #f8f9fa;
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-bg: #fff;
+    --bs-btn-hover-border-color: #fff;
+    --bs-btn-focus-shadow-rgb: 211, 212, 213;
+    --bs-btn-active-color: #000;
+    --bs-btn-active-bg: #c6c7c8;
+    --bs-btn-active-border-color: #fff;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #000;
+    --bs-btn-disabled-bg: #f8f9fa;
+    --bs-btn-disabled-border-color: #fff;
+}
+
+.search-link {
+    color: var(--bs-dark) !important;
+}
+
+.search-link:hover {
+    color: var(--bs-danger) !important;
+}
+
+.now-playing {
+    background-color: #FFF3CD !important;
+}
+
+.clickable-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35) !important;
+}
+
+.red-on-hover:hover {
+    color: var(--bs-danger) !important;
+}
+
+.action-btn {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.artist {
+    color: #fff !important;
+    background-color: RGBA(13, 110, 253, var(--bs-bg-opacity, 1)) !important;
+}
+
+.track {
+    color: #fff !important;
+    background-color: RGBA(33, 37, 41, var(--bs-bg-opacity, 1)) !important;
+}
+
+.album {
+    color: #000 !important;
+    background-color: RGBA(255, 193, 7, var(--bs-bg-opacity, 1)) !important;
+}
+
+.playlist {
+    color: #fff !important;
+    background-color: RGBA(25, 135, 84, var(--bs-bg-opacity, 1)) !important;
+}
+
+.user {
+    color: #fff !important;
+    background-color: RGBA(89, 92, 95, var(--bs-bg-opacity, 1)) !important;
+}
+
+.card {
+    background-color: #fff !important;
+}
+
+.search-card-input {
+    background-color: var(--background-color) !important;
+    color: var(--text-color) !important;
+}
+
+.side-bar-text {
+    color: var(--text-color) !important;
+}
+
+.theme-btn {
+    background-color: #595AFF !important;
+}
+
+.theme-background {
+    background-color: #121216 !important;
+}

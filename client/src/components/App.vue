@@ -21,6 +21,8 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
 import { action } from '/js/events.js';
+import { store } from '/js/store.js';
+
 import NavBar from './NavBar.vue';
 import SideBar from './SideBar.vue';
 import ContentView from './ContentView.vue';
@@ -105,6 +107,17 @@ async function keyPress(event) {
 }
 
 onBeforeMount(() => {
+    // Theme
+    let theme = JSON.parse(localStorage.getItem("theme"));
+    if (!theme) {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches || !theme) {
+            document.querySelector("#theme").href = "/assets/dark-theme.css";
+        }
+    } else {
+        document.querySelector("#theme").href = "/assets/" + theme + "-theme.css";
+        store.theme = theme;
+    }
+
     let vh = window.innerHeight * 0.01;
     // Then we set the value in the --vh custom property to the root of the document
     document.documentElement.style.setProperty('--vh', `${vh}px`);

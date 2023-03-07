@@ -6,9 +6,9 @@
             </div>
         </div>
     </div>
-    <div class="card border-0 mx-4 shadow-lg" v-show="loaded">
-        <div class="card-body">
-            <div class="row g-4">
+    <div class="card rounded-0 border-0 mx-3" v-show="loaded">
+        <div class="card-body px-3">
+            <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative"
                         @contextmenu.prevent="right_click({ item: album, event: $event })">
@@ -20,26 +20,26 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col theme-color">
                     <h1 class="album-title mb-4">{{ album.title }}</h1>
                     <router-link :to="'/artist/' + artist.id" class="search-link">
                         <div class="d-inline-flex align-content-center align-items-center">
                             <img class="img-fluid figure-img rounded m-0" :src="get_artist_cover(artist.cover)" width="28"
                                 height="28">
-                            <span class="mx-2">{{ artist.title }}</span>
+                            <span class="red-on-hover theme-color mx-2">{{ artist.title }}</span>
                         </div>
                     </router-link>
                     <hr />
                     <ul class="list-group">
                         <div v-for="track in tracks">
-                            <li class="list-group-item bg-dark text-light d-flex" v-if="track.track_position == 1">
+                            <li class="list-group-item theme-btn text-light d-flex" v-if="track.track_position == 1">
                                 <div class="d-flex w-100 justify-content-between">
                                     <div>
                                         <span class="fw-bold">Disc {{ track.disc_number }}</span>
                                     </div>
                                 </div>
                             </li>
-                            <li class="list-group-item list-group-item-action clickable d-flex"
+                            <li class="list-group-item theme-list-item clickable d-flex"
                                 :class="{ 'now-playing': selected_track == track.id }"
                                 @contextmenu.prevent="right_click({ item: track, event: $event })"
                                 @click="play_track(track.id)">
@@ -52,7 +52,7 @@
                                             <button class="btn btn-link search-link d-flex text-start"
                                                 style="display:contents;">
                                                 <span class="text-muted me-2">{{ track.track_position }}.</span>
-                                                <span class="text-break">{{ track.title }}</span>
+                                                <span class="theme-color text-break">{{ track.title }}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 import { store } from '/js/store.js';
 import { right_click, action } from '/js/events.js';
@@ -75,7 +75,7 @@ import { right_click, action } from '/js/events.js';
 const router = useRouter();
 
 const query_param = computed(() => {
-    return router.currentRoute.value.params.id;
+    return router.currentRoute.value.params;
 })
 
 const album = ref({});
@@ -149,15 +149,16 @@ async function play_album(id) {
     })
 }
 
-watch(query_param, () => {
+watch(query_param, (params) => {
     if (store.selected_track_id) {
         selected_track.value = store.selected_track_id;
         store.selected_track_id = null;
     }
-    get_album(router.currentRoute.value.params.id);
+    if (params.id) {
+        get_album(params.id);
+    }
 })
-
-onMounted(() => {
+onBeforeMount(() => {
     if (store.selected_track_id) {
         selected_track.value = store.selected_track_id;
         store.selected_track_id = null;

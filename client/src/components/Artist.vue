@@ -6,26 +6,26 @@
             </div>
         </div>
     </div>
-    <div class="card border-0 mx-4 shadow-lg" v-show="loaded">
-        <div class="card-body">
-            <div class="row g-4">
+    <div class="card rounded-0 border-0 mx-3" v-show="loaded">
+        <div class="card-body px-3">
+            <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div @contextmenu.prevent="right_click({ item: artist, event: $event })">
                         <img class="playlist-img shadow" :src="get_artist_cover(artist.cover)" />
                     </div>
                 </div>
                 <div class="col d-flex flex-column justify-content-between">
-                    <div class="d-flex flex-column">
+                    <div class="theme-color d-flex flex-column">
                         <h1 class="artist-title">{{ artist.title }}</h1>
                         <small class="text-muted">{{ albums.length }} albums</small>
                         <div class="pt-2">
                             <div class="d-flex flex-wrap">
                                 <div class="m-1">
-                                    <button ref="wiki_btn" type="button" class="btn btn-dark"
+                                    <button ref="wiki_btn" type="button" class="btn btn-dark theme-btn fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_wiki_page">Wikipedia</button>
                                 </div>
                                 <div class="m-1">
-                                    <button ref="lastfm_btn" type="button" class="btn btn-dark"
+                                    <button ref="lastfm_btn" type="button" class="btn btn-dark theme-btn fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_lastfm_page">Last.fm</button>
                                 </div>
                             </div>
@@ -33,7 +33,7 @@
                         <hr />
                     </div>
                     <ul class="list-group">
-                        <li class="list-group-item bg-dark text-light d-flex">
+                        <li class="list-group-item theme-btn text-light d-flex">
                             <div class="d-flex w-100 justify-content-between">
                                 <div>
                                     <span class="fw-bold">Album</span>
@@ -43,7 +43,7 @@
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item list-group-item-action clickable d-flex" v-for="album in albums"
+                        <li class="list-group-item theme-list-item clickable d-flex" v-for="album in albums"
                             @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album.id)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
@@ -53,13 +53,13 @@
                                     <div class="d-flex align-items-start">
                                         <button class="btn btn-link search-link d-flex flex-column text-start"
                                             style="display:contents;">
-                                            <span>{{ album.title }}</span>
+                                            <span class="theme-color">{{ album.title }}</span>
                                             <span class="text-muted">{{ album.year }}</span>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
-                                    <span class="search-link">{{
+                                    <span class="text-muted">{{
                                         album.nb_tracks
                                     }}</span>
                                 </div>
@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
@@ -157,8 +157,7 @@ async function openAlbum(id) {
     router.push("/album/" + id);
 }
 
-onMounted(() => {
-    let id = router.currentRoute.value.params.id;
-    get_artist(id);
+onBeforeMount(() => {
+    get_artist(router.currentRoute.value.params.id);
 })
 </script>

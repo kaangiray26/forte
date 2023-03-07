@@ -1,7 +1,7 @@
 <template>
-    <div class="card border-0 mx-4 shadow-lg" v-if="loaded">
-        <div class="card-body">
-            <div class="row g-4">
+    <div class="card border-0 mx-3" v-if="loaded">
+        <div class="card-body px-3">
+            <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
                         <img class="img-profile img-thumbnail" :src="get_cover()" width="250" height="250" />

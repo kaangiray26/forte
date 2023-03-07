@@ -1,8 +1,8 @@
 <template>
-    <div v-if="loaded" class="card border-0 mx-4 shadow-lg">
-        <div class="card-body">
-            <div class="row g-2 mx-2">
-                <h3 class="fw-bold">Artists</h3>
+    <div v-if="loaded" class="card rounded-0 border-0 mx-3">
+        <div class="card-body px-3">
+            <div class="row g-3">
+                <h3 class="theme-color fw-bold">Artists</h3>
                 <p v-if="!artists.length" class="px-3 text-decoration-underline">No artists in the library.</p>
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="artist in artists">
                     <Artist :artist="artist" />

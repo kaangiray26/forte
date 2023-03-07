@@ -1,33 +1,33 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link search-link">Profile</router-link>
+            <router-link to="/profile" class="nav-link red-on-hover theme-color">Profile</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/history" class="nav-link search-link">Listening
+            <router-link to="/profile/history" class="nav-link red-on-hover theme-color">Listening
                 History</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/tracks" class="nav-link search-link">Favorite Tracks</router-link>
+            <router-link to="/profile/tracks" class="nav-link red-on-hover theme-color">Favorite Tracks</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/playlists" class="nav-link bg-dark search-link text-white">Playlists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/albums" class="nav-link search-link">Albums</router-link>
+            <router-link to="/profile/albums" class="nav-link red-on-hover theme-color">Albums</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/artists" class="nav-link search-link">Artists</router-link>
+            <router-link to="/profile/artists" class="nav-link red-on-hover theme-color">Artists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/stations" class="nav-link search-link">Stations</router-link>
+            <router-link to="/profile/stations" class="nav-link red-on-hover theme-color">Stations</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/friends" class="nav-link search-link">Friends</router-link>
+            <router-link to="/profile/friends" class="nav-link red-on-hover theme-color">Friends</router-link>
         </li>
     </ul>
     <hr />
-    <div class="row g-2">
+    <div class="row g-3">
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2">
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
@@ -35,7 +35,8 @@
                         <img class="playlist-img" src="/images/add.svg" />
                     </div>
                     <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0" @click="showPlaylistCreate">
+                        <h6 class="fw-bold text-break text-wrap clickable red-on-hover theme-color p-2 ps-0"
+                            @click="showPlaylistCreate">
                             Create a playlist</h6>
                     </div>
                 </div>
@@ -63,7 +64,7 @@
                         </div>
                     </div>
                     <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
+                        <h6 class="fw-bold text-break text-wrap clickable theme-color red-on-hover p-2 ps-0"
                             @click="openPlaylist(playlist.id)">{{ playlist.title }}</h6>
                     </div>
                 </div>

@@ -7,35 +7,35 @@
                         <img src="/images/favicon.svg" width="32" height="32">
                     </div>
                     <div>
-                        <h3 class="fw-bold m-0">Forte</h3>
+                        <h3 class="side-bar-text fw-bold m-0">Forte</h3>
                     </div>
                 </div>
             </div>
         </router-link>
         <ul class="nav nav-pills flex-column">
             <li class="nav-item mb-2">
-                <router-link to="/" class="nav-link text-dark fw-bold" aria-current="page">
+                <router-link to="/" class="nav-link side-bar-text fw-bold" aria-current="page">
                     <span class="fs-5 bi me-1"
                         :class="{ 'bi-house-door-fill': path == '/', 'bi-house-door': path != '/' }"></span>
                     <span class="fs-5">Home</span>
                 </router-link>
             </li>
             <li class="nav-item mb-2">
-                <router-link to="/artists" class="nav-link text-dark fw-bold" aria-current="page">
+                <router-link to="/artists" class="nav-link side-bar-text fw-bold" aria-current="page">
                     <span class="fs-5 bi me-1"
                         :class="{ 'bi-person-fill': path == '/artists', 'bi-person': path != '/artists' }"></span>
                     <span class="fs-5">Artists</span>
                 </router-link>
             </li>
             <li class="nav-item mb-2">
-                <router-link to="/albums" class="nav-link text-dark fw-bold" aria-current="page">
+                <router-link to="/albums" class="nav-link side-bar-text fw-bold" aria-current="page">
                     <span class="fs-5 bi me-1"
                         :class="{ 'bi-vinyl-fill': path == '/albums', 'bi-vinyl': path != '/albums' }"></span>
                     <span class="fs-5">Albums</span>
                 </router-link>
             </li>
             <li class="nav-item">
-                <router-link to="/profile" class="nav-link text-dark fw-bold" aria-current="page">
+                <router-link to="/profile" class="nav-link side-bar-text fw-bold" aria-current="page">
                     <span class="fs-5 bi bi-person-circle me-1"></span>
                     <span class="fs-5">Profile</span>
                 </router-link>

@@ -1,20 +1,19 @@
 <template>
-    <ul class="list-group shadow-lg mx-4">
-        <li v-if="results.length == 0" class="list-group-item bg-dark text-light d-flex">
+    <ul class="list-group rounded-0 mx-3 px-3 pb-3 theme-background">
+        <li v-if="results.length == 0" class="list-group-item theme-btn text-light d-flex">
             <div class="d-flex w-100 justify-content-between">
                 <div>
                     <span class="fw-bold">No results</span>
                 </div>
             </div>
         </li>
-        <li class="list-group-item list-group-item-action clickable d-flex justify-content-between"
-            v-for="result in results" @contextmenu.prevent="right_click({ item: result, event: $event })"
-            @click="openResult(result)">
+        <li class="list-group-item theme-list-item clickable d-flex justify-content-between" v-for="result in results"
+            @contextmenu.prevent="right_click({ item: result, event: $event })" @click="openResult(result)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(result.type, result.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
-                    <button class="btn btn-link search-link" :content_id="result.id" :content_type="result.type"
-                        style="display:contents;">
+                    <button class="btn btn-link theme-color red-on-hover" :content_id="result.id"
+                        :content_type="result.type" style="display:contents;">
                         {{ result.title }}
                     </button>
                     <div>

@@ -30,15 +30,15 @@
                                         AIR</button>
                                 </div>
                                 <div class="d-flex justify-content-between">
-                                    <div class="d-flex align-items-center font-monospace me-2">
+                                    <div class="d-flex align-items-center font-monospace text-muted me-2">
                                         <small>{{ formatTime(store.playing.seek) }}</small>
                                     </div>
-                                    <div class="d-flex align-items-center font-monospace me-2">
+                                    <div class="d-flex align-items-center font-monospace text-muted me-2">
                                         <small>{{ formatTime(store.playing.duration) }}</small>
                                     </div>
                                 </div>
                                 <div class="progress mb-4" @click="props.seekProgress($event)">
-                                    <div class="progress-bar bg-dark progress-bar-animated" aria-valuenow="0"
+                                    <div class="progress-bar theme-btn progress-bar-animated" aria-valuenow="0"
                                         aria-valuemin="0" aria-valuemax="100"
                                         :style="{ 'width': store.playing.progress + '%' }">
                                         <span class="visually-hidden"></span>
@@ -57,12 +57,15 @@
                                 <hr />
                                 <!-- Second set of buttons -->
                                 <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn border bi bi-shuffle mx-1" @click="emit('shuffle')" />
-                                    <button type="button" class="btn bi bi-soundwave mx-1" @click="emit('group_session')" />
-                                    <button type="button" class="btn bi bi-chat-square-text-fill mx-1"
+                                    <button type="button" class="btn theme-color border bi bi-shuffle mx-1"
+                                        @click="emit('shuffle')" />
+                                    <button type="button" class="btn theme-color bi bi-soundwave mx-1"
+                                        @click="emit('group_session')" />
+                                    <button type="button" class="btn theme-color bi bi-chat-square-text-fill mx-1"
                                         @click="emit('lyrics')" />
-                                    <button type="button" class="btn bi bi-collection-fill mx-1" @click="emit('queue')" />
-                                    <button type="button" class="btn border bi mx-1" :class="props.repeat_icon"
+                                    <button type="button" class="btn theme-color bi bi-collection-fill mx-1"
+                                        @click="emit('queue')" />
+                                    <button type="button" class="btn theme-color border bi mx-1" :class="props.repeat_icon"
                                         @click="repeat" />
                                 </div>
                             </div>

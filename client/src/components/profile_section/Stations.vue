@@ -1,29 +1,29 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link search-link">Profile</router-link>
+            <router-link to="/profile" class="nav-link red-on-hover theme-color">Profile</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/history" class="nav-link search-link">Listening
+            <router-link to="/profile/history" class="nav-link red-on-hover theme-color">Listening
                 History</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/tracks" class="nav-link search-link">Favorite Tracks</router-link>
+            <router-link to="/profile/tracks" class="nav-link red-on-hover theme-color">Favorite Tracks</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/playlists" class="nav-link search-link">Playlists</router-link>
+            <router-link to="/profile/playlists" class="nav-link red-on-hover theme-color">Playlists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/albums" class="nav-link search-link">Albums</router-link>
+            <router-link to="/profile/albums" class="nav-link red-on-hover theme-color">Albums</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/artists" class="nav-link search-link">Artists</router-link>
+            <router-link to="/profile/artists" class="nav-link red-on-hover theme-color">Artists</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/stations" class="nav-link bg-dark search-link text-white">Stations</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/friends" class="nav-link search-link">Friends</router-link>
+            <router-link to="/profile/friends" class="nav-link red-on-hover theme-color">Friends</router-link>
         </li>
     </ul>
     <hr />
@@ -35,13 +35,13 @@
             <span class="input-group-text bi bi-broadcast" id="addon-wrapping"></span>
             <input ref="station_name" type="text" class="form-control" placeholder="Station name" aria-label="Station name"
                 aria-describedby="addon-wrapping" @keypress.enter="search_station">
-            <button class="btn btn-dark" @click="search_station">Search</button>
+            <button class="btn btn-dark theme-btn" @click="search_station">Search</button>
         </div>
         <div v-if="!searchFinished" class="alert alert-primary appear" role="alert">
             Searching...
         </div>
     </div>
-    <div class="row g-2">
+    <div class="row g-3">
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="station in stations">
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: station, event: $event })">
                 <div class="p-3">
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                     <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
+                        <h6 class="fw-bold text-break text-wrap clickable red-on-hover theme-color p-2 ps-0"
                             @click="openStation(station.GuideId)">{{ station.Title }}</h6>
                     </div>
                 </div>
