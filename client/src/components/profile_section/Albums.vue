@@ -1,29 +1,32 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link red-on-hover theme-color">Profile</router-link>
+            <router-link to="/profile" class="nav-link fw-bold purple-on-hover theme-color">Profile</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/history" class="nav-link red-on-hover theme-color">Listening
+            <router-link to="/profile/history" class="nav-link fw-bold purple-on-hover theme-color">Listening
                 History</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/tracks" class="nav-link red-on-hover theme-color">Favorite Tracks</router-link>
+            <router-link to="/profile/tracks" class="nav-link fw-bold purple-on-hover theme-color">Favorite
+                Tracks</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/playlists" class="nav-link red-on-hover theme-color">Playlists</router-link>
+            <router-link to="/profile/playlists"
+                class="nav-link fw-bold purple-on-hover theme-color">Playlists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/albums" class="nav-link bg-dark red-on-hover text-white">Albums</router-link>
+            <router-link to="/profile/albums"
+                class="nav-link fw-bold theme-btn black-on-hover text-white">Albums</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/artists" class="nav-link red-on-hover theme-color">Artists</router-link>
+            <router-link to="/profile/artists" class="nav-link fw-bold purple-on-hover theme-color">Artists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/stations" class="nav-link red-on-hover theme-color">Stations</router-link>
+            <router-link to="/profile/stations" class="nav-link fw-bold purple-on-hover theme-color">Stations</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/friends" class="nav-link red-on-hover theme-color">Friends</router-link>
+            <router-link to="/profile/friends" class="nav-link fw-bold purple-on-hover theme-color">Friends</router-link>
         </li>
     </ul>
     <hr />
@@ -52,7 +55,7 @@
                         </div>
                     </div>
                     <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable theme-color red-on-hover p-2 ps-0"
+                        <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
                             @click="openAlbum(album.id)">{{ album.title }}</h6>
                     </div>
                 </div>
@@ -60,7 +63,8 @@
         </div>
     </div>
     <div class="d-flex justify-content-end mt-2">
-        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn" @click="get_albums">Load more</button>
+        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
+            @click="get_albums">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Loading...

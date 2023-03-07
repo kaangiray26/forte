@@ -10,25 +10,25 @@
                     <ul class="nav nav-pills nav-justified">
                         <li class="nav-item">
                             <router-link to="/" class="nav-link fw-bold" aria-current="page"
-                                :class="{ 'active bg-dark text-white': path == '/', 'theme-color': path != '/' }">
+                                :class="{ 'active theme-btn text-white': path == '/', 'theme-color': path != '/' }">
                                 <span class="fs-5">Home</span>
                             </router-link>
                         </li>
                         <li class="nav-item">
                             <router-link to="/artists" class="nav-link fw-bold" aria-current="page"
-                                :class="{ 'active bg-dark text-white': path == '/artists', 'theme-color': path != '/artists' }">
+                                :class="{ 'active theme-btn text-white': path == '/artists', 'theme-color': path != '/artists' }">
                                 <span class="fs-5">Artists</span>
                             </router-link>
                         </li>
                         <li class="nav-item">
                             <router-link to="/albums" class="nav-link fw-bold" aria-current="page"
-                                :class="{ 'active bg-dark text-white': path == '/albums', 'theme-color': path != '/albums' }">
+                                :class="{ 'active theme-btn text-white': path == '/albums', 'theme-color': path != '/albums' }">
                                 <span class="fs-5">Albums</span>
                             </router-link>
                         </li>
                         <li class="nav-item">
                             <router-link to="/profile" class="nav-link fw-bold" aria-current="page"
-                                :class="{ 'active bg-dark text-white': path == '/profile', 'theme-color': path != '/profile' }">
+                                :class="{ 'active theme-btn text-white': path == '/profile', 'theme-color': path != '/profile' }">
                                 <span class="fs-5">Profile</span>
                             </router-link>
                         </li>

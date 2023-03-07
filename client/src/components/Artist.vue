@@ -21,11 +21,13 @@
                         <div class="pt-2">
                             <div class="d-flex flex-wrap">
                                 <div class="m-1">
-                                    <button ref="wiki_btn" type="button" class="btn btn-dark theme-btn fw-bold"
+                                    <button ref="wiki_btn" type="button"
+                                        class="btn btn-dark theme-btn black-on-hover fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_wiki_page">Wikipedia</button>
                                 </div>
                                 <div class="m-1">
-                                    <button ref="lastfm_btn" type="button" class="btn btn-dark theme-btn fw-bold"
+                                    <button ref="lastfm_btn" type="button"
+                                        class="btn btn-dark theme-btn black-on-hover fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_lastfm_page">Last.fm</button>
                                 </div>
                             </div>

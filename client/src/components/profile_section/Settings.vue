@@ -1,33 +1,35 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link bg-dark red-on-hover text-white">Profile</router-link>
+            <router-link to="/profile" class="nav-link fw-bold theme-btn black-on-hover text-white">Profile</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/history" class="nav-link red-on-hover theme-color">Listening
+            <router-link to="/profile/history" class="nav-link fw-bold purple-on-hover theme-color">Listening
                 History</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/tracks" class="nav-link red-on-hover theme-color">Favorite Tracks</router-link>
+            <router-link to="/profile/tracks" class="nav-link fw-bold purple-on-hover theme-color">Favorite
+                Tracks</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/playlists" class="nav-link red-on-hover theme-color">Playlists</router-link>
+            <router-link to="/profile/playlists"
+                class="nav-link fw-bold purple-on-hover theme-color">Playlists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/albums" class="nav-link red-on-hover theme-color">Albums</router-link>
+            <router-link to="/profile/albums" class="nav-link fw-bold purple-on-hover theme-color">Albums</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/artists" class="nav-link red-on-hover theme-color">Artists</router-link>
+            <router-link to="/profile/artists" class="nav-link fw-bold purple-on-hover theme-color">Artists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/stations" class="nav-link red-on-hover theme-color">Stations</router-link>
+            <router-link to="/profile/stations" class="nav-link fw-bold purple-on-hover theme-color">Stations</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/friends" class="nav-link red-on-hover theme-color">Friends</router-link>
+            <router-link to="/profile/friends" class="nav-link fw-bold purple-on-hover theme-color">Friends</router-link>
         </li>
     </ul>
     <hr>
-    <div class="card mb-3">
+    <div class="card border-0">
         <div class="card-body">
             <h3 class="theme-color">Last.fm</h3>
             <div class="d-inline-flex flex-column">
@@ -75,23 +77,25 @@
         </div>
     </div>
     <hr>
-    <div class="card">
+    <div class="card border-0">
         <div class="card-body">
             <div class="d-inline-flex">
                 <div class="d-flex flex-column">
-                    <button class="btn btn-dark flex-nowrap m-1" @click="change_theme">
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap m-1" @click="change_theme">
                         <span class="me-2">Theme</span>
                         <span class="bi"
                             :class="{ 'bi-sun-fill': store.theme == 'light', 'bi-moon-fill': store.theme == 'dark' }"></span>
                     </button>
-                    <button class="btn btn-dark m-1" @click="reset_menu">Reset menu</button>
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold m-1" @click="reset_menu">Reset
+                        menu</button>
                 </div>
             </div>
         </div>
     </div>
     <hr />
     <div>
-        <a class="red-on-hover text-muted" href="https://github.com/kaangiray26/forte/tree/gh-pages" target="_blank">
+        <a class="purple-on-hover fw-bold text-muted" href="https://github.com/kaangiray26/forte/tree/gh-pages"
+            target="_blank">
             <span>Forte Mar 7 Version.</span>
         </a>
     </div>

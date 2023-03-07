@@ -12,8 +12,8 @@
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(result.type, result.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
-                    <button class="btn btn-link theme-color red-on-hover" :content_id="result.id"
-                        :content_type="result.type" style="display:contents;">
+                    <button class="btn btn-link theme-color fw-bold" :content_id="result.id" :content_type="result.type"
+                        style="display:contents;">
                         {{ result.title }}
                     </button>
                     <div>

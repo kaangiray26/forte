@@ -232,7 +232,7 @@ img {
 body.dark-theme {
     --background-color: #191922;
     --text-color: #eee;
-    --card-background: #121216;
+    --card-background: transparent;
 }
 
 /* Light Theme */
@@ -272,6 +272,14 @@ hr {
 
 .red-on-hover:hover {
     color: var(--bs-danger) !important;
+}
+
+.black-on-hover:hover {
+    color: #191922 !important;
+}
+
+.purple-on-hover:hover {
+    color: #595AFF !important;
 }
 
 .action-btn {

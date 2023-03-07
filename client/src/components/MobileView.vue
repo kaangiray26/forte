@@ -10,13 +10,13 @@
                                 <img :src="get_cover(store.playing.cover)"
                                     class="card-img-top image-stable border border-dark rounded">
                             </div>
-                            <div class="overflow-hidden text-center clickable mt-0 m-4" @click="openAlbum">
-                                <div class="text-wrap">
+                            <div class="overflow-hidden text-center mt-0 m-4">
+                                <div class="text-wrap clickable" @click="openAlbum">
                                     <h5 class="fw-bold bg-dark text-white rounded p-2 mb-2">{{ store.playing.title }}
                                     </h5>
-                                    <button class="btn btn-sm btn-dark fw-bold" @click="emit('quality')">{{
-                                        store.playing.quality }}</button>
                                 </div>
+                                <button class="btn btn-sm btn-dark fw-bold" @click="emit('quality')">{{
+                                    store.playing.quality }}</button>
                             </div>
                         </div>
                         <div class="card-body d-flex align-items-end p-2">

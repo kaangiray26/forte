@@ -9,7 +9,7 @@
                                 <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
                             </div>
                             <div class="d-flex flex-column">
-                                <span class="fw-bold text-wrap clickable red-on-hover mb-1" @click="openAlbum">
+                                <span class="fw-bold text-wrap clickable purple-on-hover mb-1" @click="openAlbum">
                                     {{ store.playing.title }}
                                 </span>
                                 <div>
