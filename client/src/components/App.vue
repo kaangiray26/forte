@@ -111,11 +111,11 @@ onBeforeMount(() => {
     let theme = JSON.parse(localStorage.getItem("theme"));
     if (!theme) {
         if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            document.querySelector("#theme").href = "/assets/dark-theme.css";
+            document.body.classList.toggle("dark-theme");
             store.theme = "dark";
         }
     } else {
-        document.querySelector("#theme").href = "/assets/" + theme + "-theme.css";
+        document.body.classList.toggle("dark-theme");
         store.theme = theme;
     }
 

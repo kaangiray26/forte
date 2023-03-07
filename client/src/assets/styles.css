@@ -227,3 +227,107 @@ img {
     object-fit: cover;
     aspect-ratio: 1/1;
 }
+
+/* Dark Theme */
+body.dark-theme {
+    --background-color: #191922;
+    --text-color: #eee;
+    --card-background: #121216;
+}
+
+/* Light Theme */
+body.light-theme {
+    --background-color: #fff;
+    --text-color: #000;
+    --card-background: #fff
+}
+
+.theme-color {
+    color: var(--text-color) !important;
+}
+
+body {
+    background-color: var(--background-color) !important;
+}
+
+.search-link {
+    color: var(--bs-dark) !important;
+}
+
+.search-link:hover {
+    color: var(--bs-danger) !important;
+}
+
+hr {
+    color: var(--text-color) !important;
+}
+
+.now-playing {
+    background-color: #FFF3CD !important;
+}
+
+.clickable-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35) !important;
+}
+
+.red-on-hover:hover {
+    color: var(--bs-danger) !important;
+}
+
+.action-btn {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.artist {
+    color: #fff !important;
+    background-color: RGBA(13, 110, 253, var(--bs-bg-opacity, 1)) !important;
+}
+
+.track {
+    color: #fff !important;
+    background-color: RGBA(33, 37, 41, var(--bs-bg-opacity, 1)) !important;
+}
+
+.album {
+    color: #000 !important;
+    background-color: RGBA(255, 193, 7, var(--bs-bg-opacity, 1)) !important;
+}
+
+.playlist {
+    color: #fff !important;
+    background-color: RGBA(25, 135, 84, var(--bs-bg-opacity, 1)) !important;
+}
+
+.user {
+    color: #fff !important;
+    background-color: RGBA(89, 92, 95, var(--bs-bg-opacity, 1)) !important;
+}
+
+.card {
+    background-color: var(--card-background) !important;
+}
+
+.search-card-input {
+    background-color: var(--background-color) !important;
+    color: var(--text-color) !important;
+}
+
+.side-bar-text {
+    color: var(--text-color) !important;
+}
+
+.theme-btn {
+    background-color: #595AFF !important;
+}
+
+.theme-background {
+    background-color: var(--card-background) !important;
+}
+
+.theme-list-item {
+    background-color: transparent !important;
+}
+
+.theme-list-item:hover {
+    box-shadow: inset 0 0 0 1px #595AFF !important;
+}
