@@ -11,7 +11,7 @@
             <router-link to="/profile/tracks" class="nav-link red-on-hover theme-color">Favorite Tracks</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/playlists" class="nav-link bg-dark search-link text-white">Playlists</router-link>
+            <router-link to="/profile/playlists" class="nav-link bg-dark red-on-hover text-white">Playlists</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/albums" class="nav-link red-on-hover theme-color">Albums</router-link>

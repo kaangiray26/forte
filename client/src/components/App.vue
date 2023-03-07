@@ -109,13 +109,14 @@ async function keyPress(event) {
 onBeforeMount(() => {
     // Theme
     let theme = JSON.parse(localStorage.getItem("theme"));
+    console.log("Theme:", theme);
     if (!theme) {
         if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            document.body.classList.toggle("dark-theme");
+            document.body.classList = "dark-theme";
             store.theme = "dark";
         }
     } else {
-        document.body.classList.toggle("dark-theme");
+        document.body.classList = theme + "-theme";
         store.theme = theme;
     }
 

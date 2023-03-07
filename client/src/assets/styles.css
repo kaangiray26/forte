@@ -307,6 +307,10 @@ hr {
     background-color: var(--card-background) !important;
 }
 
+.player-card {
+    background-color: var(--bs-dark) !important;
+}
+
 .search-card-input {
     background-color: var(--background-color) !important;
     color: var(--text-color) !important;

@@ -20,7 +20,7 @@
             <router-link to="/profile/artists" class="nav-link red-on-hover theme-color">Artists</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/stations" class="nav-link bg-dark search-link text-white">Stations</router-link>
+            <router-link to="/profile/stations" class="nav-link bg-dark red-on-hover text-white">Stations</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/friends" class="nav-link red-on-hover theme-color">Friends</router-link>

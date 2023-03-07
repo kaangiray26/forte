@@ -1,5 +1,5 @@
 <template>
-    <div class="card text-bg-dark rounded-0 hide-on-mobile">
+    <div class="player-card card text-bg-dark rounded-0 hide-on-mobile">
         <div class="card-body p-0">
             <div class="d-flex flex-column">
                 <div v-show="store.playing.loaded">
@@ -35,7 +35,7 @@
                             <small>{{ formatTime(store.playing.seek) }}</small>
                         </div>
                         <div class="progress flex-fill mx-2" @click="seekProgress($event)">
-                            <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
+                            <div class="progress-bar theme-btn progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
                                 aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
                             </div>
                         </div>
@@ -82,7 +82,7 @@
         </div>
     </div>
     <!-- Mobile player -->
-    <div ref="mobilePlayer" class="card text-bg-dark rounded-0 hide-on-desktop">
+    <div ref="mobilePlayer" class="player-card card text-bg-dark rounded-0 hide-on-desktop">
         <div class="card-body p-0">
             <div class="d-inline-flex flex-row w-100 align-items-center"
                 :class="{ 'justify-content-between': store.playing.loaded, 'justify-content-end': !store.playing.loaded }">
@@ -107,7 +107,7 @@
                 </div>
             </div>
             <div class="progress flex-fill m-2" @click="seekProgress($event)">
-                <div class="progress-bar bg-primary progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
+                <div class="progress-bar theme-btn progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
                     aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
                 </div>
             </div>

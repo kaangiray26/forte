@@ -1,7 +1,7 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link to="/profile" class="nav-link bg-dark search-link text-white">Profile</router-link>
+            <router-link to="/profile" class="nav-link bg-dark red-on-hover text-white">Profile</router-link>
         </li>
         <li class="nav-item">
             <router-link to="/profile/history" class="nav-link red-on-hover theme-color">Listening
@@ -114,7 +114,7 @@ const top_tracks = ref([]);
 async function change_theme() {
     store.theme = store.theme == 'dark' ? 'light' : 'dark';
     localStorage.setItem("theme", JSON.stringify(store.theme));
-    document.querySelector("#theme").href = `/assets/${store.theme}-theme.css`;
+    document.body.className = store.theme + '-theme';
 }
 
 async function reset_menu(ev) {

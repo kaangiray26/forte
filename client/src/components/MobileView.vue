@@ -30,10 +30,10 @@
                                         AIR</button>
                                 </div>
                                 <div class="d-flex justify-content-between">
-                                    <div class="d-flex align-items-center font-monospace text-muted me-2">
+                                    <div class="d-flex align-items-center font-monospace theme-color me-2">
                                         <small>{{ formatTime(store.playing.seek) }}</small>
                                     </div>
-                                    <div class="d-flex align-items-center font-monospace text-muted me-2">
+                                    <div class="d-flex align-items-center font-monospace theme-color me-2">
                                         <small>{{ formatTime(store.playing.duration) }}</small>
                                     </div>
                                 </div>

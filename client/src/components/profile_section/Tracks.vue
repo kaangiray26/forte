@@ -8,7 +8,7 @@
                 History</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/tracks" class="nav-link bg-dark search-link text-white">Favorite
+            <router-link to="/profile/tracks" class="nav-link bg-dark red-on-hover text-white">Favorite
                 Tracks</router-link>
         </li>
         <li class="nav-item">

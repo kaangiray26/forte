@@ -4,7 +4,7 @@
             <router-link to="/profile" class="nav-link red-on-hover theme-color">Profile</router-link>
         </li>
         <li class="nav-item">
-            <router-link to="/profile/history" class="nav-link bg-dark search-link text-white">Listening
+            <router-link to="/profile/history" class="nav-link bg-dark red-on-hover text-white">Listening
                 History</router-link>
         </li>
         <li class="nav-item">
