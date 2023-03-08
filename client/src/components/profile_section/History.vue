@@ -47,7 +47,7 @@
         <li class="list-group-item theme-list-item clickable d-flex justify-content-between" v-for="track in tracks"
             @contextmenu.prevent="right_click({ item: track, event: $event })" @click="playTrack(track.id)">
             <div class="d-flex flex-fill align-items-center">
-                <img :src="track.cover" class="playlist-selection-img me-2" />
+                <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link theme-color purple-on-hover" :content_id="track.id"
                         :content_type="track.type" style="display:contents;">
@@ -73,6 +73,18 @@ import { right_click, action } from '/js/events.js';
 
 const tracks = ref([]);
 const searchFinished = ref(true);
+
+function get_cover(cover) {
+    if (!cover) {
+        return "/images/track.svg"
+    }
+
+    if (cover.startsWith("http")) {
+        return cover;
+    }
+
+    return ft.server + '/' + cover;
+}
 
 // Must be synchronized in groupSession: ok
 async function playTrack(track_id) {
