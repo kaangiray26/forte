@@ -244,6 +244,11 @@ async function update_album_cover(id, album, artist_id) {
     }
 
     let cover = await get_lastfm_cover(artist.title, album);
+    if (!cover) {
+        log("=> Warning: " + album);
+        log("=> Can't get cover for the album, skipping...");
+        return
+    }
 
     await db.none("UPDATE albums SET cover = $1 WHERE id = $2", [cover, id]);
     await db.none("UPDATE tracks SET cover = $1 WHERE album = $2", [cover, id]);
