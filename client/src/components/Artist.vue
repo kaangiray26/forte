@@ -45,25 +45,28 @@
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item theme-list-item clickable d-flex" v-for="album in albums"
+                        <li class="list-group-item theme-list-item clickable d-flex p-1" v-for="album in albums"
                             @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album.id)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
-                                    <div class="d-flex align-items-start padding-7">
+                                    <div class="d-flex align-items-start">
                                         <img :src="get_album_cover(album.cover)" class="track-cover" />
                                     </div>
-                                    <div class="d-flex align-items-start">
-                                        <button class="btn btn-link search-link d-flex flex-column text-start"
+                                    <div class="d-flex align-items-center">
+                                        <div class="btn btn-link search-link d-flex flex-row text-start"
                                             style="display:contents;">
-                                            <span class="theme-color">{{ album.title }}</span>
+                                            <span class="theme-color me-2">{{ album.title }}</span>
                                             <span class="text-muted">{{ album.year }}</span>
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center">
-                                    <span class="text-muted">{{
-                                        album.nb_tracks
-                                    }}</span>
+                                <div class="d-flex align-items-center search-link">
+                                    <div class="btn btn-link search-link d-flex flex-row text-start"
+                                        style="display:contents;">
+                                        <span class="text-muted">{{
+                                            album.nb_tracks
+                                        }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </li>

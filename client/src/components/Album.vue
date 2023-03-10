@@ -39,7 +39,7 @@
                                     </div>
                                 </div>
                             </li>
-                            <li class="list-group-item theme-list-item clickable d-flex"
+                            <li class="list-group-item theme-list-item clickable d-flex p-1"
                                 :class="{ 'now-playing': selected_track == track.id }"
                                 @contextmenu.prevent="right_click({ item: track, event: $event })"
                                 @click="play_track(track.id)">

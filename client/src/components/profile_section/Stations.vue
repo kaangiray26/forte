@@ -38,7 +38,7 @@
             <span class="input-group-text bi bi-broadcast" id="addon-wrapping"></span>
             <input ref="station_name" type="text" class="form-control" placeholder="Station name" aria-label="Station name"
                 aria-describedby="addon-wrapping" @keypress.enter="search_station">
-            <button class="btn btn-dark theme-btn" @click="search_station">Search</button>
+            <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="search_station">Search</button>
         </div>
         <div v-if="!searchFinished" class="alert alert-primary appear" role="alert">
             Searching...

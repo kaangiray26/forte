@@ -12,21 +12,26 @@
                             <span class="fw-bold">Queue</span>
                         </div>
                         <div>
-                            <button class="btn btn-light fw-bold" @click="clear_queue">Clear</button>
+                            <button class="btn btn-dark theme-btn black-on-hover fw-bold"
+                                @click="clear_queue">Clear</button>
                         </div>
                     </div>
                 </li>
-                <li class="list-group-item list-group-item-action d-flex justify-content-between clickable"
+                <li class="list-group-item theme-list-item clickable d-flex p-1"
                     :class="{ 'now-playing': index === store.queue_index }" v-for="(track, index) in queue"
                     @click="play_queue_track(index)">
-                    <div class="d-flex flex-fill">
-                        <div class="ratio-1x1 me-2">
-                            <img :src="get_track_cover(track.cover)" class="placeholder-img" width="56" height="56" />
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <button class="btn btn-link search-link" :content_id="track.id" style="display:contents;">
-                                <span class="text-muted me-2">{{ index + 1 }}.</span>{{ track.title }}
-                            </button>
+                    <div class="d-flex w-100 justify-content-between">
+                        <div class="d-flex">
+                            <div class="d-flex align-items-start">
+                                <img :src="get_track_cover(track.cover)" class="track-cover" />
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
+                                    style="display:contents;">
+                                    <span class="text-muted me-2">{{ index + 1 }}.</span>
+                                    <span class="theme-color text-break">{{ track.title }}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </li>

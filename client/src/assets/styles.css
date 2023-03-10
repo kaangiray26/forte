@@ -263,7 +263,8 @@ hr {
 }
 
 .now-playing {
-    background-color: #FFF3CD !important;
+    /* background-color: #FFF3CD !important; */
+    box-shadow: inset 0 0 0 1px #595AFF !important;
 }
 
 .clickable-shadow:hover {
@@ -342,4 +343,8 @@ hr {
 
 .theme-list-item:hover {
     box-shadow: inset 0 0 0 1px #595AFF !important;
+}
+
+.offcanvas-body {
+    background-color: var(--background-color) !important;
 }

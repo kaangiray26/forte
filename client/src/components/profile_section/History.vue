@@ -44,7 +44,7 @@
                 </div>
             </div>
         </li>
-        <li class="list-group-item theme-list-item clickable d-flex justify-content-between" v-for="track in tracks"
+        <li class="list-group-item theme-list-item clickable d-flex justify-content-between p-1" v-for="track in tracks"
             @contextmenu.prevent="right_click({ item: track, event: $event })" @click="playTrack(track.id)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" />
