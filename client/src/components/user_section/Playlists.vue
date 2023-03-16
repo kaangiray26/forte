@@ -1,27 +1,33 @@
 <template>
     <ul class="nav nav-pills">
         <li class="nav-item">
-            <router-link :to="'/user/' + username" class="nav-link search-link">Profile</router-link>
+            <router-link :to="'/user/' + username"
+                class="nav-link fw-bold purple-on-hover theme-color">Profile</router-link>
         </li>
         <li class="nav-item">
-            <router-link :to="'/user/' + username + '/history'" class="nav-link search-link">Listening
+            <router-link :to="'/user/' + username + '/history'"
+                class="nav-link fw-bold purple-on-hover theme-color">Listening
                 History</router-link>
         </li>
         <li class="nav-item">
-            <router-link :to="'/user/' + username + '/tracks'" class="nav-link search-link">Favorite Tracks</router-link>
+            <router-link :to="'/user/' + username + '/tracks'" class="nav-link fw-bold purple-on-hover theme-color">Favorite
+                Tracks</router-link>
         </li>
         <li class="nav-item">
             <router-link :to="'/user/' + username + '/playlists'"
-                class="nav-link bg-dark search-link text-white">Playlists</router-link>
+                class="nav-link fw-bold theme-btn black-on-hover text-white">Playlists</router-link>
         </li>
         <li class="nav-item">
-            <router-link :to="'/user/' + username + '/albums'" class="nav-link search-link">Albums</router-link>
+            <router-link :to="'/user/' + username + '/albums'"
+                class="nav-link fw-bold purple-on-hover theme-color">Albums</router-link>
         </li>
         <li class="nav-item">
-            <router-link :to="'/user/' + username + '/artists'" class="nav-link search-link">Artists</router-link>
+            <router-link :to="'/user/' + username + '/artists'"
+                class="nav-link fw-bold purple-on-hover theme-color">Artists</router-link>
         </li>
         <li class="nav-item">
-            <router-link :to="'/user/' + username + '/friends'" class="nav-link search-link">Friends</router-link>
+            <router-link :to="'/user/' + username + '/friends'"
+                class="nav-link fw-bold purple-on-hover theme-color">Friends</router-link>
         </li>
     </ul>
     <hr />
@@ -33,7 +39,7 @@
                         <img class="playlist-img" src="/images/empty.svg" />
                     </div>
                     <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap p-2 ps-0">No playlists added yet</h6>
+                        <h6 class="theme-color fw-bold text-break text-wrap p-2 ps-0">No playlists added yet</h6>
                     </div>
                 </div>
             </div>
@@ -60,7 +66,7 @@
                         </div>
                     </div>
                     <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable search-link p-2 ps-0"
+                        <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
                             @click="openPlaylist(playlist.id)">{{ playlist.title }}</h6>
                     </div>
                 </div>

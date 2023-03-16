@@ -3,7 +3,8 @@
         <div class="p-3">
             <div class="position-relative clickable-shadow">
                 <div @click="openArtist">
-                    <img class="img-fluid placeholder-img" :src="get_cover(props.artist.cover)" height="250" width="250" />
+                    <img class="img-fluid placeholder-img" :src="get_cover(props.artist.cover)" @error="placeholder"
+                        height="250" width="250" />
                 </div>
             </div>
             <div class="d-flex flex-fill">
@@ -20,6 +21,10 @@ import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
 const router = useRouter();
+
+async function placeholder(obj) {
+    obj.target.src = "/images/artist.svg";
+}
 
 function get_cover(cover) {
     if (!cover) {

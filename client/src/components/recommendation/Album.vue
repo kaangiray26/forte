@@ -3,7 +3,8 @@
         <div class="p-3">
             <div class="position-relative clickable-shadow">
                 <div @click="openAlbum">
-                    <img class="img-fluid placeholder-img" :src="get_cover(props.album.cover)" height="250" width="250" />
+                    <img class="img-fluid placeholder-img" :src="get_cover(props.album.cover)" @error="placeholder"
+                        height="250" width="250" />
                 </div>
                 <div class="position-absolute bottom-0 right-0">
                     <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
@@ -25,6 +26,10 @@ import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
 const router = useRouter();
+
+async function placeholder(obj) {
+    obj.target.src = "/images/album.svg";
+}
 
 function get_cover(cover) {
     if (!cover) {

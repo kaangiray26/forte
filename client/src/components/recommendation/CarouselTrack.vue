@@ -2,7 +2,8 @@
     <div class="card border-0 p-0" @contextmenu.prevent="right_click({ item: props.track, event: $event })">
         <div class="card-body border-0">
             <div class="clickable-shadow" @click="openTrack">
-                <img class="carousel-img" :src="get_cover(props.track.cover)" width="250" height="250" />
+                <img class="carousel-img" :src="get_cover(props.track.cover)" @error="placeholder" width="250"
+                    height="250" />
             </div>
             <div class="mt-2">
                 <h6 class="fw-bold clickable theme-color purple-on-hover" @click="openTrack">{{ track.title }}</h6>
@@ -17,6 +18,10 @@ import { store } from '/js/store.js';
 import { right_click } from '/js/events.js';
 
 const router = useRouter();
+
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
+}
 
 function get_cover(cover) {
     if (!cover) {

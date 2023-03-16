@@ -109,7 +109,6 @@ async function keyPress(event) {
 onBeforeMount(() => {
     // Theme
     let theme = JSON.parse(localStorage.getItem("theme"));
-    console.log("Theme:", theme);
     if (!theme) {
         if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
             document.body.classList = "dark-theme";

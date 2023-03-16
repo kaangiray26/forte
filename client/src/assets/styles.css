@@ -348,3 +348,7 @@ hr {
 .offcanvas-body {
     background-color: var(--background-color) !important;
 }
+
+.img-thumbnail {
+    padding: 0;
+}

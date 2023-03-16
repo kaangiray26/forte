@@ -6,9 +6,9 @@
             </div>
         </div>
     </div>
-    <div class="card border-0 mx-4 shadow-lg" v-show="loaded">
-        <div class="card-body">
-            <div class="row g-4">
+    <div class="card rounded-0 border-0 mx-3" v-show="loaded">
+        <div class="card-body px-3">
+            <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
                         <img class="playlist-img shadow" :src="get_cover(playlist.cover)" />
@@ -19,37 +19,39 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
-                    <h1 class="album-title mb-4">{{ playlist.title }}</h1>
-                    <router-link :to="'/user/' + playlist.author" class="search-link">
-                        <div class="d-inline-flex align-content-center align-items-center">
-                            <span class="mx-2">{{ playlist.author }}</span>
-                        </div>
-                    </router-link>
-                    <div class="text-muted">
-                        <span class="mx-2">{{ tracks.length }} tracks</span>
+                <div class="col theme-color">
+                    <div class="d-flex flex-column">
+                        <h1 class="album-title">{{ playlist.title }}</h1>
+                        <small class="text-muted">{{ tracks.length }} tracks</small>
+                    </div>
+                    <div class="pt-2">
+                        <router-link :to="'/user/' + playlist.author" class="search-link">
+                            <div class="d-inline-flex align-content-center align-items-center">
+                                <span class="purple-on-hover theme-color">{{ playlist.author }}</span>
+                            </div>
+                        </router-link>
                     </div>
                     <hr />
                     <ul class="list-group">
-                        <li class="list-group-item bg-dark text-light d-flex">
+                        <li class="list-group-item theme-btn text-light d-flex">
                             <div class="d-flex w-100 justify-content-between">
                                 <div>
                                     <span class="fw-bold">Playlist</span>
                                 </div>
                             </div>
                         </li>
-                        <li v-for="(track, index) in tracks" class="list-group-item list-group-item-action d-flex"
+                        <li v-for="(track, index) in tracks" class="list-group-item theme-list-item clickable d-flex p-1"
                             @contextmenu.prevent="right_click({ item: track, event: $event })">
-                            <div class="d-flex w-100 justify-content-between clickable" @click="play_track(track.id)">
+                            <div class="d-flex w-100 justify-content-between" @click="play_track(track.id)">
                                 <div class="d-flex">
-                                    <div class="d-flex ratio-1x1 align-items-center">
-                                        <img :src="track.cover" class="track-cover" />
+                                    <div class="d-flex align-items-start">
+                                        <img :src="get_track_cover(track.cover)" class="track-cover" />
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-link search-link d-flex text-start"
                                             style="display:contents;">
                                             <span class="text-muted me-2">{{ index + 1 }}.</span>
-                                            <span>{{ track.title }}</span>
+                                            <span class="theme-color text-break">{{ track.title }}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -92,9 +94,22 @@ const isAuthor = ref(false);
 
 function get_cover(cover) {
     if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
         return ft.server + '/' + cover;
     }
     return "/images/cassette.svg"
+}
+
+function get_track_cover(cover) {
+    if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
+        return ft.server + '/' + cover;
+    }
+    return "/images/track.svg"
 }
 
 async function delete_track_from_playlist(id) {

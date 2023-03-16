@@ -3,7 +3,8 @@
         <div class="p-3">
             <div class="position-relative clickable-shadow">
                 <div @click="openTrack">
-                    <img class="img-fluid placeholder-img" :src="get_cover(props.track.cover)" height="250" width="250" />
+                    <img class="img-fluid placeholder-img" :src="get_cover(props.track.cover)" @error="placeholder"
+                        height="250" width="250" />
                 </div>
                 <div class="position-absolute bottom-0 right-0">
                     <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
@@ -27,6 +28,10 @@ import { store } from '/js/store.js';
 import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
+
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
+}
 
 function get_cover(cover) {
     if (!cover) {

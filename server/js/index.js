@@ -13,7 +13,7 @@ const MemoryStore = memorystore(session);
 
 // Path
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const upload = multer({ dest: "../uploads" })
+const upload = multer({ dest: path.join(__dirname, "../uploads") })
 
 // Express
 const app = express()

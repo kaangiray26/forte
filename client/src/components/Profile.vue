@@ -4,10 +4,11 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile img-thumbnail" :src="get_cover()" width="250" height="250" />
-                        <div class="position-absolute bottom-0 right-0">
-                            <button class="btn btn-light border-dark bi bi-pencil-square shadow m-2" type="button"
-                                style="opacity: 0.90;" @click="change_cover">
+                        <img class="img-profile img-thumbnail shadow" :src="get_cover()" @error="placeholder" width="250"
+                            height="250" />
+                        <div class=" position-absolute bottom-0 right-0 m-2">
+                            <button class="btn btn-dark theme-btn black-on-hover fw-bold bi bi-pencil-square shadow"
+                                type="button" @click="change_cover">
                             </button>
                         </div>
                         <input ref="cover_upload" type="file" class="visually-hidden" @change="handle_cover" />
@@ -30,11 +31,20 @@ const profile = ref({});
 const cover_upload = ref(null);
 const loaded = ref(false);
 
+async function placeholder(obj) {
+    obj.target.src = "/images/default_profile.svg";
+}
+
 function get_cover() {
-    if (profile.value.cover) {
-        return ft.server + '/' + profile.value.cover;
+    if (!profile.value.cover) {
+        return "/images/default_profile.svg"
     }
-    return "/images/default_profile.svg"
+
+    if (profile.value.cover.startsWith("http")) {
+        return cover;
+    }
+
+    return ft.server + '/' + profile.value.cover;
 }
 
 async function get_profile() {

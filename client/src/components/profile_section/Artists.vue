@@ -47,7 +47,8 @@
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: artist, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="playlist-img pe-auto" :src="get_cover(artist.cover)" @click="openArtist(artist.id)" />
+                        <img class="img-fluid" :src="get_cover(artist.cover)" @click="openArtist(artist.id)"
+                            @error="placeholder" width="250" height="250" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
@@ -77,6 +78,10 @@ const artists = ref([]);
 const total = ref(0);
 const offset = ref(0);
 const searchFinished = ref(true);
+
+async function placeholder(obj) {
+    obj.target.src = "/images/artist.svg";
+}
 
 function get_cover(cover) {
     if (cover) {

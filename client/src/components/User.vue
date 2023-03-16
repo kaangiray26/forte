@@ -1,5 +1,5 @@
 <template>
-    <div class="card border-0 mx-3" v-if="loaded">
+    <div class="card rounded-0 border-0 mx-3" v-if="loaded">
         <div class="card-body px-3">
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
@@ -10,14 +10,15 @@
                     </div>
                 </div>
                 <div class="col">
-                    <h1 class="album-title">{{ user.username }}</h1>
+                    <h1 class="album-title theme-color">{{ user.username }}</h1>
                     <div v-show="!is_self" class="pt-2">
-                        <button v-show="friend" type="button" class="btn btn-light border text-nowrap"
-                            @click="remove_friend">
+                        <button v-show="friend" type="button"
+                            class="btn btn-dark theme-btn black-on-hover fw-bold text-nowrap" @click="remove_friend">
                             <span class="bi bi-emoji-smile-fill me-2"></span>
-                            <span>Friend</span>
+                            <span>Friends</span>
                         </button>
-                        <button v-show="!friend" type="button" class="btn btn-dark text-nowrap" @click="add_friend">
+                        <button v-show="!friend" type="button"
+                            class="btn btn-dark theme-btn black-on-hover fw-bold text-nowrap" @click="add_friend">
                             <span class="bi bi-emoji-frown-fill me-2"></span>
                             <span>Add Friend</span>
                         </button>

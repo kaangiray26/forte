@@ -35,7 +35,10 @@ import LastfmAuth from "/components/LastfmAuth.vue"
 
 import TrackRedirect from "/components/TrackRedirect.vue"
 
+import NotFound from "/components/NotFound.vue"
+
 const routes = [
+    { path: '/:pathMatch(.*)*', component: NotFound },
     {
         path: "/",
         component: Recommendations,

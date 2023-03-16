@@ -12,7 +12,7 @@
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative"
                         @contextmenu.prevent="right_click({ item: album, event: $event })">
-                        <img class="playlist-img shadow" :src="get_cover(album.cover)" width="250" height="250" />
+                        <img class="playlist-img shadow" :src="get_cover(album.cover)" @error="placeholder" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_album(album.id)">
@@ -21,14 +21,19 @@
                     </div>
                 </div>
                 <div class="col theme-color">
-                    <h1 class="album-title mb-4">{{ album.title }}</h1>
-                    <router-link :to="'/artist/' + artist.id" class="search-link">
-                        <div class="d-inline-flex align-content-center align-items-center">
-                            <img class="img-fluid figure-img rounded m-0" :src="get_artist_cover(artist.cover)" width="28"
-                                height="28">
-                            <span class="red-on-hover theme-color mx-2">{{ artist.title }}</span>
-                        </div>
-                    </router-link>
+                    <div class="d-flex flex-column">
+                        <h1 class="album-title">{{ album.title }}</h1>
+                        <small class="text-muted">{{ tracks.length }} tracks</small>
+                    </div>
+                    <div class="pt-2">
+                        <router-link :to="'/artist/' + artist.id" class="search-link">
+                            <div class="d-inline-flex align-content-center align-items-center">
+                                <img class="img-fluid figure-img rounded m-0" :src="get_artist_cover(artist.cover)"
+                                    width="28" height="28">
+                                <span class="purple-on-hover theme-color mx-2">{{ artist.title }}</span>
+                            </div>
+                        </router-link>
+                    </div>
                     <hr />
                     <ul class="list-group">
                         <div v-for="track in tracks">
@@ -45,8 +50,9 @@
                                 @click="play_track(track.id)">
                                 <div class="d-flex w-100 justify-content-between">
                                     <div class="d-flex">
-                                        <div class="d-flex align-items-start">
-                                            <img :src="get_track_cover(album.cover)" class="track-cover" />
+                                        <div class="d-flex align-items-center">
+                                            <img :src="get_track_cover(album.cover)" class="track-cover"
+                                                @error="track_placeholder" />
                                         </div>
                                         <div class="d-flex align-items-center">
                                             <button class="btn btn-link search-link d-flex text-start"
@@ -84,6 +90,14 @@ const tracks = ref([]);
 const loaded = ref(false);
 
 const selected_track = ref(null);
+
+async function placeholder(obj) {
+    obj.target.src = "/images/album.svg";
+}
+
+async function track_placeholder(obj) {
+    obj.target.src = "/images/track.svg";
+}
 
 function get_cover(cover) {
     if (cover) {

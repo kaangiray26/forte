@@ -4,7 +4,7 @@
             <div class="d-flex flex-column">
                 <div class="d-inline-flex input-group flex-nowrap">
                     <input ref="search_field" type="text" class="form-control search-card-input" placeholder="Search"
-                        aria-label="Search" @input="search">
+                        aria-label="Search" @input="search" @keyup.enter="search">
                 </div>
                 <div class="hide-on-desktop mt-3">
                     <ul class="nav nav-pills nav-justified">

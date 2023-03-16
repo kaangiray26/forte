@@ -6,7 +6,7 @@
         </div>
         <div class="offcanvas-body">
             <ul class="list-group shadow-lg">
-                <li class="list-group-item bg-dark text-light d-flex">
+                <li class="list-group-item bg-dark text-light d-flex pe-1">
                     <div class="d-flex justify-content-between w-100">
                         <div class="d-flex align-items-center">
                             <span class="fw-bold">Queue</span>
@@ -18,9 +18,8 @@
                     </div>
                 </li>
                 <li class="list-group-item theme-list-item clickable d-flex p-1"
-                    :class="{ 'now-playing': index === store.queue_index }" v-for="(track, index) in queue"
-                    @click="play_queue_track(index)">
-                    <div class="d-flex w-100 justify-content-between">
+                    :class="{ 'now-playing': index === store.queue_index }" v-for="(track, index) in queue">
+                    <div class="d-flex w-100 justify-content-between" @click="play_queue_track(index)">
                         <div class="d-flex">
                             <div class="d-flex align-items-start">
                                 <img :src="get_track_cover(track.cover)" class="track-cover" />
@@ -33,6 +32,10 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <div class="d-flex h-100 align-items-center">
+                        <button class="btn btn-dark theme-btn black-on-hover action-btn bi bi-x ms-0 m-2" type="button"
+                            @click="remove_track(index)"></button>
                     </div>
                 </li>
             </ul>
@@ -48,8 +51,19 @@ import { notify, action, refresh_queue } from '/js/events.js';
 
 let offcanvas = null;
 const offcanvasEl = ref(null);
-
 const queue = ref(store.queue);
+
+// Must be synchronized in groupSession: ok
+async function remove_track(index) {
+    action({
+        func: async function op() {
+            ft.removeQueueTrack(index);
+        },
+        object: index,
+        operation: "removeQueueTrack"
+    })
+
+}
 
 function get_track_cover(cover) {
     if (cover) {

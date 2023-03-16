@@ -6,7 +6,8 @@
                     <div class="d-flex flex-row justify-content-between align-items-center p-2 pb-0 rounded m-0">
                         <div class="d-flex flex-row align-items-center">
                             <div class="clickable-shadow" @click="openAlbum">
-                                <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
+                                <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" @error="placeholder"
+                                    width="56" height="56" />
                             </div>
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-wrap clickable purple-on-hover mb-1" @click="openAlbum">
@@ -88,7 +89,8 @@
                 :class="{ 'justify-content-between': store.playing.loaded, 'justify-content-end': !store.playing.loaded }">
                 <div v-show="store.playing.loaded" class="overflow-hidden">
                     <div class="d-flex flex-row align-items-center p-2 pb-0 rounded clickable m-0" @click="openAlbum">
-                        <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" width="56" height="56" />
+                        <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" @error="placeholder" width="56"
+                            height="56" />
                         <div class="overflow-hidden">
                             <div class="fw-bold text-nowrap clickable">{{
                                 store.playing.title
@@ -152,6 +154,10 @@ const group_key = ref(0);
 
 const qualityDisplay = ref(null);
 
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
+}
+
 function get_cover(cover) {
     if (!cover) {
         return "/images/track.svg"
@@ -189,10 +195,10 @@ const repeat_icon = computed(() => {
         return 'bi-repeat text-muted';
     }
     if (store.playing.repeat == 1) {
-        return 'bi-repeat';
+        return 'bi-repeat text-white';
     }
     if (store.playing.repeat == 2) {
-        return 'bi-repeat-1';
+        return 'bi-repeat-1 text-white';
     }
 });
 

@@ -273,6 +273,11 @@ props.conn.on("data", async function (data) {
                 })
                 break;
 
+            case 'removeQueueTrack':
+                store.func_stack.push(async function op() {
+                    ft.removeQueueTrack(data.object);
+                })
+
             // Play operations
             case 'playTrack':
                 store.func_stack.push(async function op() {

@@ -49,8 +49,8 @@
                             @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album.id)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
-                                    <div class="d-flex align-items-start">
-                                        <img :src="get_album_cover(album.cover)" class="track-cover" />
+                                    <div class="d-flex align-items-center">
+                                        <img :src="get_album_cover(album.cover)" class="track-cover" @error="placeholder" />
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="btn btn-link search-link d-flex flex-row text-start"
@@ -92,6 +92,10 @@ const wiki_btn = ref(null);
 const lastfm_btn = ref(null);
 
 const router = useRouter();
+
+async function placeholder(obj) {
+    obj.target.src = "/images/album.svg";
+}
 
 async function get_wiki_page() {
     wiki_btn.value.disabled = true;

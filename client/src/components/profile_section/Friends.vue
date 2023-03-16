@@ -47,7 +47,7 @@
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.username)">
-                        <img class="img-profile img-thumbnail rounded" :src="get_cover(friend.cover)" width="250"
+                        <img class="img-fluid" :src="get_cover(friend.cover)" @error="placeholder" width="250"
                             height="250" />
                     </div>
                     <div class="d-flex flex-fill">
@@ -69,6 +69,10 @@ const router = useRouter();
 const friends = ref([]);
 const friend_name = ref(null);
 const searchFinished = ref(true);
+
+async function placeholder(obj) {
+    obj.target.src = "/images/default_profile.svg";
+}
 
 function get_cover(cover) {
     if (cover) {

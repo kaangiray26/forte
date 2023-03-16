@@ -402,7 +402,7 @@ class Forte {
 
     async addToQueueNext(tracks) {
         let q = this.getCurrentQueue();
-        q.splice(1, 0, ...tracks);
+        q.splice(store.queue_index + 1, 0, ...tracks);
         this.setCurrentQueue(q);
     }
 
@@ -488,14 +488,20 @@ class Forte {
     async playAlbum(album_id) {
         this.API(`/album/${album_id}/tracks`).then((response) => {
             store.queue_index = 0;
-            this.load_track(response.tracks[0]);
-            this.addToQueueStart(response.tracks);
+            let tracks = response.tracks;
+            tracks.sort((a, b) => a.track_position - b.track_position);
+            tracks.sort((a, b) => a.disc_number - b.disc_number);
+            this.load_track(tracks[0]);
+            this.addToQueueStart(tracks);
         })
     }
 
     async playAlbumNext(album_id) {
         this.API(`/album/${album_id}/tracks`).then((response) => {
-            this.addToQueueNext(response.tracks);
+            let tracks = response.tracks;
+            tracks.sort((a, b) => a.track_position - b.track_position);
+            tracks.sort((a, b) => a.disc_number - b.disc_number);
+            this.addToQueueNext(tracks);
         })
     }
 
@@ -521,7 +527,10 @@ class Forte {
 
     async queueAlbum(album_id) {
         this.API(`/album/${album_id}/tracks`).then((response) => {
-            this.addToQueue(response.tracks);
+            let tracks = response.tracks;
+            tracks.sort((a, b) => a.track_position - b.track_position);
+            tracks.sort((a, b) => a.disc_number - b.disc_number);
+            this.addToQueue(tracks);
         })
     }
 
@@ -529,6 +538,12 @@ class Forte {
         this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
             this.addToQueue(response.tracks);
         })
+    }
+
+    async removeQueueTrack(index) {
+        let q = this.getCurrentQueue();
+        q.splice(index, 1)
+        this.setCurrentQueue(q);
     }
 
     async downloadTrack(track_id) {

@@ -47,7 +47,8 @@
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: album, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="playlist-img pe-auto" :src="get_cover(album.cover)" @click="openAlbum(album.id)" />
+                        <img class="img-fluid" :src="get_cover(album.cover)" @click="openAlbum(album.id)"
+                            @error="placeholder" width="250" height="250" />
                         <div class="d-flex position-absolute bottom-0 right-0 flex-nowrap">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
                                 @click="play_album(album.id)">
@@ -92,6 +93,10 @@ async function play_album(id) {
         object: id,
         operation: "playAlbum"
     })
+}
+
+async function placeholder(obj) {
+    obj.target.src = "/images/album.svg";
 }
 
 function get_cover(cover) {

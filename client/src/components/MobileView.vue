@@ -6,17 +6,19 @@
                 <div class="col h-100">
                     <div ref="cardView" class="card h-100">
                         <div>
-                            <div class="m-4">
-                                <img :src="get_cover(store.playing.cover)"
-                                    class="card-img-top image-stable border border-dark rounded">
+                            <div class="m-3">
+                                <img class="card-img-top image-stable border border-dark rounded"
+                                    :src="get_cover(store.playing.cover)" @error="placeholder">
                             </div>
-                            <div class="overflow-hidden text-center mt-0 m-4">
-                                <div class="text-wrap clickable" @click="openAlbum">
-                                    <h5 class="fw-bold bg-dark text-white rounded p-2 mb-2">{{ store.playing.title }}
+                            <div class="overflow-hidden text-center mt-0 m-3">
+                                <div class="text-wrap clickable mb-3" @click="openAlbum">
+                                    <h5 class="fw-bold theme-btn black-on-hover text-white rounded p-2">{{
+                                        store.playing.title }}
                                     </h5>
                                 </div>
-                                <button class="btn btn-sm btn-dark fw-bold" @click="emit('quality')">{{
-                                    store.playing.quality }}</button>
+                                <button class="btn btn-sm btn-dark theme-btn black-on-hover fw-bold"
+                                    @click="emit('quality')">{{
+                                        store.playing.quality }}</button>
                             </div>
                         </div>
                         <div class="card-body d-flex align-items-end p-2">
@@ -46,27 +48,34 @@
                                 </div>
                                 <!-- First set of buttons -->
                                 <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Basic example">
-                                    <button type="button" class="btn btn-dark rounded bi bi-skip-start-fill"
+                                    <button type="button"
+                                        class="btn btn-dark theme-btn black-on-hover rounded bi bi-skip-start-fill"
                                         @click="play_previous"></button>
-                                    <button type="button" class="btn btn-dark rounded bi mx-2" :class="{
-                                        'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
-                                    }" @click="play"></button>
-                                    <button type="button" class="btn btn-dark rounded bi bi-skip-end-fill"
+                                    <button type="button" class="btn btn-dark theme-btn black-on-hover rounded bi mx-2"
+                                        :class="{
+                                            'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
+                                        }" @click="play"></button>
+                                    <button type="button"
+                                        class="btn btn-dark theme-btn black-on-hover rounded bi bi-skip-end-fill"
                                         @click="play_next"></button>
                                 </div>
                                 <hr />
                                 <!-- Second set of buttons -->
                                 <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn theme-color border bi bi-shuffle mx-1"
+                                    <button type="button"
+                                        class="btn theme-btn black-on-hover theme-color bi bi-shuffle mx-1"
                                         @click="emit('shuffle')" />
-                                    <button type="button" class="btn theme-color bi bi-soundwave mx-1"
+                                    <button type="button"
+                                        class="btn theme-btn black-on-hover theme-color bi bi-soundwave mx-1"
                                         @click="emit('group_session')" />
-                                    <button type="button" class="btn theme-color bi bi-chat-square-text-fill mx-1"
+                                    <button type="button"
+                                        class="btn theme-btn black-on-hover theme-color bi bi-chat-square-text-fill mx-1"
                                         @click="emit('lyrics')" />
-                                    <button type="button" class="btn theme-color bi bi-collection-fill mx-1"
+                                    <button type="button"
+                                        class="btn theme-btn black-on-hover theme-color bi bi-collection-fill mx-1"
                                         @click="emit('queue')" />
-                                    <button type="button" class="btn theme-color border bi mx-1" :class="props.repeat_icon"
-                                        @click="repeat" />
+                                    <button type="button" class="btn theme-btn black-on-hover bi mx-1"
+                                        :class="props.repeat_icon" @click="repeat" />
                                 </div>
                             </div>
                         </div>
@@ -92,6 +101,10 @@ const emit = defineEmits(['queue', 'lyrics', 'shuffle', 'group_session', 'qualit
 let offcanvas = null;
 const offcanvasEl = ref(null);
 const cardView = ref(null);
+
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
+}
 
 async function openAlbum() {
     store.selected_track_id = store.playing.id;
