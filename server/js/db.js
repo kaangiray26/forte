@@ -13,7 +13,6 @@ import { exit } from 'process';
 import { fileURLToPath } from 'url';
 
 // Path to library
-// const library_path = '/library';
 const library_path = '/library';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
