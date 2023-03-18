@@ -294,16 +294,6 @@ class Forte {
 
         // At the end of the queue
         if (store.queue_index + 1 == queue.length) {
-            // Radio
-            if (store.playing.radio) {
-                this.API('/random/track').then((response) => {
-                    this.load_track(response.track);
-                    this.addToQueue([response.track]);
-                    store.queue_index += 1;
-                })
-                return
-            }
-
             // Repeat queue
             if (store.playing.repeat == 1) {
                 store.queue_index = 0;
@@ -315,9 +305,12 @@ class Forte {
                 this.load_track(queue[store.queue_index]);
                 return;
             }
-            store.playing.is_playing = false;
-            store.playing.seek = 0;
-            store.playing.progress = 0;
+            // Radio
+            this.API('/random/track').then((response) => {
+                this.load_track(response.track);
+                this.addToQueue([response.track]);
+                store.queue_index += 1;
+            })
             return;
         }
 
@@ -383,15 +376,8 @@ class Forte {
             return;
         }
 
-        // At the end of the queue
-        let queue = this.getCurrentQueue();
-        if (store.queue_index + 1 == queue.length) {
-            return;
-        }
-
-        // Somewhere in the queue
-        store.queue_index += 1;
-        this.load_track(queue[store.queue_index]);
+        // Emit track finished
+        this.track_finished();
     }
 
     async addToQueueStart(tracks) {

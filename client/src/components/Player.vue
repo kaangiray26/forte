@@ -67,14 +67,6 @@
                                         <span>Group session</span>
                                     </button>
                                 </li>
-                                <li>
-                                    <button class="dropdown-item" type="button" @click="radio">
-                                        <span class="bi bi-broadcast"></span>
-                                        <span class="mx-2">Radio</span>
-                                        <span v-show="store.playing.radio" class="badge bg-success">ON AIR</span>
-                                        <span v-show="!store.playing.radio" class="badge bg-danger">OFF AIR</span>
-                                    </button>
-                                </li>
                             </ul>
                         </button>
                     </div>

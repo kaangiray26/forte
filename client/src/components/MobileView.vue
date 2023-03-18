@@ -23,14 +23,6 @@
                         </div>
                         <div class="card-body d-flex align-items-end p-2">
                             <div class="d-flex flex-fill flex-column">
-                                <div class="d-flex justify-content-center">
-                                    <button v-show="store.playing.radio" type="button"
-                                        class="btn btn-sm btn-success fw-bold" @click="radio">ON
-                                        AIR</button>
-                                    <button v-show="!store.playing.radio" type="button"
-                                        class="btn btn-sm btn-danger fw-bold" @click="radio">OFF
-                                        AIR</button>
-                                </div>
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center font-monospace theme-color me-2">
                                         <small>{{ formatTime(store.playing.seek) }}</small>

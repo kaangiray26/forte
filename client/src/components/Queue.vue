@@ -22,7 +22,7 @@
                     <div class="d-flex w-100 justify-content-between" @click="play_queue_track(index)">
                         <div class="d-flex">
                             <div class="d-flex align-items-start">
-                                <img :src="get_track_cover(track.cover)" class="track-cover" />
+                                <img :src="get_track_cover(track.cover)" class="track-cover" @error="placeholder" />
                             </div>
                             <div class="d-flex align-items-center">
                                 <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
@@ -52,6 +52,10 @@ import { notify, action, refresh_queue } from '/js/events.js';
 let offcanvas = null;
 const offcanvasEl = ref(null);
 const queue = ref(store.queue);
+
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
+}
 
 // Must be synchronized in groupSession: ok
 async function remove_track(index) {
