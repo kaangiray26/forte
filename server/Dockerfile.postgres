@@ -1,2 +1,0 @@
-FROM postgres:15-alpine
-ADD install-extensions.sql /docker-entrypoint-initdb.d/
