@@ -68,6 +68,7 @@ app.get("/log_off", (req, res, next) => {
 
 app.get("/config", isAdmin, db.get_config)
 app.put("/config", isAdmin, db.update_config)
+app.get("/status", isAdmin, db.get_status)
 
 app.get("/get_users", isAdmin, db.get_users)
 app.post("/add_user", isAdmin, db.add_user)

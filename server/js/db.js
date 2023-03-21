@@ -1,4 +1,5 @@
 // db.js
+import { v5 as uuidv5 } from 'uuid';
 import path from "path";
 import glob from 'glob'
 import chokidar from "chokidar";
@@ -7,7 +8,6 @@ import pgPromise from 'pg-promise';
 import fs from 'fs';
 import crypto from 'crypto';
 import readlineSync from 'readline-sync';
-import axios from 'axios';
 import mime from 'mime-types';
 import { exit } from 'process';
 import { fileURLToPath } from 'url';
@@ -36,80 +36,6 @@ const cs_artists = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'p
 const cs_albums = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'nb_tracks', 'genre', 'year', 'date', 'path'], { table: 'albums' });
 const cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'artist', 'album', 'track_position', 'disc_number', 'path'], { table: 'tracks' });
 
-// Exported functions
-const exports = {
-    add_friend: _add_friend,
-    add_history: _add_history,
-    add_track_to_playlist: _add_track_to_playlist,
-    add_user: _add_user,
-    admin_login: _admin_login,
-    admin_session: _admin_session,
-    check_friends: _check_friends,
-    create_playlist: _create_playlist,
-    delete_playlist: _delete_playlist,
-    delete_track_to_playlist: _delete_track_to_playlist,
-    get_album: _get_album,
-    get_album_loved: _get_album_loved,
-    get_album_tracks: _get_album_tracks,
-    get_albums: _get_albums,
-    get_all_albums: _get_all_albums,
-    get_artist: _get_artist,
-    get_artist_loved: _get_artist_loved,
-    get_artists: _get_artists,
-    get_config: _get_config,
-    get_friends: _get_friends,
-    get_history: _get_history,
-    get_lastfm_artist: _get_lastfm_artist,
-    get_lastfm_auth: _get_lastfm_auth,
-    get_lastfm_profile: _get_lastfm_profile,
-    get_lyrics: _get_lyrics,
-    get_playlist: _get_playlist,
-    get_playlist_loved: _get_playlist_loved,
-    get_playlist_tracks: _get_playlist_tracks,
-    get_profile: _get_profile,
-    get_profile_albums: _get_profile_albums,
-    get_profile_artists: _get_profile_artists,
-    get_profile_playlists: _get_profile_playlists,
-    get_profile_tracks: _get_profile_tracks,
-    get_random_track: _get_random_track,
-    get_random_tracks: _get_random_tracks,
-    get_track: _get_track,
-    get_track_basic: _get_track_basic,
-    get_track_loved: _get_track_loved,
-    get_user: _get_user,
-    get_user_albums: _get_user_albums,
-    get_user_artists: _get_user_artists,
-    get_user_friends: _get_user_friends,
-    get_user_history: _get_user_history,
-    get_user_playlists: _get_user_playlists,
-    get_user_tracks: _get_user_tracks,
-    get_users: _get_users,
-    init: _init,
-    is_authenticated: _is_authenticated,
-    lastfm_auth: _lastfm_auth,
-    lastfm_scrobble: _lastfm_scrobble,
-    love_album: _love_album,
-    love_artist: _love_artist,
-    love_track: _love_track,
-    remove_friend: _remove_friend,
-    remove_user: _remove_user,
-    search: _search,
-    search_album: _search_album,
-    search_artist: _search_artist,
-    search_track: _search_track,
-    session: _session,
-    stream: _stream,
-    stream_head: _stream_head,
-    unlove_album: _unlove_album,
-    unlove_artist: _unlove_artist,
-    unlove_track: _unlove_track,
-    update_album: _update_album,
-    update_artist: _update_artist,
-    update_config: _update_config,
-    update_track: _update_track,
-    upload_cover: _upload_cover,
-}
-
 // Logger
 function log(message) {
     const timestamp = new Date().toISOString();
@@ -123,6 +49,7 @@ function log(message) {
 }
 
 async function _init(args) {
+    // Reset tables on request
     if (args.includes('--reset')) {
         let answer = readlineSync.question("Do you really want to reset? (y/n)");
         if (answer === 'y') {
@@ -142,18 +69,36 @@ async function _init(args) {
         }
     }
 
+    // Create tables if they don't exist
     db.tx('creating_tables', t => {
         log("\n=> Checking tables...");
         return t.batch([
+            // config
             t.none("CREATE TABLE IF NOT EXISTS config (id SERIAL PRIMARY KEY, name TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name))"),
-            t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, cover_path TEXT, path TEXT NOT NULL, UNIQUE(title))"),
-            t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, path TEXT NOT NULL, UNIQUE(title, artist))"),
-            t.none("CREATE TABLE IF NOT EXISTS playlists(id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'playlist', title TEXT NOT NULL, cover TEXT, author TEXT, tracks INTEGER[], UNIQUE(title, author))"),
-            t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, UNIQUE(title, artist, album))"),
+
+            // artists
+            t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, cover_path TEXT, path TEXT NOT NULL, uuid TEXT, UNIQUE(title))"),
+
+            // albums
+            t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, path TEXT NOT NULL, uuid TEXT, UNIQUE(title, artist))"),
+
+            // playlists
+            t.none("CREATE TABLE IF NOT EXISTS playlists(id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'playlist', title TEXT NOT NULL, cover TEXT, author TEXT, tracks INTEGER[], uuid TEXT, UNIQUE(title, author))"),
+
+            // tracks
+            t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, uuid TEXT, UNIQUE(title, artist, album))"),
+
+            // library
             t.none("CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, items VARCHAR[])"),
+
+            // auth
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
-            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history INTEGER[10], fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends VARCHAR[], lastfm TEXT, UNIQUE(username, token, session))"),
-            t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.type, playlists.title, playlists.cover FROM playlists UNION SELECT users.id, 'user', users.username, users.cover FROM users;"),
+
+            // users
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'user', username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history INTEGER[10], fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends VARCHAR[], lastfm TEXT, uuid TEXT, UNIQUE(username, token, session))"),
+
+            // fuzzy
+            t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.uuid uuid, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.uuid, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.uuid, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.uuid, playlists.type, playlists.title, playlists.cover FROM playlists UNION SELECT users.id, users.uuid, users.type, users.username, users.cover FROM users;"),
         ])
     }).then(() => {
         db.manyOrNone("SELECT * from config")
@@ -183,6 +128,9 @@ async function refresh_library() {
     // Update covers in the background
     update_covers();
 
+    // Update uuids in the background
+    update_uuids();
+
     // Watch the library
     let watcher = chokidar.watch(library_path, {
         ignoreInitial: true
@@ -195,93 +143,227 @@ async function refresh_library() {
     watcher.on('unlinkDir', item => remove_watched_dir(item))
 }
 
+async function update_uuids() {
+    // Get artists and albums without cover
+    let items = await db.manyOrNone("SELECT id, type, title, '0' as artist from artists WHERE uuid is NULL UNION ALL SELECT id, type, title, artist from albums WHERE uuid is NULL UNION ALL SELECT id, type, title, artist from tracks WHERE uuid is NULL");
+
+    // Quota limit
+    let batchSize = 50;
+    let delay = 5000;
+
+    // Get Last.fm API key
+    let lastfm_api_key = await db.one("SELECT value from config WHERE name='lastfm_api_key'");
+    lastfm_api_key = lastfm_api_key.value;
+
+    // Create UUIDs from Last.fm URLs
+    for (let i = 0; i < items.length; i += batchSize) {
+        let batch = items.slice(i, i + batchSize);
+        let promises = batch.map((item) => get_uuid_for(item, lastfm_api_key));
+        let resolves = await Promise.all(promises);
+
+        // Update metadata in the database
+        db.tx(async t => {
+            for (let j = 0; j < resolves.length; j++) {
+                let item = resolves[j];
+                if (item.type == "artist" && item.uuid) {
+                    await t.none("UPDATE artists SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                    continue;
+                }
+                if (item.type == "album" && item.uuid) {
+                    await t.none("UPDATE albums SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                    continue;
+                }
+                if (item.type == "track" && item.uuid) {
+                    await t.none("UPDATE tracks SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                }
+            }
+        });
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+}
+
 async function update_covers() {
     // Get artists and albums without cover
-    let items = await db.manyOrNone("SELECT type, id, title, 0 as artist from artists WHERE cover IS NULL UNION SELECT type, id, title, artist from albums WHERE cover IS NULL");
+    let items = await db.manyOrNone("SELECT id, type, title, '0' as artist from artists WHERE cover is NULL UNION SELECT id, type, title, artist from albums WHERE cover is NULL");
 
-    // Update covers
-    // Wait 1 second between each request
-    items.map(async (item) => {
-        if (item.type == "artist") {
-            update_artist_cover(item.id, item.title);
-        } else {
-            update_album_cover(item.id, item.title, item.artist);
+    // Quota limit
+    let batchSize = 50;
+    let delay = 5000;
+
+    // Get Covers from Deezer
+    for (let i = 0; i < items.length; i += batchSize) {
+        let batch = items.slice(i, i + batchSize);
+        let promises = batch.map((item) => get_cover_for(item));
+        let resolves = await Promise.all(promises);
+
+        // Update metadata in the database
+        db.tx(async t => {
+            for (let j = 0; j < resolves.length; j++) {
+                let item = resolves[j];
+                if (item.type == "artist" && item.cover) {
+                    await t.none("UPDATE artists SET cover=$1 WHERE id=$2", [item.cover, item.id]);
+                    continue;
+                }
+                if (item.type == "album" && item.cover) {
+                    await t.none("UPDATE albums SET cover=$1 WHERE id=$2", [item.cover, item.id]);
+                    await t.none("UPDATE tracks SET cover=$1 WHERE album=$2", [item.cover, item.id]);
+                }
+            }
+        });
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+}
+
+async function get_cover_for(obj) {
+    return new Promise(async (resolve, reject) => {
+        switch (obj.type) {
+            case "artist":
+                let artist = await get_artist_cover(obj.id, obj.title);
+                resolve(artist);
+                break;
+            case "album":
+                let album = await get_album_cover(obj.id, obj.title, obj.artist);
+                resolve(album);
+                break;
         }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
     })
 }
 
-async function update_artist_cover(id, artist) {
-    let response = await axios.get(`https://api.deezer.com/search/artist?q=${artist}&limit=1&output=json`);
-
-    if (!response.data.data) {
-        log("=> Warning: " + artist);
-        log("=> Quota limit reached while gathering cover, skipping...");
-        return
-    }
-
-    if (!response.data.data.length) {
-        log("=> Warning: " + artist);
-        log("=> Couldn't find cover for the artist, skipping...");
-        return
-    }
-
-    let cover = response.data.data[0].picture_medium;
-    await db.none("UPDATE artists SET cover = $1 WHERE id = $2", [cover, id]);
-
-    log("=> Updated cover for the artist: " + artist);
+async function get_uuid_for(obj, lastfm_api_key) {
+    return new Promise(async (resolve, reject) => {
+        switch (obj.type) {
+            case "artist":
+                let artist = await get_artist_uuid(obj.id, obj.title, lastfm_api_key);
+                resolve(artist);
+                break;
+            case "album":
+                let album = await get_album_uuid(obj.id, obj.title, obj.artist, lastfm_api_key);
+                resolve(album);
+                break;
+            case "track":
+                let track = await get_track_uuid(obj.id, obj.title, obj.artist, lastfm_api_key);
+                resolve(track);
+                break;
+        }
+    })
 }
 
-async function update_album_cover(id, album, artist_id) {
-    // Get artist title
-    let artist = await db.oneOrNone("SELECT title from artists WHERE id = $1", artist_id);
-
-    if (!artist) {
-        log("=> Warning: " + album);
-        log("=> Can't get cover for the album because artist is missing, skipping...");
-        return
-    }
-
-    let cover = await get_lastfm_cover(artist.title, album);
-    if (!cover) {
-        log("=> Warning: " + album);
-        log("=> Can't get cover for the album, skipping...");
-        return
-    }
-
-    await db.none("UPDATE albums SET cover = $1 WHERE id = $2", [cover, id]);
-    await db.none("UPDATE tracks SET cover = $1 WHERE album = $2", [cover, id]);
-
-    log("=> Updated cover for the album: " + album);
+async function get_artist_cover(id, title) {
+    return new Promise(async (resolve, reject) => {
+        fetch(`https://api.deezer.com/search/artist?q=${title}&limit=1&output=json`)
+            .then(response => response.json())
+            .then(response => {
+                if (!response.total) {
+                    resolve({ id: id, type: "artist", cover: null });
+                    return
+                }
+                resolve({ id: id, type: "artist", cover: response.data[0].picture_medium });
+                return
+            })
+            .catch(error => {
+                resolve({ id: id, type: "artist", cover: null });
+            });
+    });
 }
 
-async function get_lastfm_cover(artist, album) {
-    let lastfm_api_key = await db.oneOrNone("SELECT value from config WHERE name = 'lastfm_api_key'");
-    if (!lastfm_api_key.value) {
-        log("=> Warning: " + album);
-        log("=> Can't get cover for the album because Last.fm API key is missing, skipping...");
-        return null
-    }
-    let response = await axios.get(`https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${lastfm_api_key.value}&artist=${artist}&album=${album}&format=json`);
-    if (!response.data || !response.data.album || !response.data.album.image || !response.data.album.image.length) {
-        return null
-    }
-    return response.data.album.image.slice(-1)[0]['#text'];
+async function get_album_cover(id, title, artist_id) {
+    return new Promise(async (resolve, reject) => {
+        let artist = await db.oneOrNone("SELECT title FROM artists WHERE id=$1", [artist_id]);
+        if (!artist) {
+            resolve({ id: id, type: "album", cover: null });
+            return
+        }
+        fetch(`https://api.deezer.com/search/album?q=${artist.title} ${title}&limit=1&output=json`)
+            .then(response => response.json())
+            .then(response => {
+                if (!response.total) {
+                    resolve({ id: id, type: "album", cover: null });
+                    return
+                }
+                resolve({ id: id, type: "album", cover: response.data[0].cover_medium });
+                return
+            })
+            .catch(error => {
+                resolve({ id: id, type: "album", cover: null });
+            });
+    });
 }
 
-async function get_deezer_cover(artist, album) {
-    let response = await axios.get(`https://api.deezer.com/search/album?q=${artist + ' ' + album}&limit=1&output=json`);
-    if (!response.data.data) {
-        log("=> Warning: " + album);
-        log("=> Quota limit reached while gathering cover, skipping...");
-        return null
-    }
-    if (!response.data.data.length) {
-        log("=> Warning: " + album);
-        log("=> Couldn't find cover for the album, skipping...");
-        return null
-    }
-    return response.data.data[0].cover_medium;
+async function get_artist_uuid(id, title, lastfm_api_key) {
+    return new Promise(async (resolve, reject) => {
+        fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist=${title}&api_key=${lastfm_api_key}&format=json`, {
+            headers: {
+                'User-Agent': 'Forte/3.1 ( kaangiray26@protonmail.com )'
+            }
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (!response.corrections.hasOwnProperty("correction")) {
+                    resolve({ id: id, type: "artist", uuid: null, reason: 2 });
+                    return
+                }
+                resolve({ id: id, type: "artist", uuid: uuidv5(response.corrections.correction.artist.url, uuidv5.URL) });
+                return
+            })
+            .catch(error => {
+                resolve({ id: id, type: "artist", uuid: null, reason: 3 });
+            });
+    });
+}
+
+async function get_album_uuid(id, title, artist_id, lastfm_api_key) {
+    return new Promise(async (resolve, reject) => {
+        let artist = await db.oneOrNone("SELECT title FROM artists WHERE id=$1", [artist_id]);
+        if (!artist) {
+            resolve({ id: id, type: "album", uuid: null, reason: 1 });
+            return
+        }
+        fetch(`https://ws.audioscrobbler.com/2.0/?method=album.getcorrection&artist=${artist.title}&album=${title}&api_key=${lastfm_api_key}&format=json`, {
+            headers: {
+                'User-Agent': 'Forte/3.1 ( kaangiray26@protonmail.com )'
+            }
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (!response.corrections.hasOwnProperty("correction")) {
+                    resolve({ id: id, type: "album", uuid: null, reason: 2 });
+                    return
+                }
+                resolve({ id: id, type: "album", uuid: uuidv5(response.corrections.correction.album.url, uuidv5.URL) });
+                return
+            })
+            .catch(error => {
+                resolve({ id: id, type: "album", uuid: null, reason: 3 });
+            });
+    });
+}
+
+async function get_track_uuid(id, title, artist_id, lastfm_api_key) {
+    return new Promise(async (resolve, reject) => {
+        let artist = await db.oneOrNone("SELECT title FROM artists WHERE id=$1", [artist_id]);
+        if (!artist) {
+            resolve({ id: id, type: "track", uuid: null, reason: 1 });
+            return
+        }
+        fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getcorrection&artist=${artist.title}&track=${title}&api_key=${lastfm_api_key}&format=json`, {
+            headers: {
+                'User-Agent': 'Forte/3.1 ( kaangiray26@protonmail.com )'
+            }
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (!response.corrections.hasOwnProperty("correction")) {
+                    resolve({ id: id, type: "track", uuid: null, reason: 2 });
+                    return
+                }
+                resolve({ id: id, type: "track", uuid: uuidv5(response.corrections.correction.track.url, uuidv5.URL) });
+                return
+            })
+            .catch(error => {
+                resolve({ id: id, type: "track", uuid: null, reason: 3 });
+            });
+    });
 }
 
 async function check_library() {
@@ -685,7 +767,7 @@ async function handle_artist(item, artist_name = null) {
         "title": artist_name,
         "cover": cover_id,
         "cover_path": cover,
-        "path": item
+        "path": item,
     }, cs_artists) + " ON CONFLICT (title) DO UPDATE SET id = artists.id RETURNING id");
 }
 
@@ -699,6 +781,7 @@ async function handle_album(item,
             data: null,
         }
     }) {
+
     // Get number of tracks
     let tracks = await glob(`**/*.{${audio_extensions.join()}}`, {
         cwd: item,
@@ -1009,7 +1092,7 @@ async function _get_artists(req, res, next) {
     }
     db.task(async t => {
         try {
-            let artists = await t.manyOrNone("SELECT id, type, title, cover FROM artists ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
+            let artists = await t.manyOrNone("SELECT id, uuid, type, title, cover FROM artists ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
             res.status(200)
                 .json({
                     "artists": artists
@@ -1028,7 +1111,7 @@ async function _get_albums(req, res, next) {
     }
     db.task(async t => {
         try {
-            let albums = await t.manyOrNone("SELECT id, type, title, cover FROM albums ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
+            let albums = await t.manyOrNone("SELECT id, uuid, type, title, cover FROM albums ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
             res.status(200)
                 .json({
                     "albums": albums
@@ -1045,6 +1128,26 @@ async function _get_config(req, res, next) {
         res.status(200)
             .json({
                 "config": config,
+            })
+    })
+}
+
+async function _get_status(req, res, next) {
+    db.task(async t => {
+        let total_artists = await db.oneOrNone("SELECT COUNT(*) FROM artists");
+        let total_albums = await db.oneOrNone("SELECT COUNT(*) FROM albums");
+        let total_tracks = await db.oneOrNone("SELECT COUNT(*) FROM tracks");
+        let uuid_completion = await db.oneOrNone("SELECT COUNT(*) FROM (SELECT id FROM artists WHERE uuid IS NOT NULL UNION ALL SELECT id FROM albums WHERE uuid IS NOT NULL UNION ALL SELECT id FROM tracks WHERE uuid IS NOT NULL) t");
+        let cover_completion = await db.oneOrNone("SELECT COUNT(*) FROM (SELECT id FROM artists WHERE cover IS NOT NULL UNION ALL SELECT id FROM albums WHERE cover IS NOT NULL) t");
+        res.status(200)
+            .json({
+                "status": {
+                    "total_artists": total_artists.count,
+                    "total_albums": total_albums.count,
+                    "total_tracks": total_tracks.count,
+                    "cover_completion": cover_completion.count,
+                    "uuid_completion": uuid_completion.count,
+                }
             })
     })
 }
@@ -2465,6 +2568,81 @@ function get_api_sig(obj, sig) {
     }
     str += sig;
     return crypto.createHash('md5').update(str).digest("hex");
+}
+
+// Exported functions
+const exports = {
+    add_friend: _add_friend,
+    add_history: _add_history,
+    add_track_to_playlist: _add_track_to_playlist,
+    add_user: _add_user,
+    admin_login: _admin_login,
+    admin_session: _admin_session,
+    check_friends: _check_friends,
+    create_playlist: _create_playlist,
+    delete_playlist: _delete_playlist,
+    delete_track_to_playlist: _delete_track_to_playlist,
+    get_album: _get_album,
+    get_album_loved: _get_album_loved,
+    get_album_tracks: _get_album_tracks,
+    get_albums: _get_albums,
+    get_all_albums: _get_all_albums,
+    get_artist: _get_artist,
+    get_artist_loved: _get_artist_loved,
+    get_artists: _get_artists,
+    get_config: _get_config,
+    get_status: _get_status,
+    get_friends: _get_friends,
+    get_history: _get_history,
+    get_lastfm_artist: _get_lastfm_artist,
+    get_lastfm_auth: _get_lastfm_auth,
+    get_lastfm_profile: _get_lastfm_profile,
+    get_lyrics: _get_lyrics,
+    get_playlist: _get_playlist,
+    get_playlist_loved: _get_playlist_loved,
+    get_playlist_tracks: _get_playlist_tracks,
+    get_profile: _get_profile,
+    get_profile_albums: _get_profile_albums,
+    get_profile_artists: _get_profile_artists,
+    get_profile_playlists: _get_profile_playlists,
+    get_profile_tracks: _get_profile_tracks,
+    get_random_track: _get_random_track,
+    get_random_tracks: _get_random_tracks,
+    get_track: _get_track,
+    get_track_basic: _get_track_basic,
+    get_track_loved: _get_track_loved,
+    get_user: _get_user,
+    get_user_albums: _get_user_albums,
+    get_user_artists: _get_user_artists,
+    get_user_friends: _get_user_friends,
+    get_user_history: _get_user_history,
+    get_user_playlists: _get_user_playlists,
+    get_user_tracks: _get_user_tracks,
+    get_users: _get_users,
+    init: _init,
+    is_authenticated: _is_authenticated,
+    lastfm_auth: _lastfm_auth,
+    lastfm_scrobble: _lastfm_scrobble,
+    love_album: _love_album,
+    love_artist: _love_artist,
+    love_track: _love_track,
+    remove_friend: _remove_friend,
+    remove_user: _remove_user,
+    search: _search,
+    search_album: _search_album,
+    search_artist: _search_artist,
+    search_track: _search_track,
+    session: _session,
+    stream: _stream,
+    stream_head: _stream_head,
+    unlove_album: _unlove_album,
+    unlove_artist: _unlove_artist,
+    unlove_track: _unlove_track,
+    update_album: _update_album,
+    update_artist: _update_artist,
+    update_config: _update_config,
+    update_track: _update_track,
+    upload_cover: _upload_cover,
 }
 
 export default exports

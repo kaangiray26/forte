@@ -6,9 +6,8 @@
                     <img class="img-fluid placeholder-img" :src="get_cover(props.album.cover)" @error="placeholder"
                         height="250" width="250" />
                 </div>
-                <div class="position-absolute bottom-0 right-0">
-                    <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
-                        @click="play(props.album.id)">
+                <div class="position-absolute bottom-0 right-0 m-2">
+                    <button class="btn btn-light action-btn bi bi-play-fill" type="button" @click="play(props.album.id)">
                     </button>
                 </div>
             </div>

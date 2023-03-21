@@ -55,7 +55,10 @@ function get_cover() {
 
 async function get_user(id) {
     let data = await ft.API('/user/' + id);
-    if (!data) return;
+    if (!data || data.error) {
+        router.push('/404')
+        return;
+    }
 
     user.value = data.user;
     await check_friends();

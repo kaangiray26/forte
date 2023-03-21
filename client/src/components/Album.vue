@@ -142,7 +142,10 @@ async function play_track(id) {
 
 async function get_album(id) {
     let data = await ft.API(`/album/${id}`);
-    if (!data) return;
+    if (!data || data.error) {
+        router.push('/404')
+        return;
+    }
 
     artist.value = data.artist;
     album.value = data.album;
