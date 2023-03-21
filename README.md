@@ -6,7 +6,7 @@ Work on progress. You can't submit a server yet. Please check back later.
 ```
 
 ## Submitting a server
-If you would like to submit a server to this list, please open a pull request with a new file in the root directory. The file should be named `<hostname>.json` and should contain the following fields:
+If you would like to submit a server to this list, please open a pull request with a new file in the `hostnames` directory. The file should be named `<hostname>.json` and should contain the following fields:
 
 * `address`: The address of the server, which should be publicly accessible.
 * `owner`: GitHub username of the server owner.
@@ -19,7 +19,7 @@ If you would like to update your server's information, please open a pull reques
 
 Here's an example:
 
-**forte.json**
+**hostnames/forte.json**
 ```
 {
     "address": "https://example.com",
