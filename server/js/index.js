@@ -35,6 +35,8 @@ app.use(session({
 }))
 app.use(express.static(path.join(__dirname, "../dist")))
 app.use(express.static(path.join(__dirname, "../uploads")))
+app.use("/about", express.static("/uploads"))
+app.use("/about", express.static("/about"))
 
 // Authentication functions
 function isAdmin(req, res, next) {
@@ -48,6 +50,11 @@ function isAuthenticated(req, res, next) {
         else res.status(401).json({ "status": "error", "message": "session expired." })
     })
 }
+
+// Server alive check
+app.get("/alive", (req, res) => {
+    res.status(200).json({ "status": "alive", "version": process.env.version })
+})
 
 // Dashboard
 app.get("/auth", (req, res) => {
@@ -110,7 +117,7 @@ app.get("/api/profile/artists/:offset", isAuthenticated, db.get_profile_artists)
 app.get("/api/profile/playlists", isAuthenticated, db.get_profile_playlists)
 app.post("/api/profile/create_playlist", isAuthenticated, upload.single('cover'), db.create_playlist)
 
-app.get("/api/user/:id", isAuthenticated, db.get_user)
+app.get("/api/user/:id", db.get_user)
 app.get("/api/user/:id/history", isAuthenticated, db.get_user_history)
 app.get("/api/user/:id/tracks/:offset", isAuthenticated, db.get_user_tracks)
 app.get("/api/user/:id/playlists", isAuthenticated, db.get_user_playlists)

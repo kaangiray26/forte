@@ -1,5 +1,6 @@
 // db.js
 import { v5 as uuidv5 } from 'uuid';
+import { validate as uuidValidate } from 'uuid';
 import path from "path";
 import glob from 'glob'
 import chokidar from "chokidar";
@@ -988,6 +989,17 @@ async function _search(req, res, next) {
         return;
     }
 
+    // Search for UUID
+    if (uuidValidate(query)) {
+        db.any("SELECT * FROM fuzzy WHERE uuid = $1", [query])
+            .then(function (data) {
+                res.status(200)
+                    .json({ "data": data })
+            })
+        return;
+    }
+
+    // Fuzzy search
     db.any("SELECT * FROM fuzzy WHERE (title % $1) AND similarity(title, $1) > 0.2 ORDER BY similarity(title, $1) DESC LIMIT 5", [query])
         .then(function (data) {
             res.status(200)
@@ -1069,10 +1081,23 @@ async function _get_artist(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
-            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
-            let albums = await t.manyOrNone("SELECT * FROM albums wHERE artist = $1", [id]);
+            let artist = await t.oneOrNone(`SELECT * FROM artists WHERE ${column} = $1`, [id]);
+
+            if (!artist) {
+                res.status(404).json({ "error": "Artist not found." });
+                return;
+            }
+
+            let albums = await t.manyOrNone("SELECT * FROM albums wHERE artist = $1", [artist.id]);
             res.status(200)
                 .send(JSON.stringify({
                     "artist": artist,
@@ -1181,9 +1206,15 @@ async function _get_album(req, res, next) {
         return;
     }
 
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
-            let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+            let album = await t.oneOrNone(`SELECT * FROM albums WHERE ${column} = $1`, [id]);
 
             if (!album) {
                 res.status(404).json({ "error": "Album not found." });
@@ -1191,7 +1222,7 @@ async function _get_album(req, res, next) {
             }
 
             let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [album.artist]);
-            let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [id]);
+            let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [album.id]);
             res.status(200)
                 .send(JSON.stringify({
                     "album": album,
@@ -1258,9 +1289,16 @@ async function _get_track_basic(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [id]);
             res.status(200)
                 .send(JSON.stringify({
                     "track": track
@@ -1596,6 +1634,7 @@ async function _get_user(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
     db.task(async t => {
         let user = await t.oneOrNone("SELECT username, cover FROM users WHERE username = $1", [id]);
         if (!user) {

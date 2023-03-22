@@ -36,6 +36,7 @@ import LastfmAuth from "/components/LastfmAuth.vue"
 import TrackRedirect from "/components/TrackRedirect.vue"
 
 import NotFound from "/components/NotFound.vue"
+import Servers from "/components/Servers.vue"
 
 const routes = [
     { path: '/:pathMatch(.*)*', component: NotFound },
@@ -83,6 +84,10 @@ const routes = [
     {
         path: "/auth/lastfm",
         component: LastfmAuth
+    },
+    {
+        path: "/servers",
+        component: Servers
     },
     {
         path: '/profile',

@@ -81,6 +81,18 @@ class Forte {
         return response;
     }
 
+    async federatedAPI(address, query) {
+        if (!this.ready) return null;
+
+        return await fetch(address + "/api" + query)
+            .then((response) => {
+                return response.json();
+            })
+            .catch((error) => {
+                return { "error": "Couldn't find user on that server." }
+            });
+    }
+
     async add_friend(username) {
         let response = await fetch(this.server + '/api/friends/add' + `?session=${this.session}`, {
             method: "POST",
@@ -703,6 +715,15 @@ class Forte {
             return response.json();
         });
         return response;
+    }
+
+    async get_address(hostname) {
+        return await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${hostname}.json`)
+            .then(response => response.json())
+            .then(data => {
+                return data.address;
+            })
+            .catch(() => null);
     }
 }
 

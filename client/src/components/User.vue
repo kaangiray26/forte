@@ -1,4 +1,13 @@
 <template>
+    <div v-show="error">
+        <div class="d-flex justify-content-center p-2">
+            <div class="d-flex flex-column fw-bold theme-color">
+                <hr>
+                <span>{{ error_message }}</span>
+                <hr>
+            </div>
+        </div>
+    </div>
     <div class="card rounded-0 border-0 mx-3" v-if="loaded">
         <div class="card-body px-3">
             <div class="row g-3">
@@ -40,6 +49,8 @@ const is_self = ref(false);
 
 const user = ref({});
 const loaded = ref(false);
+const error = ref(false);
+const error_message = ref("");
 const friend = ref(false);
 
 const query_param = computed(() => {
@@ -54,6 +65,9 @@ function get_cover() {
 }
 
 async function get_user(id) {
+    // Check for self
+    is_self.value = (id == ft.username);
+
     let data = await ft.API('/user/' + id);
     if (!data || data.error) {
         router.push('/404')
@@ -63,6 +77,32 @@ async function get_user(id) {
     user.value = data.user;
     await check_friends();
     loaded.value = true;
+}
+
+async function get_federated_user(id) {
+    let [username, domain] = id.split("@");
+    let server = await ft.get_address(domain);
+
+    if (!server) {
+        error_message.value = `${domain} is not a valid domain. Please check the domain and try again.`;
+        error.value = true;
+        return;
+    }
+
+    // Check for self
+    is_self.value = (username == ft.username && server == ft.server);
+
+    let data = await await ft.federatedAPI(server, "/user/" + username);
+
+    if (!data || data.error) {
+        error_message.value = data.error;
+        error.value = true;
+        return;
+    }
+
+    user.value = data.user;
+    loaded.value = true;
+    return
 }
 
 async function check_friends() {
@@ -91,7 +131,13 @@ watch(query_param, () => {
 })
 
 onBeforeMount(() => {
-    is_self.value = (router.currentRoute.value.params.id == ft.username);
-    get_user(router.currentRoute.value.params.id);
+    let id = router.currentRoute.value.params.id;
+
+    // Check for federated user (username@domain)
+    if (id.includes('@')) {
+        get_federated_user(id);
+        return;
+    }
+    get_user(id);
 })
 </script>

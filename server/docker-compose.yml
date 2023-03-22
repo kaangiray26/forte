@@ -9,6 +9,7 @@ services:
             postgres:
                 condition: service_healthy
         environment:
+            version: "3.1"           # Set Version
             port: 3000               # Set Port
             NODE_ENV: production     # Set Node Environment
             POSTGRES_HOST: postgres  # Postgres Host/IP
@@ -18,6 +19,7 @@ services:
             POSTGRES_PASSWORD: forte # Set Postgres Password
         volumes:
             - <library>:/library
+            - <about>:/about
     postgres:
         image: kaangiray26/postgres:2.0
         restart: always

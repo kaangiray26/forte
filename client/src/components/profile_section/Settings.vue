@@ -86,6 +86,12 @@
                         <span class="bi"
                             :class="{ 'bi-sun-fill': store.theme == 'light', 'bi-moon-fill': store.theme == 'dark' }"></span>
                     </button>
+                    <router-link to="/servers">
+                        <button class="btn btn-dark theme-btn black-on-hover fw-bold m-1">
+                            <span class="me-2">Servers</span>
+                            <span class="bi bi-globe"></span>
+                        </button>
+                    </router-link>
                     <button class="btn btn-dark theme-btn black-on-hover fw-bold m-1" @click="reset_menu">Reset
                         menu</button>
                 </div>
