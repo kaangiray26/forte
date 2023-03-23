@@ -17,6 +17,12 @@ const upload = multer({ dest: path.join(__dirname, "../uploads") })
 
 // Express
 const app = express()
+let about = path.join(__dirname, "../about")
+
+// Set about directory path
+if (!process.env.custom_about) {
+    about = "/about"
+}
 
 // Middleware
 app.use(cors({ credentials: true, origin: true }))
@@ -35,8 +41,13 @@ app.use(session({
 }))
 app.use(express.static(path.join(__dirname, "../dist")))
 app.use(express.static(path.join(__dirname, "../uploads")))
-app.use("/about", express.static("/uploads"))
-app.use("/about", express.static("/about"))
+app.use("/about", express.static(about))
+
+if (process.env.default_about) {
+    app.use("/about", express.static(path.join(__dirname, "../about")))
+} else {
+    app.use("/about", express.static("/about"))
+}
 
 // Authentication functions
 function isAdmin(req, res, next) {

@@ -3,6 +3,7 @@ WORKDIR /forte
 
 # Copy files
 ADD dist ./dist
+ADD about ./about
 ADD js ./js
 ADD .greenlockrc ./
 ADD package.json ./
