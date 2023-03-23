@@ -123,7 +123,7 @@ app.get("/api/profile/artists/:offset", isAuthenticated, db.get_profile_artists)
 app.get("/api/profile/playlists", isAuthenticated, db.get_profile_playlists)
 app.post("/api/profile/create_playlist", isAuthenticated, upload.single('cover'), db.create_playlist)
 
-app.get("/api/user/:id", db.get_user)
+app.get("/api/user/:id", isAuthenticated, db.get_user)
 app.get("/api/user/:id/history", isAuthenticated, db.get_user_history)
 app.get("/api/user/:id/tracks/:offset", isAuthenticated, db.get_user_tracks)
 app.get("/api/user/:id/playlists", isAuthenticated, db.get_user_playlists)

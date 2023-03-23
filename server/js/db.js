@@ -120,10 +120,12 @@ async function _init(args) {
                     let { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
                         userIDs: [{ name: 'Forte', email: 'kaangiray26@protonmail.com' }],
                         passphrase: crypto.randomBytes(16).toString("hex"),
+                        format: 'binary'
                     });
 
-                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'public', $1)", [publicKey]);
-                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'private', $1)", [privateKey]);
+                    // Convert to Base64 and save to the database
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'public', $1)", [Buffer.from(publicKey).toString('base64')]);
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'private', $1)", [Buffer.from(privateKey).toString('base64')]);
                 }
                 log("=> OK")
                 refresh_library()

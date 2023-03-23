@@ -81,19 +81,21 @@
         <div class="card-body">
             <div class="d-inline-flex">
                 <div class="d-flex flex-column">
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap m-1" @click="change_theme">
-                        <span class="me-2">Theme</span>
-                        <span class="bi"
-                            :class="{ 'bi-sun-fill': store.theme == 'light', 'bi-moon-fill': store.theme == 'dark' }"></span>
-                    </button>
                     <router-link to="/servers">
-                        <button class="btn btn-dark theme-btn black-on-hover fw-bold m-1">
-                            <span class="me-2">Servers</span>
-                            <span class="bi bi-globe"></span>
+                        <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1">
+                            <span class="bi bi-globe me-2"></span>
+                            <span>Servers</span>
                         </button>
                     </router-link>
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold m-1" @click="reset_menu">Reset
-                        menu</button>
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1" @click="change_theme">
+                        <span class="bi me-2"
+                            :class="{ 'bi-sun-fill': store.theme == 'light', 'bi-moon-fill': store.theme == 'dark' }"></span>
+                        <span>Theme</span>
+                    </button>
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1" @click="reset_menu">
+                        <span class="bi bi-list me-2"></span>
+                        <span>Reset</span>
+                    </button>
                 </div>
             </div>
         </div>
