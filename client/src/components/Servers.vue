@@ -61,7 +61,7 @@ async function go_back() {
 }
 
 async function open_server(server) {
-    window.open(`${server.address}/`, "_blank");
+    window.open(`${server.address}/about`, "_blank");
 }
 
 async function get_servers() {

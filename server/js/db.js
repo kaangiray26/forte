@@ -12,6 +12,7 @@ import readlineSync from 'readline-sync';
 import mime from 'mime-types';
 import { exit } from 'process';
 import { fileURLToPath } from 'url';
+import * as openpgp from 'openpgp';
 
 // Path to library
 const library_path = '/library';
@@ -50,6 +51,15 @@ function log(message) {
 }
 
 async function _init(args) {
+    // Create PGP keys if they don't exist
+    let { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
+        userIDs: [{ name: 'Forte', email: 'kaangiray26@protonmail.com' }],
+        passphrase: crypto.randomBytes(16).toString("hex"),
+        format: 'object',
+    });
+
+    console.log("Keys:", publicKey);
+
     // Reset tables on request
     if (args.includes('--reset')) {
         let answer = readlineSync.question("Do you really want to reset? (y/n)");
@@ -76,6 +86,9 @@ async function _init(args) {
         return t.batch([
             // config
             t.none("CREATE TABLE IF NOT EXISTS config (id SERIAL PRIMARY KEY, name TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name))"),
+
+            // pgp keys
+            t.none("CREATE TABLE IF NOT EXISTS pgp (id SERIAL PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name, type))"),
 
             // artists
             t.none("CREATE TABLE IF NOT EXISTS artists (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'artist', title TEXT NOT NULL, cover TEXT, cover_path TEXT, path TEXT NOT NULL, uuid TEXT, UNIQUE(title))"),
