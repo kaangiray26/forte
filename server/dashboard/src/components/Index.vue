@@ -171,6 +171,24 @@
                 </div>
             </div>
         </div>
+        <!-- PGP collapse -->
+        <div class="bg-light rounded p-2 mt-1">
+            <button type="button" class="btn btn-dark w-100 text-start" data-bs-toggle="collapse"
+                data-bs-target="#pgpCollapse">PGP Keys</button>
+            <div class="collapse" id="pgpCollapse">
+                <div v-for="key in pgp_keys" class="d-flex flex-column p-2">
+                    <h5 class="text-decoration-underline">{{ key.name }} {{ key.type }}</h5>
+                    <div class="d-inline-flex">
+                        <pre class="border rounded p-2">{{ key.value }}</pre>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-dark me-2 mb-2" @click="copy_key(key.value)">Copy</button>
+                        <button type="button" class="btn btn-dark text-nowrap mb-2" @click="copy_key(key.value, true)">Copy as JSON</button>
+                    </div>
+                    <hr>
+                </div>
+            </div>
+        </div>
         <!-- Password collapse -->
         <div class="bg-light rounded p-2 mt-1">
             <button type="button" class="btn btn-dark w-100 text-start" data-bs-toggle="collapse"
@@ -350,6 +368,16 @@ const config_alert = ref(false);
 const password_alert = ref(false);
 
 const status = ref([]);
+const pgp_keys = ref([]);
+
+async function copy_key(value, json=false) {
+    if (json) {
+        value = JSON.stringify({
+            "key": value
+        })
+    }
+    window.navigator.clipboard.writeText(value);
+}
 
 async function save_artist() {
     let cover = document.querySelector('#artistCoverInput');
@@ -630,6 +658,15 @@ async function get_status() {
     status.value = data.status;
 }
 
+async function get_pgp_keys(){
+    let data = await fetch("/pgp_keys", {
+        method: "GET"
+    }).then((response) => {
+        return response.json();
+    })
+    pgp_keys.value = data.keys;
+}
+
 async function log_off() {
     sessionStorage.clear();
     fetch("/log_off", {
@@ -687,6 +724,7 @@ async function remove_user(username) {
 onMounted(() => {
     username.value = sessionStorage.getItem('username');
     get_status();
+    get_pgp_keys();
     get_config();
     get_users();
 

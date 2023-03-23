@@ -51,15 +51,6 @@ function log(message) {
 }
 
 async function _init(args) {
-    // Create PGP keys if they don't exist
-    let { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
-        userIDs: [{ name: 'Forte', email: 'kaangiray26@protonmail.com' }],
-        passphrase: crypto.randomBytes(16).toString("hex"),
-        format: 'object',
-    });
-
-    console.log("Keys:", publicKey);
-
     // Reset tables on request
     if (args.includes('--reset')) {
         let answer = readlineSync.question("Do you really want to reset? (y/n)");
@@ -124,6 +115,15 @@ async function _init(args) {
                     await db.none("INSERT INTO config(name, value) VALUES ('genius_token', '-EZLIW0uQaobG3HjE2yJzdl7DPuaIkXXDGX7l8KJm4jv2S4feDYZMUoIRuZOmoO5')")
                     await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_key', '1ff0a732f00d53529d764cf4ce9270e5')")
                     await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', '10853915c49c53886b4c87fa0e27f663')")
+
+                    // Create PGP keys if they don't exist
+                    let { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
+                        userIDs: [{ name: 'Forte', email: 'kaangiray26@protonmail.com' }],
+                        passphrase: crypto.randomBytes(16).toString("hex"),
+                    });
+
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'public', $1)", [publicKey]);
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'private', $1)", [privateKey]);
                 }
                 log("=> OK")
                 refresh_library()
@@ -1186,6 +1186,16 @@ async function _get_status(req, res, next) {
                     "cover_completion": cover_completion.count,
                     "uuid_completion": uuid_completion.count,
                 }
+            })
+    })
+}
+
+async function _get_pgp_keys(req, res, next) {
+    db.task(async t => {
+        let keys = await db.manyOrNone("SELECT * FROM pgp");
+        res.status(200)
+            .json({
+                "keys": keys
             })
     })
 }
@@ -2644,6 +2654,7 @@ const exports = {
     get_artists: _get_artists,
     get_config: _get_config,
     get_status: _get_status,
+    get_pgp_keys: _get_pgp_keys,
     get_friends: _get_friends,
     get_history: _get_history,
     get_lastfm_artist: _get_lastfm_artist,

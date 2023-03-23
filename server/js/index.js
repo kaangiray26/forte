@@ -43,12 +43,6 @@ app.use(express.static(path.join(__dirname, "../dist")))
 app.use(express.static(path.join(__dirname, "../uploads")))
 app.use("/about", express.static(about))
 
-if (process.env.default_about) {
-    app.use("/about", express.static(path.join(__dirname, "../about")))
-} else {
-    app.use("/about", express.static("/about"))
-}
-
 // Authentication functions
 function isAdmin(req, res, next) {
     if (req.session.user && req.session.user == 'forte') next()
@@ -87,6 +81,7 @@ app.get("/log_off", (req, res, next) => {
 app.get("/config", isAdmin, db.get_config)
 app.put("/config", isAdmin, db.update_config)
 app.get("/status", isAdmin, db.get_status)
+app.get("/pgp_keys", isAdmin, db.get_pgp_keys)
 
 app.get("/get_users", isAdmin, db.get_users)
 app.post("/add_user", isAdmin, db.add_user)
