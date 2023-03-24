@@ -81,18 +81,6 @@ class Forte {
         return response;
     }
 
-    async federatedAPI(address, query) {
-        if (!this.ready) return null;
-
-        return await fetch(address + "/api" + query)
-            .then((response) => {
-                return response.json();
-            })
-            .catch((error) => {
-                return { "error": "Couldn't find user on that server." }
-            });
-    }
-
     async add_friend(username) {
         let response = await fetch(this.server + '/api/friends/add' + `?session=${this.session}`, {
             method: "POST",

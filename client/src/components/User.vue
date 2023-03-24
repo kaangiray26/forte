@@ -79,32 +79,6 @@ async function get_user(id) {
     loaded.value = true;
 }
 
-async function get_federated_user(id) {
-    let [username, domain] = id.split("@");
-    let server = await ft.get_address(domain);
-
-    if (!server) {
-        error_message.value = `${domain} is not a valid domain. Please check the domain and try again.`;
-        error.value = true;
-        return;
-    }
-
-    // Check for self
-    is_self.value = (username == ft.username && server == ft.server);
-
-    let data = await await ft.federatedAPI(server, "/user/" + username);
-
-    if (!data || data.error) {
-        error_message.value = data.error;
-        error.value = true;
-        return;
-    }
-
-    user.value = data.user;
-    loaded.value = true;
-    return
-}
-
 async function check_friends() {
     let data = await ft.API('/friends/' + user.value.username);
     if (!data) return;
@@ -132,12 +106,6 @@ watch(query_param, () => {
 
 onBeforeMount(() => {
     let id = router.currentRoute.value.params.id;
-
-    // Check for federated user (username@domain)
-    if (id.includes('@')) {
-        get_federated_user(id);
-        return;
-    }
     get_user(id);
 })
 </script>

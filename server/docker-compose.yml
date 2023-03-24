@@ -9,8 +9,10 @@ services:
             postgres:
                 condition: service_healthy
         environment:
-            version: "3.1"           # Set Version
             port: 3000               # Set Port
+            version: "3.1"           # Set Version
+            hostname: localhost      # Set Hostname
+            custom_about: false      # Set True if you want to use your own about page
             NODE_ENV: production     # Set Node Environment
             POSTGRES_HOST: postgres  # Postgres Host/IP
             POSTGRES_PORT: 5432      # Postgres Database Port

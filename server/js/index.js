@@ -56,6 +56,13 @@ function isAuthenticated(req, res, next) {
     })
 }
 
+function isFederated(req, res, next) {
+    db.is_federated(req.headers).then((ok) => {
+        if (ok) next()
+        else res.status(401).json({ "status": "error", "message": "Federation failed." })
+    })
+}
+
 // Server alive check
 app.get("/alive", (req, res) => {
     res.status(200).json({ "status": "alive", "version": process.env.version })
@@ -171,6 +178,9 @@ app.post("/api/lastfm/auth", isAuthenticated, db.lastfm_auth)
 app.post("/api/lastfm/artist", isAuthenticated, db.get_lastfm_artist)
 app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
 app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
+
+// Federated API
+app.get("/f/user/:id", isFederated, db.get_federated_user)
 
 // Error Handling
 app.use((req, res, next) => {

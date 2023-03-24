@@ -117,15 +117,18 @@ async function _init(args) {
                     await db.none("INSERT INTO config(name, value) VALUES ('lastfm_api_secret', '10853915c49c53886b4c87fa0e27f663')")
 
                     // Create PGP keys if they don't exist
+                    let passphrase = crypto.randomBytes(16).toString("hex");
                     let { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
                         userIDs: [{ name: 'Forte', email: 'kaangiray26@protonmail.com' }],
-                        passphrase: crypto.randomBytes(16).toString("hex"),
-                        format: 'binary'
+                        passphrase: passphrase,
+                        format: 'armored'
                     });
 
                     // Convert to Base64 and save to the database
-                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'public', $1)", [Buffer.from(publicKey).toString('base64')]);
-                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'private', $1)", [Buffer.from(privateKey).toString('base64')]);
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'passphrase', $1)", [passphrase]);
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'public', $1)", [publicKey]);
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'private', $1)", [privateKey]);
+                    await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'revocation', $1)", [revocationCertificate]);
                 }
                 log("=> OK")
                 refresh_library()
@@ -997,6 +1000,10 @@ async function _is_authenticated(args) {
     return true;
 }
 
+async function _is_federated(headers) {
+    //
+}
+
 async function _search(req, res, next) {
     let query = req.params.query;
     if (!query) {
@@ -1660,6 +1667,66 @@ async function _get_user(req, res, next) {
         return;
     }
 
+    // Check for federated user
+    if (id.includes("@")) {
+        let [username, domain] = id.split("@");
+
+        // Get server address
+        let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}.json`)
+            .then(response => response.json())
+            .then(data => {
+                return data.address;
+            })
+            .catch(() => null);
+
+        // If server address is not found, return error
+        if (!address) {
+            res.status(400).json({ "error": "Server not found." });
+            return;
+        }
+
+        db.task(async t => {
+            // Create a message to sign
+            let message = await openpgp.createMessage({
+                text: crypto.randomBytes(16).toString("hex")
+            })
+
+            // Get private key
+            let passphrase = await t.oneOrNone("SELECT value FROM pgp WHERE type = 'passphrase'");
+            let privateKeyArmored = await t.oneOrNone("SELECT value FROM pgp WHERE type = 'private'");
+            if (!passphrase || !privateKeyArmored) {
+                res.status(400).json({ "error": "Keys are not found." });
+                return;
+            }
+
+            let privateKey = await openpgp.decryptKey({
+                privateKey: await openpgp.readPrivateKey({
+                    armoredKey: privateKeyArmored.value
+                }),
+                passphrase: passphrase.value
+            })
+
+            // Sign the message
+            let signature = await openpgp.sign({
+                message: message,
+                signingKeys: privateKey
+            });
+
+            // Send request to server
+            let response = await fetch(`${address}/f/user/${username}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "sign": JSON.stringify(signature),
+                    "hostname": process.env.hostname
+                }
+            });
+
+            console.log("Response:", response);
+        })
+        return
+    }
+
     db.task(async t => {
         let user = await t.oneOrNone("SELECT username, cover FROM users WHERE username = $1", [id]);
         if (!user) {
@@ -1670,6 +1737,12 @@ async function _get_user(req, res, next) {
             "user": user
         })
     })
+}
+
+async function _get_federated_user(req, res, next) {
+    let id = req.params.id;
+    console.log("Federated:", id, req.headers);
+    return
 }
 
 async function _upload_cover(req, res, next) {
@@ -2677,6 +2750,7 @@ const exports = {
     get_track_basic: _get_track_basic,
     get_track_loved: _get_track_loved,
     get_user: _get_user,
+    get_federated_user: _get_federated_user,
     get_user_albums: _get_user_albums,
     get_user_artists: _get_user_artists,
     get_user_friends: _get_user_friends,
@@ -2686,6 +2760,7 @@ const exports = {
     get_users: _get_users,
     init: _init,
     is_authenticated: _is_authenticated,
+    is_federated: _is_federated,
     lastfm_auth: _lastfm_auth,
     lastfm_scrobble: _lastfm_scrobble,
     love_album: _love_album,
