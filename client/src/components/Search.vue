@@ -106,6 +106,7 @@ async function openResult(result) {
 }
 
 watch(query_param, () => {
+    if (!router.currentRoute.value.params.query) return;
     get_search_results();
 })
 

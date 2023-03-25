@@ -50,16 +50,19 @@ function isAdmin(req, res, next) {
 }
 
 function isAuthenticated(req, res, next) {
+    // Federated check
+    if (req.headers.hasOwnProperty('federated')) {
+        db.is_federated(req.query).then((ok) => {
+            if (ok) next()
+            else res.status(401).json({ "status": "error", "message": "Federation failed." })
+        })
+        return
+    }
+
+    // Normal check
     db.is_authenticated(req.query).then((ok) => {
         if (ok) next()
-        else res.status(401).json({ "status": "error", "message": "session expired." })
-    })
-}
-
-function isFederated(req, res, next) {
-    db.is_federated(req.headers).then((ok) => {
-        if (ok) next()
-        else res.status(401).json({ "status": "error", "message": "Federation failed." })
+        else res.status(401).json({ "status": "error", "message": "Session expired." })
     })
 }
 
@@ -180,7 +183,8 @@ app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
 app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 
 // Federated API
-app.get("/f/user/:id", isFederated, db.get_federated_user)
+app.post("/f/api", isAuthenticated, db.federated_api)
+app.get("/f/challenge/:domain", db.get_federation_challenge)
 
 // Error Handling
 app.use((req, res, next) => {

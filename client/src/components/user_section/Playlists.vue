@@ -81,6 +81,10 @@ import { useRouter } from 'vue-router';
 import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const playlists = ref([]);
 const username = ref(router.currentRoute.value.params.id)
 
@@ -106,13 +110,29 @@ async function play_playlist(id) {
     })
 }
 
-async function get_playlists() {
-    let data = await ft.API(`/user/${username.value}/playlists`);
+async function get_playlists(id) {
+    let data = await ft.API(`/user/${id}/playlists`);
     if (!data) return;
     playlists.value = data.playlists;
 }
 
+async function get_federated_playlists(id) {
+    let data = await ft.API(domain.value, `/user/${id}/playlists`);
+    if (!data) return;
+    playlists.value = data.playlists;
+}
+
+async function setup() {
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_federated_playlists(id);
+        return
+    }
+    get_playlists(id);
+}
+
 onMounted(() => {
-    get_playlists();
+    setup();
 })
 </script>

@@ -78,6 +78,9 @@ async function _init(args) {
             // config
             t.none("CREATE TABLE IF NOT EXISTS config (id SERIAL PRIMARY KEY, name TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name))"),
 
+            // challenges
+            t.none("CREATE TABLE IF NOT EXISTS challenges (id SERIAL PRIMARY KEY, value TEXT NOT NULL, UNIQUE(value))"),
+
             // pgp keys
             t.none("CREATE TABLE IF NOT EXISTS pgp (id SERIAL PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name, type))"),
 
@@ -131,6 +134,30 @@ async function _init(args) {
                     await db.none("INSERT INTO pgp(name, type, value) VALUES ('forte', 'revocation', $1)", [revocationCertificate]);
                 }
                 log("=> OK")
+
+                // Get public key from the GitHub repo
+                let key = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${process.env.hostname}.json`)
+                    .then(response => response.json())
+                    .then(data => {
+                        return data.public_key;
+                    })
+                    .catch(() => null);
+
+                if (!key) {
+                    log("==> Public Key is not present in the GitHub repo, you won't be able to communicate with federated servers. Please check https://github.com/kaangiray26/forte/tree/servers");
+                    return;
+                }
+
+                // Get public key from the database
+                let publicKey = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'public'");
+
+                // Check if the public keys match
+                if (key == publicKey.value) {
+                    log("==> Public Key confirmed.");
+                } else {
+                    log("==> Public Key mismatch!");
+                }
+
                 refresh_library()
             })
     }).catch(error => {
@@ -1000,8 +1027,17 @@ async function _is_authenticated(args) {
     return true;
 }
 
-async function _is_federated(headers) {
-    //
+async function _is_federated(args) {
+    if (!['session'].every(key => args.hasOwnProperty(key))) {
+        return false;
+    }
+
+    let challenge = await db.oneOrNone("SELECT * from challenges WHERE value = $1", [args.session]);
+    if (!challenge) {
+        return false;
+    }
+    return true;
+
 }
 
 async function _search(req, res, next) {
@@ -1197,6 +1233,144 @@ async function _get_status(req, res, next) {
                 }
             })
     })
+}
+
+async function _federated_api(req, res, next) {
+    if (!['domain', 'challenge', 'query'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given correctly."
+            });
+        return;
+    }
+
+    // Get server address
+    let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${req.body.domain}.json`)
+        .then(response => response.json())
+        .then(data => {
+            return data.address;
+        })
+        .catch(() => null);
+
+    // If server address is not found, return error
+    if (!address) {
+        res.status(400).json({ "error": "Server not found." });
+        return;
+    }
+
+    // Check if challenge is given
+    if (req.body.challenge) {
+        // Send request to the server with the federation header
+        let data = await fetch(address + '/api' + req.body.query + `?session=${req.body.challenge}`, {
+            headers: {
+                'federated': 'true'
+            }
+        })
+            .then(response => response.json())
+            .catch(() => {
+                return { "error": "Federated server has failed to return a response." }
+            });
+
+        data.server = address;
+        data.challenge = req.body.challenge;
+        res.status(200).send(data);
+        return
+    }
+
+    // Otherwiese, ask the server for identity challenge
+    let challenge = await fetch(`${address}/f/challenge/${process.env.hostname}`)
+        .then(response => response.json())
+        .then(data => {
+            return data.challenge;
+        })
+        .catch(() => null);
+
+    // If challenge is not found, return error
+    if (!challenge) {
+        res.status(400).json({ "error": "Challenge not found." });
+        return;
+    }
+
+    // Get private key
+    let passphrase = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'passphrase'");
+    let privateKeyArmored = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'private'");
+    if (!passphrase || !privateKeyArmored) {
+        res.status(400).json({ "error": "Keys are not found." });
+        return;
+    }
+
+    let privateKey = await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({
+            armoredKey: privateKeyArmored.value
+        }),
+        passphrase: passphrase.value
+    });
+
+    // Read the message
+    let message = await openpgp.readMessage({
+        armoredMessage: challenge
+    });
+
+    // Decrypt the message
+    let { data: session, signatures } = await openpgp.decrypt({
+        message,
+        decryptionKeys: privateKey
+    });
+
+    // Send request to the server with the federation header
+    let data = await fetch(address + '/api' + req.body.query + `?session=${session}`, {
+        headers: {
+            'federated': 'true'
+        }
+    })
+        .then(response => response.json())
+        .catch(() => {
+            return { "error": "Federated server has failed to return a response." }
+        });
+
+    data.server = address;
+    data.challenge = session;
+    res.status(200).send(data);
+}
+
+async function _get_federation_challenge(req, res, next) {
+    let domain = req.params.domain;
+    if (!domain) {
+        res.status(400).json({ "error": "Domain parameter not given." });
+        return;
+    }
+
+    // Get public key
+    let key = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}.json`)
+        .then(response => response.json())
+        .then(data => {
+            return data.public_key;
+        })
+        .catch(() => null);
+
+    if (!key) {
+        res.status(400).json({ "error": "Domain not registered." });
+        return;
+    }
+
+    let publicKey = await openpgp.readKey({ armoredKey: key });
+
+    // Generate new challenge
+    let challenge = crypto.randomBytes(32).toString('hex');
+
+    // Save challenge to database
+    await db.none("INSERT INTO challenges (value) VALUES ($1)", [challenge]);
+
+    // Create encrypted message
+    let encrypted = await openpgp.encrypt({
+        message: await openpgp.createMessage({ text: challenge }),
+        encryptionKeys: publicKey
+    })
+
+    res.status(200)
+        .json({
+            "challenge": encrypted
+        })
 }
 
 async function _get_pgp_keys(req, res, next) {
@@ -1667,66 +1841,6 @@ async function _get_user(req, res, next) {
         return;
     }
 
-    // Check for federated user
-    if (id.includes("@")) {
-        let [username, domain] = id.split("@");
-
-        // Get server address
-        let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}.json`)
-            .then(response => response.json())
-            .then(data => {
-                return data.address;
-            })
-            .catch(() => null);
-
-        // If server address is not found, return error
-        if (!address) {
-            res.status(400).json({ "error": "Server not found." });
-            return;
-        }
-
-        db.task(async t => {
-            // Create a message to sign
-            let message = await openpgp.createMessage({
-                text: crypto.randomBytes(16).toString("hex")
-            })
-
-            // Get private key
-            let passphrase = await t.oneOrNone("SELECT value FROM pgp WHERE type = 'passphrase'");
-            let privateKeyArmored = await t.oneOrNone("SELECT value FROM pgp WHERE type = 'private'");
-            if (!passphrase || !privateKeyArmored) {
-                res.status(400).json({ "error": "Keys are not found." });
-                return;
-            }
-
-            let privateKey = await openpgp.decryptKey({
-                privateKey: await openpgp.readPrivateKey({
-                    armoredKey: privateKeyArmored.value
-                }),
-                passphrase: passphrase.value
-            })
-
-            // Sign the message
-            let signature = await openpgp.sign({
-                message: message,
-                signingKeys: privateKey
-            });
-
-            // Send request to server
-            let response = await fetch(`${address}/f/user/${username}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "sign": JSON.stringify(signature),
-                    "hostname": process.env.hostname
-                }
-            });
-
-            console.log("Response:", response);
-        })
-        return
-    }
-
     db.task(async t => {
         let user = await t.oneOrNone("SELECT username, cover FROM users WHERE username = $1", [id]);
         if (!user) {
@@ -1741,8 +1855,21 @@ async function _get_user(req, res, next) {
 
 async function _get_federated_user(req, res, next) {
     let id = req.params.id;
-    console.log("Federated:", id, req.headers);
-    return
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT username, cover FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." });
+            return
+        }
+        res.status(200).json({
+            "user": user
+        })
+    })
 }
 
 async function _upload_cover(req, res, next) {
@@ -2728,8 +2855,10 @@ const exports = {
     get_artist_loved: _get_artist_loved,
     get_artists: _get_artists,
     get_config: _get_config,
+    federated_api: _federated_api,
     get_status: _get_status,
     get_pgp_keys: _get_pgp_keys,
+    get_federation_challenge: _get_federation_challenge,
     get_friends: _get_friends,
     get_history: _get_history,
     get_lastfm_artist: _get_lastfm_artist,

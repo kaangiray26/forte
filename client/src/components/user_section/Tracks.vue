@@ -62,7 +62,7 @@
     </ul>
     <div class="d-flex justify-content-end mt-2">
         <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
-            @click="get_tracks">Load more</button>
+            @click="setup">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Loading...
@@ -76,6 +76,10 @@ import { useRouter } from 'vue-router';
 import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const username = ref(router.currentRoute.value.params.id);
 
 const tracks = ref([]);
@@ -107,13 +111,13 @@ async function playTrack(track_id) {
     return;
 }
 
-async function get_tracks() {
+async function get_tracks(id) {
     if (!searchFinished.value) {
         return
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/user/${username.value}/tracks/${offset.value}`);
+    let data = await ft.API(`/user/${id}/tracks/${offset.value}`);
     if (!data) return;
 
     total.value = data.total;
@@ -128,7 +132,38 @@ async function get_tracks() {
     searchFinished.value = true;
 }
 
+async function get_federated_tracks(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.fAPI(domain.value, `/user/${id}/tracks/${offset.value}`);
+    if (!data) return;
+
+    total.value = data.total;
+    for (let i = 0; i < data.tracks.length; i++) {
+        let track = data.tracks[i];
+        if (tracks.value.includes(track)) {
+            continue;
+        }
+        tracks.value.push(track);
+        offset.value += 1;
+    }
+    searchFinished.value = true;
+}
+
+async function setup() {
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_federated_tracks(id);
+        return
+    }
+    get_tracks(id);
+}
+
 onMounted(() => {
-    get_tracks();
+    setup();
 })
 </script>

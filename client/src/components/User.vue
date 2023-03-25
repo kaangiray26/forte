@@ -45,6 +45,10 @@ import { ref, watch, computed, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const is_self = ref(false);
 
 const user = ref({});
@@ -65,24 +69,50 @@ function get_cover() {
 }
 
 async function get_user(id) {
-    // Check for self
-    is_self.value = (id == ft.username);
-
     let data = await ft.API('/user/' + id);
     if (!data || data.error) {
         router.push('/404')
         return;
     }
+    // Check for self
+    is_self.value = (data.user.username == ft.username);
 
     user.value = data.user;
     await check_friends();
     loaded.value = true;
 }
 
+async function get_federated_user(id) {
+    let data = await ft.fAPI(domain.value, '/user/' + id);
+    if (!data || data.error) {
+        router.push('/404')
+        return;
+    }
+
+    // Check for self
+    is_self.value = (data.user.username == ft.username && data.server == ft.server);
+
+    user.value = data.user;
+    await check_federated_friends();
+    loaded.value = true;
+    return
+}
+
 async function check_friends() {
+    if (is_self.value) return;
+
     let data = await ft.API('/friends/' + user.value.username);
     if (!data) return;
     friend.value = data.friend;
+}
+
+async function check_federated_friends() {
+    if (is_self.value) return;
+
+    let data = await ft.fAPI(domain.value, '/friends/' + user.value.username);
+    if (!data) return;
+    friend.value = data.friend;
+    return
 }
 
 async function add_friend(ev) {
@@ -99,13 +129,22 @@ async function remove_friend(ev) {
     ev.target.parentElement.disabled = false;
 }
 
+async function setup() {
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_federated_user(id);
+        return
+    }
+    get_user(id);
+}
+
 watch(query_param, () => {
-    is_self.value = (router.currentRoute.value.params.id == ft.username);
-    get_user(router.currentRoute.value.params.id);
+    if (!router.currentRoute.value.params.id) return;
+    setup();
 })
 
 onBeforeMount(() => {
-    let id = router.currentRoute.value.params.id;
-    get_user(id);
+    setup();
 })
 </script>

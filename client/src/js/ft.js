@@ -81,6 +81,38 @@ class Forte {
         return response;
     }
 
+    async fAPI(domain, query, challenge = null) {
+        if (!this.ready) return null;
+
+        // Check for saved challenge
+        let stored_challenge = JSON.parse(localStorage.getItem(`@${domain}`));
+        if (stored_challenge) {
+            challenge = stored_challenge;
+        }
+
+        let response = await fetch(this.server + '/f/api' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "domain": domain,
+                "query": query,
+                "challenge": challenge
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+
+        // Save challenge
+        if (response.hasOwnProperty('challenge')) {
+            localStorage.setItem(`@${domain}`, JSON.stringify(response.challenge));
+        }
+
+        return response;
+    }
+
     async add_friend(username) {
         let response = await fetch(this.server + '/api/friends/add' + `?session=${this.session}`, {
             method: "POST",
