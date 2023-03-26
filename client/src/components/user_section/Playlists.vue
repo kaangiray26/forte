@@ -117,7 +117,7 @@ async function get_playlists(id) {
 }
 
 async function get_federated_playlists(id) {
-    let data = await ft.API(domain.value, `/user/${id}/playlists`);
+    let data = await ft.fAPI(domain.value, `/user/${id}/playlists`);
     if (!data) return;
     playlists.value = data.playlists;
 }

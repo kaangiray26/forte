@@ -60,7 +60,7 @@
     </div>
     <div class="d-flex justify-content-end mt-2">
         <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
-            @click="get_artists">Load more</button>
+            @click="setup">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Loading...
@@ -74,6 +74,10 @@ import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
 const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const username = ref(router.currentRoute.value.params.id);
 
 const artists = ref([]);
@@ -95,13 +99,13 @@ async function openArtist(id) {
     router.push("/artist/" + id);
 }
 
-async function get_artists() {
+async function get_artists(id) {
     if (!searchFinished.value) {
         return
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/user/${username.value}/artists/${offset.value}`);
+    let data = await ft.API(`/user/${id}/artists/${offset.value}`);
     if (!data) return;
 
     total.value = data.total;
@@ -116,7 +120,38 @@ async function get_artists() {
     searchFinished.value = true;
 }
 
+async function get_federated_artists(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.fAPI(domain.value, `/user/${id}/artists/${offset.value}`);
+    if (!data) return;
+
+    total.value = data.total;
+    for (let i = 0; i < data.artists.length; i++) {
+        let artist = data.artists[i];
+        if (artists.value.includes(artist)) {
+            continue;
+        }
+        artists.value.push(artist);
+        offset.value += 1;
+    }
+    searchFinished.value = true;
+}
+
+async function setup() {
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_federated_artists(id);
+        return
+    }
+    get_artists(id);
+}
+
 onMounted(() => {
-    get_artists();
+    setup()
 })
 </script>

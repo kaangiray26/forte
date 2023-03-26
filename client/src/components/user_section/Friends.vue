@@ -66,6 +66,10 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const username = ref(router.currentRoute.value.params.id);
 
 const friends = ref([]);
@@ -82,19 +86,41 @@ async function openProfile(id) {
     router.push("/user/" + id);
 }
 
-async function get_friends() {
+async function get_friends(id) {
     if (!searchFinished.value) {
         return
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/user/${username.value}/friends`);
+    let data = await ft.API(`/user/${id}/friends`);
     friends.value = data.friends;
 
     searchFinished.value = true;
 }
 
+async function get_federated_friends(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.fAPI(domain.value, `/user/${id}/friends`);
+    friends.value = data.friends;
+
+    searchFinished.value = true;
+}
+
+async function setup() {
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_federated_friends(id);
+        return
+    }
+    get_friends(id);
+}
+
 onMounted(() => {
-    get_friends();
+    setup();
 })
 </script>
