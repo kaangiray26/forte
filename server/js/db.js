@@ -212,15 +212,15 @@ async function update_uuids() {
             for (let j = 0; j < resolves.length; j++) {
                 let item = resolves[j];
                 if (item.type == "artist" && item.uuid) {
-                    await t.none("UPDATE artists SET uuid=$1, title=$2 WHERE id=$3", [item.uuid, item.title, item.id]);
+                    await t.none("UPDATE artists SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
                     continue;
                 }
                 if (item.type == "album" && item.uuid) {
-                    await t.none("UPDATE albums SET uuid=$1, title=$2 WHERE id=$3", [item.uuid, item.title, item.id]);
+                    await t.none("UPDATE albums SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
                     continue;
                 }
                 if (item.type == "track" && item.uuid) {
-                    await t.none("UPDATE tracks SET uuid=$1, title=$2 WHERE id=$3", [item.uuid, item.title, item.id]);
+                    await t.none("UPDATE tracks SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
                 }
             }
         });
@@ -301,7 +301,7 @@ async function get_artist_cover(id, title) {
             q: title,
             limit: 1,
             output: 'json'
-        })
+        }))
             .then(response => response.json())
             .then(response => {
                 if (!response.total) {
@@ -328,7 +328,7 @@ async function get_album_cover(id, title, artist_id) {
             q: artist.title + " " + title,
             limit: 1,
             output: 'json'
-        })
+        }))
             .then(response => response.json())
             .then(response => {
                 if (!response.total) {
@@ -359,14 +359,14 @@ async function get_artist_uuid(id, title, lastfm_api_key) {
             .then(response => response.json())
             .then(response => {
                 if (!response.corrections.hasOwnProperty("correction")) {
-                    resolve({ id: id, type: "artist", title: null, uuid: null, reason: 2 });
+                    resolve({ id: id, type: "artist", uuid: null, reason: 2 });
                     return
                 }
-                resolve({ id: id, type: "artist", title: response.corrections.correction.artist.name || title, uuid: uuidv5(response.corrections.correction.artist.url, uuidv5.URL) });
+                resolve({ id: id, type: "artist", uuid: uuidv5(response.corrections.correction.artist.url, uuidv5.URL) });
                 return
             })
             .catch(error => {
-                resolve({ id: id, type: "artist", title: null, uuid: null, reason: 3 });
+                resolve({ id: id, type: "artist", uuid: null, reason: 3 });
             });
     });
 }
@@ -392,14 +392,14 @@ async function get_album_uuid(id, title, artist_id, lastfm_api_key) {
             .then(response => response.json())
             .then(response => {
                 if (!response.corrections.hasOwnProperty("correction")) {
-                    resolve({ id: id, type: "album", title: null, uuid: null, reason: 2 });
+                    resolve({ id: id, type: "album", uuid: null, reason: 2 });
                     return
                 }
-                resolve({ id: id, type: "album", title: response.corrections.correction.album.name || title, uuid: uuidv5(response.corrections.correction.album.url, uuidv5.URL) });
+                resolve({ id: id, type: "album", uuid: uuidv5(response.corrections.correction.album.url, uuidv5.URL) });
                 return
             })
             .catch(error => {
-                resolve({ id: id, type: "album", title: null, uuid: null, reason: 3 });
+                resolve({ id: id, type: "album", uuid: null, reason: 3 });
             });
     });
 }
@@ -425,14 +425,14 @@ async function get_track_uuid(id, title, artist_id, lastfm_api_key) {
             .then(response => response.json())
             .then(response => {
                 if (!response.corrections.hasOwnProperty("correction")) {
-                    resolve({ id: id, type: "track", title: null, uuid: null, reason: 2 });
+                    resolve({ id: id, type: "track", uuid: null, reason: 2 });
                     return
                 }
-                resolve({ id: id, type: "track", title: response.corrections.correction.track.name || title, uuid: uuidv5(response.corrections.correction.track.url, uuidv5.URL) });
+                resolve({ id: id, type: "track", uuid: uuidv5(response.corrections.correction.track.url, uuidv5.URL) });
                 return
             })
             .catch(error => {
-                resolve({ id: id, type: "track", title: null, uuid: null, reason: 3 });
+                resolve({ id: id, type: "track", uuid: null, reason: 3 });
             });
     });
 }
