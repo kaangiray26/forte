@@ -47,7 +47,7 @@
         <li class="list-group-item theme-list-item clickable d-flex justify-content-between p-1" v-for="track in tracks"
             @contextmenu.prevent="right_click({ item: track, event: $event })" @click="playTrack(track.id)">
             <div class="d-flex flex-fill align-items-center">
-                <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" />
+                <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" @error="placeholder" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link theme-color purple-on-hover" :content_id="track.id"
                         :content_type="track.type" style="display:contents;">
@@ -86,6 +86,10 @@ function get_cover(cover) {
     }
 
     return ft.server + '/' + cover;
+}
+
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
 }
 
 // Must be synchronized in groupSession: ok

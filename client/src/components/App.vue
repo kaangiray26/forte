@@ -37,7 +37,7 @@ const thisPlayer = ref(null);
 
 async function keyPress(event) {
     // Must be synchronized in groupSession: ok
-    if (event.target.tagName != 'INPUT' && event.code == 'Space') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.code == 'Space') {
         event.preventDefault();
         action({
             func: async function op() {

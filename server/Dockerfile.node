@@ -5,13 +5,11 @@ WORKDIR /forte
 ADD dist ./dist
 ADD about ./about
 ADD js ./js
-ADD .greenlockrc ./
 ADD package.json ./
 ADD server.js ./
 
 # Create directories
 RUN mkdir -p ./uploads
-RUN mkdir -p ./greenlock.d
 
 # RUN npm install
 # If you are building your code for production

@@ -54,7 +54,7 @@ function isAuthenticated(req, res, next) {
     if (req.headers.hasOwnProperty('federated')) {
         db.is_federated(req.query).then((ok) => {
             if (ok) next()
-            else res.status(401).json({ "status": "error", "message": "Federation failed." })
+            else res.status(401).json({ "error": "Federation failed." })
         })
         return
     }

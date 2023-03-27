@@ -212,15 +212,15 @@ async function update_uuids() {
             for (let j = 0; j < resolves.length; j++) {
                 let item = resolves[j];
                 if (item.type == "artist" && item.uuid) {
-                    await t.none("UPDATE artists SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                    await t.none("UPDATE artists SET uuid=$1, title=$2 WHERE id=$3", [item.uuid, item.title, item.id]);
                     continue;
                 }
                 if (item.type == "album" && item.uuid) {
-                    await t.none("UPDATE albums SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                    await t.none("UPDATE albums SET uuid=$1, title=$2 WHERE id=$3", [item.uuid, item.title, item.id]);
                     continue;
                 }
                 if (item.type == "track" && item.uuid) {
-                    await t.none("UPDATE tracks SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                    await t.none("UPDATE tracks SET uuid=$1, title=$2 WHERE id=$3", [item.uuid, item.title, item.id]);
                 }
             }
         });
@@ -297,7 +297,11 @@ async function get_uuid_for(obj, lastfm_api_key) {
 
 async function get_artist_cover(id, title) {
     return new Promise(async (resolve, reject) => {
-        fetch(`https://api.deezer.com/search/artist?q=${title}&limit=1&output=json`)
+        fetch('https://api.deezer.com/search/artist?' + new URLSearchParams({
+            q: title,
+            limit: 1,
+            output: 'json'
+        })
             .then(response => response.json())
             .then(response => {
                 if (!response.total) {
@@ -320,7 +324,11 @@ async function get_album_cover(id, title, artist_id) {
             resolve({ id: id, type: "album", cover: null });
             return
         }
-        fetch(`https://api.deezer.com/search/album?q=${artist.title} ${title}&limit=1&output=json`)
+        fetch('https://api.deezer.com/search/album?' + new URLSearchParams({
+            q: artist.title + " " + title,
+            limit: 1,
+            output: 'json'
+        })
             .then(response => response.json())
             .then(response => {
                 if (!response.total) {
@@ -338,7 +346,12 @@ async function get_album_cover(id, title, artist_id) {
 
 async function get_artist_uuid(id, title, lastfm_api_key) {
     return new Promise(async (resolve, reject) => {
-        fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist=${title}&api_key=${lastfm_api_key}&format=json`, {
+        fetch('https://ws.audioscrobbler.com/2.0/?' + new URLSearchParams({
+            method: 'artist.getcorrection',
+            artist: title,
+            api_key: lastfm_api_key,
+            format: 'json'
+        }), {
             headers: {
                 'User-Agent': 'Forte/3.1 ( kaangiray26@protonmail.com )'
             }
@@ -346,14 +359,14 @@ async function get_artist_uuid(id, title, lastfm_api_key) {
             .then(response => response.json())
             .then(response => {
                 if (!response.corrections.hasOwnProperty("correction")) {
-                    resolve({ id: id, type: "artist", uuid: null, reason: 2 });
+                    resolve({ id: id, type: "artist", title: null, uuid: null, reason: 2 });
                     return
                 }
-                resolve({ id: id, type: "artist", uuid: uuidv5(response.corrections.correction.artist.url, uuidv5.URL) });
+                resolve({ id: id, type: "artist", title: response.corrections.correction.artist.name || title, uuid: uuidv5(response.corrections.correction.artist.url, uuidv5.URL) });
                 return
             })
             .catch(error => {
-                resolve({ id: id, type: "artist", uuid: null, reason: 3 });
+                resolve({ id: id, type: "artist", title: null, uuid: null, reason: 3 });
             });
     });
 }
@@ -365,7 +378,13 @@ async function get_album_uuid(id, title, artist_id, lastfm_api_key) {
             resolve({ id: id, type: "album", uuid: null, reason: 1 });
             return
         }
-        fetch(`https://ws.audioscrobbler.com/2.0/?method=album.getcorrection&artist=${artist.title}&album=${title}&api_key=${lastfm_api_key}&format=json`, {
+        fetch('https://ws.audioscrobbler.com/2.0/?' + new URLSearchParams({
+            method: 'album.getcorrection',
+            artist: artist.title,
+            album: title,
+            api_key: lastfm_api_key,
+            format: 'json'
+        }), {
             headers: {
                 'User-Agent': 'Forte/3.1 ( kaangiray26@protonmail.com )'
             }
@@ -373,14 +392,14 @@ async function get_album_uuid(id, title, artist_id, lastfm_api_key) {
             .then(response => response.json())
             .then(response => {
                 if (!response.corrections.hasOwnProperty("correction")) {
-                    resolve({ id: id, type: "album", uuid: null, reason: 2 });
+                    resolve({ id: id, type: "album", title: null, uuid: null, reason: 2 });
                     return
                 }
-                resolve({ id: id, type: "album", uuid: uuidv5(response.corrections.correction.album.url, uuidv5.URL) });
+                resolve({ id: id, type: "album", title: response.corrections.correction.album.name || title, uuid: uuidv5(response.corrections.correction.album.url, uuidv5.URL) });
                 return
             })
             .catch(error => {
-                resolve({ id: id, type: "album", uuid: null, reason: 3 });
+                resolve({ id: id, type: "album", title: null, uuid: null, reason: 3 });
             });
     });
 }
@@ -392,7 +411,13 @@ async function get_track_uuid(id, title, artist_id, lastfm_api_key) {
             resolve({ id: id, type: "track", uuid: null, reason: 1 });
             return
         }
-        fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getcorrection&artist=${artist.title}&track=${title}&api_key=${lastfm_api_key}&format=json`, {
+        fetch('https://ws.audioscrobbler.com/2.0/?' + new URLSearchParams({
+            method: 'track.getcorrection',
+            artist: artist.title,
+            track: title,
+            api_key: lastfm_api_key,
+            format: 'json'
+        }), {
             headers: {
                 'User-Agent': 'Forte/3.1 ( kaangiray26@protonmail.com )'
             }
@@ -400,14 +425,14 @@ async function get_track_uuid(id, title, artist_id, lastfm_api_key) {
             .then(response => response.json())
             .then(response => {
                 if (!response.corrections.hasOwnProperty("correction")) {
-                    resolve({ id: id, type: "track", uuid: null, reason: 2 });
+                    resolve({ id: id, type: "track", title: null, uuid: null, reason: 2 });
                     return
                 }
-                resolve({ id: id, type: "track", uuid: uuidv5(response.corrections.correction.track.url, uuidv5.URL) });
+                resolve({ id: id, type: "track", title: response.corrections.correction.track.name || title, uuid: uuidv5(response.corrections.correction.track.url, uuidv5.URL) });
                 return
             })
             .catch(error => {
-                resolve({ id: id, type: "track", uuid: null, reason: 3 });
+                resolve({ id: id, type: "track", title: null, uuid: null, reason: 3 });
             });
     });
 }
@@ -1277,7 +1302,7 @@ async function _federated_api(req, res, next) {
         return
     }
 
-    // Otherwiese, ask the server for identity challenge
+    // Otherwise, ask the server for identity challenge
     let challenge = await fetch(`${address}/f/challenge/${process.env.hostname}`)
         .then(response => response.json())
         .then(data => {
@@ -2654,7 +2679,9 @@ async function _get_lyrics(req, res, next) {
         }
 
         let genius_token = await t.one("SELECT value FROM config WHERE name = 'genius_token'");
-        let data = await fetch(`https://api.genius.com/search/?q=${encodeURI([artist.title, req.body.title])}`, {
+        let data = await fetch('https://api.genius.com/search/?' + new URLSearchParams({
+            q: artist.title + ' ' + req.body.title
+        }), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -2737,7 +2764,12 @@ async function _get_lastfm_artist(req, res, next) {
 
     db.task(async t => {
         let lastfm_api = await t.one("SELECT value FROM config WHERE name = 'lastfm_api_key'");
-        let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=artist.getcorrection&artist=${req.body.artist}&api_key=${lastfm_api.value}&format=json`)
+        let response = await fetch('https://ws.audioscrobbler.com/2.0/?' + new URLSearchParams({
+            method: 'artist.getcorrection',
+            artist: req.body.artist,
+            api_key: lastfm_api.value,
+            format: 'json'
+        }))
             .then(response => response.json());
 
         if (!response.corrections.hasOwnProperty('correction')) {

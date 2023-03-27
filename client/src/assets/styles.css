@@ -228,6 +228,18 @@ img {
     aspect-ratio: 1/1;
 }
 
+.form-control:focus {
+    border-color: #595AFF;
+    box-shadow: inset 0 0 0 1px #595AFF;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 
+------
+THEMES
+-------
+*/
+
 /* Dark Theme */
 body.dark-theme {
     --background-color: #191922;
@@ -239,7 +251,7 @@ body.dark-theme {
 body.light-theme {
     --background-color: #fff;
     --text-color: #000;
-    --card-background: #fff
+    --card-background: #fff;
 }
 
 .theme-color {
@@ -341,6 +353,10 @@ hr {
     background-color: var(--card-background) !important;
 }
 
+.theme-bg {
+    background-color: var(--background-color) !important;
+}
+
 .theme-list-item {
     background-color: transparent !important;
 }
@@ -355,4 +371,10 @@ hr {
 
 .img-thumbnail {
     padding: 0;
+}
+
+.server-selection,
+.server-selection:hover {
+    border: 1px solid #ced4da;
+    background-color: var(--background-color) !important;
 }
