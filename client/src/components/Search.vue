@@ -91,6 +91,32 @@ async function get_search_results() {
     results.value = response.data;
 }
 
+async function get_federated_search_results() {
+    let query = router.currentRoute.value.params.query;
+    if (!query) {
+        router.push('/');
+    }
+
+    // Get federated servers
+    let federated_servers = JSON.parse(localStorage.getItem('federated_servers'));
+
+    // Iterate through federated servers
+    for (let i = 0; i < federated_servers.length; i++) {
+        let server = federated_servers[i];
+        console.log("Getting result from federated server:", server);
+        let response = await ft.fAPI(server, '/search/' + query);
+        if (!response) return;
+
+
+        // Add federated server results to results
+        response.data.forEach(result => {
+            if (!results.value.filter(r => r.uuid == result.uuid).length) {
+                results.value.push(result);
+            }
+        });
+    }
+}
+
 async function openResult(result) {
     if (result.type == 'track') {
         ft.playTrack(result.id);
@@ -112,5 +138,6 @@ watch(query_param, () => {
 
 onMounted(() => {
     get_search_results();
+    get_federated_search_results();
 })
 </script>

@@ -84,7 +84,32 @@
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold">Post</button>
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="add_comment">Post</button>
+                </div>
+                <div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item theme-comment-item p-1" v-for="comment in comments">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <router-link :to="'/user/' + comment.author"
+                                        class="theme-color purple-on-hover fw-bold me-2">{{
+                                            comment.author
+                                        }}</router-link>
+                                    <span class="text-muted timestamp">{{ format_date(comment.created_at)
+                                    }}</span>
+                                </div>
+                                <p class="theme-color">{{ comment.content }}</p>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="d-flex justify-content-end">
+                        <button v-show="searchFinished && comments.length" type="button"
+                            class="btn btn-dark theme-btn black-on-hover fw-bold" @click="get_comments">Load more</button>
+                        <button v-show="!searchFinished && comments.length" class="btn btn-dark" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Loading...
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,8 +123,12 @@ import { right_click } from '/js/events.js';
 
 const artist = ref({});
 const albums = ref([]);
+const comments = ref([]);
+
+const offset = ref(0);
 
 const loaded = ref(false);
+const searchFinished = ref(true);
 const about_disabled = ref(false);
 
 const wiki_btn = ref(null);
@@ -109,6 +138,36 @@ const router = useRouter();
 
 async function placeholder(obj) {
     obj.target.src = "/images/album.svg";
+}
+
+function format_date(dt) {
+    let date = new Date(dt);
+
+    let date_string = date.toLocaleString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+
+    let time_string = date.toLocaleString("en-GB", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+    })
+
+    return `${date_string} ${time_string}`
+
+}
+
+async function add_comment() {
+    console.log("post comment");
+    let comment = document.querySelector("textarea").value;
+    if (!comment.length) {
+        return;
+    }
+
+    let response = await ft.add_comment(ft.username, "artist", artist.value.id, artist.value.uuid, comment);
+    console.log(response);
 }
 
 async function get_wiki_page() {
@@ -179,11 +238,29 @@ async function get_artist(id) {
     loaded.value = true;
 }
 
+async function get_comments() {
+    let id = router.currentRoute.value.params.id;
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.API(`/comments/artist/${id}/${offset.value}`);
+    if (!data || data.error) {
+        return;
+    }
+
+    offset.value += data.comments.length;
+    comments.value = comments.value.concat(data.comments);
+    searchFinished.value = true;
+}
+
 async function openAlbum(id) {
     router.push("/album/" + id);
 }
 
 onBeforeMount(() => {
     get_artist(router.currentRoute.value.params.id);
+    get_comments();
 })
 </script>

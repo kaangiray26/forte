@@ -182,6 +182,10 @@ app.post("/api/lastfm/artist", isAuthenticated, db.get_lastfm_artist)
 app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
 app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 
+app.post("/api/comments", isAuthenticated, db.add_comment)
+app.get("/api/comments/artist/:id/:offset", isAuthenticated, db.get_artist_comments)
+app.get("/api/comments/album/:id/:offset", isAuthenticated, db.get_album_comments)
+
 // Federated API
 app.post("/f/api", isAuthenticated, db.federated_api)
 app.get("/f/challenge/:domain", db.get_federation_challenge)

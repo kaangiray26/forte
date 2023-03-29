@@ -116,7 +116,17 @@ async function get_servers() {
     loading.value = true;
 
     servers.value = [];
-    let data = await fetch("https://api.github.com/repos/kaangiray26/forte/git/trees/31db73e0506adbfaf4e5b14206d8244ae0d3d0b2")
+
+    // Get tree url from GitHub API
+    let url = await fetch("https://api.github.com/repos/kaangiray26/forte/git/trees/servers")
+        .then(res => res.json())
+        .then(data => data.tree)
+        .then(data => data.filter(server => server.path == 'hostnames'))
+        .then(data => data[0].url)
+        .catch(() => null);
+    if (!url) return null;
+
+    let data = await fetch(url)
         .then(res => res.json())
         .then(data => data.tree);
 

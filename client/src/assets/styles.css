@@ -361,6 +361,10 @@ hr {
     background-color: transparent !important;
 }
 
+.theme-comment-item {
+    background-color: transparent !important;
+}
+
 .theme-list-item:hover {
     box-shadow: inset 0 0 0 1px #595AFF !important;
 }
@@ -377,4 +381,10 @@ hr {
 .server-selection:hover {
     border: 1px solid #ced4da;
     background-color: var(--background-color) !important;
+}
+
+.timestamp {
+    font-size: 12px;
+    display: inline;
+    line-height: 21px;
 }

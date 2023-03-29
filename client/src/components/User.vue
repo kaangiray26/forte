@@ -84,8 +84,9 @@ async function get_user(id) {
 
 async function get_federated_user(id) {
     let data = await ft.fAPI(domain.value, '/user/' + id);
+
+    console.log(data);
     if (!data || data.error) {
-        router.push('/404')
         return;
     }
 

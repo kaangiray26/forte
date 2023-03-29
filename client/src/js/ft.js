@@ -43,6 +43,9 @@ class Forte {
             store.scrobbling = true;
         }
 
+        // Get federated servers
+        this.get_federated_servers();
+
         // Check if all data is present
         if (!token || !server || !username) {
             this.ready = false;
@@ -178,6 +181,26 @@ class Forte {
             return response.json();
         })
         return response;
+    }
+
+    async add_comment(username, type, id, uuid = null, comment) {
+        let reponse = await fetch(this.server + '/api/comments' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "username": username,
+                "type": type,
+                "id": id,
+                "uuid": uuid,
+                "comment": comment
+            }),
+            credentials: "include"
+        })
+            .then(response => response.json())
+            .catch(error => null);
+        return reponse;
     }
 
     async check_session(session) {
@@ -739,12 +762,32 @@ class Forte {
     }
 
     async get_address(hostname) {
-        return await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${hostname}.json`)
+        return await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${hostname}`)
             .then(response => response.json())
             .then(data => {
                 return data.address;
             })
             .catch(() => null);
+    }
+
+    async get_federated_servers() {
+        // Get federated servers from GitHub
+        let url = await fetch("https://api.github.com/repos/kaangiray26/forte/git/trees/servers")
+            .then(res => res.json())
+            .then(data => data.tree)
+            .then(data => data.filter(server => server.path == 'hostnames'))
+            .then(data => data[0].url)
+            .catch(() => null);
+        if (!url) return null;
+
+        let servers = await fetch(url)
+            .then(res => res.json())
+            .then(data => data.tree)
+            .then(data => data.map(server => server.path))
+            .catch(() => null);
+        if (!servers) return null;
+
+        localStorage.setItem('federated_servers', JSON.stringify(servers));
     }
 }
 

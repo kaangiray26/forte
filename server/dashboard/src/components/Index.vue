@@ -183,7 +183,8 @@
                     </div>
                     <div>
                         <button type="button" class="btn btn-dark me-2 mb-2" @click="copy_key(key.value)">Copy</button>
-                        <button type="button" class="btn btn-dark text-nowrap mb-2" @click="copy_key(key.value, true)">Copy as JSON</button>
+                        <button type="button" class="btn btn-dark text-nowrap mb-2" @click="copy_key(key.value, true)">Copy
+                            as JSON</button>
                     </div>
                     <hr>
                 </div>
@@ -370,10 +371,10 @@ const password_alert = ref(false);
 const status = ref([]);
 const pgp_keys = ref([]);
 
-async function copy_key(value, json=false) {
+async function copy_key(value, json = false) {
     if (json) {
         value = JSON.stringify({
-            "key": value
+            "public_key": value
         })
     }
     window.navigator.clipboard.writeText(value);
@@ -658,7 +659,7 @@ async function get_status() {
     status.value = data.status;
 }
 
-async function get_pgp_keys(){
+async function get_pgp_keys() {
     let data = await fetch("/pgp_keys", {
         method: "GET"
     }).then((response) => {

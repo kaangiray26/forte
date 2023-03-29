@@ -87,12 +87,14 @@
                             <span>Servers</span>
                         </button>
                     </router-link>
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1" @click="change_theme">
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1"
+                        @click="change_theme">
                         <span class="bi me-2"
                             :class="{ 'bi-sun-fill': store.theme == 'light', 'bi-moon-fill': store.theme == 'dark' }"></span>
                         <span>Theme</span>
                     </button>
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1" @click="reset_menu">
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1"
+                        @click="reset_menu">
                         <span class="bi bi-list me-2"></span>
                         <span>Reset</span>
                     </button>
@@ -184,7 +186,7 @@ function formatNumber(num) {
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
-onBeforeMount(async () => {
+async function setup() {
     ['lastfm_key', 'scrobbling'].forEach((key) => {
         let value = JSON.parse(localStorage.getItem(key));
         if (value) {
@@ -202,5 +204,9 @@ onBeforeMount(async () => {
 
     get_lastfm_profile();
     get_top_tracks();
+}
+
+onBeforeMount(() => {
+    setup()
 })
 </script>

@@ -89,7 +89,7 @@ const lastfm_api_key = ref(null);
 const top_tracks = ref([]);
 
 async function check_lastfm_profile(id) {
-    let response = await ft.API('/lastfm/profile' + id);
+    let response = await ft.API('/lastfm/profile/' + id);
     if (!response.lastfm) {
         return
     }

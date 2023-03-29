@@ -81,6 +81,9 @@ async function _init(args) {
             // challenges
             t.none("CREATE TABLE IF NOT EXISTS challenges (id SERIAL PRIMARY KEY, value TEXT NOT NULL, UNIQUE(value))"),
 
+            // comments
+            t.none("CREATE TABLE IF NOT EXISTS comments (id SERIAL PRIMARY KEY, oid SERIAL, uuid TEXT, type TEXT, author TEXT, content TEXT NOT NULL, created_at TIMESTAMP DEFAULT NOW())"),
+
             // pgp keys
             t.none("CREATE TABLE IF NOT EXISTS pgp (id SERIAL PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL, value TEXT NOT NULL, UNIQUE(name, type))"),
 
@@ -136,7 +139,7 @@ async function _init(args) {
                 log("=> OK")
 
                 // Get public key from the GitHub repo
-                let key = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${process.env.hostname}.json`)
+                let key = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${process.env.hostname}`)
                     .then(response => response.json())
                     .then(data => {
                         return data.public_key;
@@ -155,7 +158,7 @@ async function _init(args) {
                 if (key == publicKey.value) {
                     log("==> Public Key confirmed.");
                 } else {
-                    log("==> Public Key mismatch!");
+                    console.log("\x1b[31m%s\x1b[0m", "==> Public Key mismatch!");
                 }
 
                 refresh_library()
@@ -213,10 +216,12 @@ async function update_uuids() {
                 let item = resolves[j];
                 if (item.type == "artist" && item.uuid) {
                     await t.none("UPDATE artists SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                    await t.none("UPDATE comments SET uuid=$1 WHERE id=$2 AND type='artist'", [item.uuid, item.id]);
                     continue;
                 }
                 if (item.type == "album" && item.uuid) {
                     await t.none("UPDATE albums SET uuid=$1 WHERE id=$2", [item.uuid, item.id]);
+                    await t.none("UPDATE comments SET uuid=$1 WHERE id=$2 AND type='album'", [item.uuid, item.id]);
                     continue;
                 }
                 if (item.type == "track" && item.uuid) {
@@ -1217,6 +1222,7 @@ async function _get_albums(req, res, next) {
         res.status(400).json({ "error": "Offset parameter not given." });
         return;
     }
+
     db.task(async t => {
         try {
             let albums = await t.manyOrNone("SELECT id, uuid, type, title, cover FROM albums ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
@@ -1270,11 +1276,9 @@ async function _federated_api(req, res, next) {
     }
 
     // Get server address
-    let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${req.body.domain}.json`)
+    let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${req.body.domain}`)
         .then(response => response.json())
-        .then(data => {
-            return data.address;
-        })
+        .then(data => data.address)
         .catch(() => null);
 
     // If server address is not found, return error
@@ -1305,9 +1309,7 @@ async function _federated_api(req, res, next) {
     // Otherwise, ask the server for identity challenge
     let challenge = await fetch(`${address}/f/challenge/${process.env.hostname}`)
         .then(response => response.json())
-        .then(data => {
-            return data.challenge;
-        })
+        .then(data => data.challenge)
         .catch(() => null);
 
     // If challenge is not found, return error
@@ -1366,11 +1368,9 @@ async function _get_federation_challenge(req, res, next) {
     }
 
     // Get public key
-    let key = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}.json`)
+    let key = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
         .then(response => response.json())
-        .then(data => {
-            return data.public_key;
-        })
+        .then(data => data.public_key)
         .catch(() => null);
 
     if (!key) {
@@ -1424,6 +1424,70 @@ async function _update_config(req, res, next) {
                 .json({
                     "success": "Config updated."
                 })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
+async function _get_album_comments(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+
+    // Check for uuid
+    let column = "oid";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        try {
+            let comments = await t.manyOrNone(`SELECT * FROM comments WHERE type='album' AND ${column} = $1 ORDER BY created_at DESC LIMIT 5 OFFSET $2`, [id, offset]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "comments": comments
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
+async function _get_artist_comments(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+
+    // Check for uuid
+    let column = "oid";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        try {
+            let comments = await t.manyOrNone(`SELECT * FROM comments WHERE type='artist' AND ${column} = $1 ORDER BY created_at DESC LIMIT 5 OFFSET $2`, [id, offset]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "comments": comments
+                }))
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
         }
@@ -2082,6 +2146,26 @@ async function _add_friend(req, res, next) {
         }
         await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
         res.status(200).json({ "success": "Friend addded." })
+    })
+}
+
+async function _add_comment(req, res, next) {
+    if (!['username', 'type', 'id', 'uuid', 'comment'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        await t.none("INSERT INTO comments (oid, uuid, type, author, content) VALUES ($1, $2, $3, $4, $5)", [req.body.id, req.body.uuid, req.body.type, req.body.username, req.body.comment]);
+        res.status(200).json({ "success": "Comment added." })
     })
 }
 
@@ -2868,6 +2952,7 @@ function get_api_sig(obj, sig) {
 
 // Exported functions
 const exports = {
+    add_comment: _add_comment,
     add_friend: _add_friend,
     add_history: _add_history,
     add_track_to_playlist: _add_track_to_playlist,
@@ -2878,18 +2963,19 @@ const exports = {
     create_playlist: _create_playlist,
     delete_playlist: _delete_playlist,
     delete_track_to_playlist: _delete_track_to_playlist,
+    federated_api: _federated_api,
     get_album: _get_album,
     get_album_loved: _get_album_loved,
     get_album_tracks: _get_album_tracks,
     get_albums: _get_albums,
+    get_artist_comments: _get_artist_comments,
+    get_album_comments: _get_album_comments,
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
     get_artist_loved: _get_artist_loved,
     get_artists: _get_artists,
     get_config: _get_config,
-    federated_api: _federated_api,
-    get_status: _get_status,
-    get_pgp_keys: _get_pgp_keys,
+    get_federated_user: _get_federated_user,
     get_federation_challenge: _get_federation_challenge,
     get_friends: _get_friends,
     get_history: _get_history,
@@ -2897,6 +2983,7 @@ const exports = {
     get_lastfm_auth: _get_lastfm_auth,
     get_lastfm_profile: _get_lastfm_profile,
     get_lyrics: _get_lyrics,
+    get_pgp_keys: _get_pgp_keys,
     get_playlist: _get_playlist,
     get_playlist_loved: _get_playlist_loved,
     get_playlist_tracks: _get_playlist_tracks,
@@ -2907,11 +2994,11 @@ const exports = {
     get_profile_tracks: _get_profile_tracks,
     get_random_track: _get_random_track,
     get_random_tracks: _get_random_tracks,
+    get_status: _get_status,
     get_track: _get_track,
     get_track_basic: _get_track_basic,
     get_track_loved: _get_track_loved,
     get_user: _get_user,
-    get_federated_user: _get_federated_user,
     get_user_albums: _get_user_albums,
     get_user_artists: _get_user_artists,
     get_user_friends: _get_user_friends,
