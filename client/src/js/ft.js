@@ -25,6 +25,7 @@ class Forte {
             this.track_loaded()
             this.listen_progress()
             this.track_quality()
+            this.track_lyrics()
         });
 
         this.player.on('end', () => {
@@ -340,6 +341,10 @@ class Forte {
             }
             store.playing.quality = "Hi-Res";
         })
+    }
+
+    async track_lyrics() {
+        window.dispatchEvent(new CustomEvent('lyrics'));
     }
 
     async track_finished() {

@@ -37,8 +37,10 @@ const track_id = ref(null);
 const loaded = ref(false);
 const error = ref(false);
 
-async function _get_lyrics() {
-    _show();
+async function _get_lyrics(preload = false) {
+    if (!preload) {
+        _show();
+    }
 
     if (store.playing.id == track_id.value) {
         loaded.value = true;
@@ -88,5 +90,8 @@ defineExpose({
 
 onMounted(() => {
     modal.value = new Modal(document.querySelector('#lyricsModal'));
+    window.addEventListener('lyrics', event => {
+        _get_lyrics(true);
+    });
 });
 </script>

@@ -45,6 +45,12 @@ async function notify_message(obj) {
     }));
 }
 
+async function lyrics(obj) {
+    window.dispatchEvent(new CustomEvent('lyrics', {
+        detail: obj
+    }));
+}
+
 async function action(options) {
     store.func_stack.push(options.func);
     notify_peer({
@@ -59,4 +65,4 @@ async function action(options) {
     }
 }
 
-export { right_click, notify, reaction, action, notify_peer, refresh_queue, group_key, notify_message }
+export { right_click, notify, reaction, action, notify_peer, refresh_queue, group_key, notify_message, lyrics }
