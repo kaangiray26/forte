@@ -54,7 +54,8 @@
                             <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
                                 @click="play_playlist(playlist.id)">
                             </button>
-                            <button class="btn btn-light action-btn bi bi-three-dots ms-0 m-2" type="button"
+                            <button v-if="playlist.author == username"
+                                class="btn btn-light action-btn bi bi-three-dots ms-0 m-2" type="button"
                                 data-bs-toggle="dropdown">
                                 <ul class="dropdown-menu shadow-lg context-menu">
                                     <li>
@@ -73,6 +74,14 @@
             </div>
         </div>
     </div>
+    <div class="d-flex justify-content-end mt-2">
+        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
+            @click="get_playlists">Load more</button>
+        <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Loading...
+        </button>
+    </div>
     <PlaylistCreate ref="playlistCreate" />
 </template>
 
@@ -83,9 +92,13 @@ import { right_click, action } from '/js/events.js';
 import PlaylistCreate from '../PlaylistCreate.vue';
 
 const router = useRouter();
-const playlists = ref([]);
 
+const playlists = ref([]);
+const offset = ref(0);
+const searchFinished = ref(true);
 const playlistCreate = ref(null);
+
+const username = ref(ft.username);
 
 async function showPlaylistCreate() {
     playlistCreate.value.show();
@@ -119,9 +132,17 @@ async function play_playlist(id) {
 }
 
 async function get_playlists() {
-    let data = await ft.API('/profile/playlists');
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.API(`/profile/playlists/${offset.value}`);
     if (!data) return;
-    playlists.value = data.playlists;
+
+    playlists.value = playlists.value.concat(data.playlists);
+    offset.value = playlists.value.length;
+    searchFinished.value = true;
 }
 
 onMounted(() => {

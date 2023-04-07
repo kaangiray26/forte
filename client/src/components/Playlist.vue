@@ -10,7 +10,8 @@
         <div class="card-body px-3">
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
-                    <div class="d-inline-flex position-relative">
+                    <div class="d-inline-flex position-relative"
+                        @contextmenu.prevent="right_click({ item: playlist, event: $event })">
                         <img class="playlist-img shadow" :src="get_cover(playlist.cover)" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"

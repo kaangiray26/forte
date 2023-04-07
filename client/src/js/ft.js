@@ -109,6 +109,11 @@ class Forte {
             return response.json();
         });
 
+        if (response.hasOwnProperty('error') && response.error == "Federation failed.") {
+            localStorage.removeItem(`@${domain}`);
+            return this.fAPI(domain, query);
+        }
+
         // Save challenge
         if (response.hasOwnProperty('challenge')) {
             localStorage.setItem(`@${domain}`, JSON.stringify(response.challenge));
@@ -554,6 +559,8 @@ class Forte {
 
     async playPlaylist(playlist_id) {
         this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
+            if (!response.tracks.length) return;
+
             store.queue_index = 0;
             this.load_track(response.tracks[0]);
             this.addToQueueStart(response.tracks);

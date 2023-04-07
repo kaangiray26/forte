@@ -121,6 +121,11 @@ import { ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
+const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const artist = ref({});
 const albums = ref([]);
 const comments = ref([]);
@@ -134,7 +139,6 @@ const about_disabled = ref(false);
 const wiki_btn = ref(null);
 const lastfm_btn = ref(null);
 
-const router = useRouter();
 
 async function placeholder(obj) {
     obj.target.src = "/images/album.svg";
@@ -228,7 +232,21 @@ function year_sort(a, b) {
 async function get_artist(id) {
     let data = await ft.API(`/artist/${id}`);
     if (!data || data.error) {
-        router.push('/404')
+        // router.push('/404')
+        return;
+    }
+
+    console.log(data);
+
+    artist.value = data.artist;
+    albums.value = data.albums;
+    albums.value.sort(year_sort);
+    loaded.value = true;
+}
+
+async function get_federated_artist(id) {
+    let data = await ft.fAPI(domain.value, `/artist/${id}`);
+    if (!data || data.error) {
         return;
     }
 
@@ -259,8 +277,19 @@ async function openAlbum(id) {
     router.push("/album/" + id);
 }
 
-onBeforeMount(() => {
-    get_artist(router.currentRoute.value.params.id);
+async function setup() {
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_federated_artist(id);
+        return
+    }
+
+    get_artist(id);
     get_comments();
+}
+
+onBeforeMount(() => {
+    setup();
 })
 </script>

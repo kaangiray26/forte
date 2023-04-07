@@ -119,9 +119,9 @@ import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 
-const query_param = computed(() => {
-    return router.currentRoute.value.params;
-})
+// Federated
+const domain = ref(null);
+
 
 const album = ref({});
 const artist = ref({});
@@ -134,12 +134,30 @@ const loaded = ref(false);
 const searchFinished = ref(true);
 const selected_track = ref(null);
 
+const query_param = computed(() => {
+    return router.currentRoute.value.params;
+})
+
 async function placeholder(obj) {
     obj.target.src = "/images/album.svg";
 }
 
 async function track_placeholder(obj) {
     obj.target.src = "/images/track.svg";
+}
+
+async function add_comment() {
+    let comment = document.querySelector("textarea").value;
+    if (!comment.length) {
+        return;
+    }
+
+    document.querySelector("textarea").value = "";
+
+    let response = await ft.add_comment(ft.username, "album", album.value.id, album.value.uuid, comment);
+    if (response.hasOwnProperty('success')) {
+        comments.value.unshift(response.comment);
+    }
 }
 
 function format_date(dt) {
@@ -205,7 +223,21 @@ async function play_track(id) {
 async function get_album(id) {
     let data = await ft.API(`/album/${id}`);
     if (!data || data.error) {
-        router.push('/404')
+        // router.push('/404')
+        return;
+    }
+
+    artist.value = data.artist;
+    album.value = data.album;
+    tracks.value = data.tracks;
+    tracks.value.sort((a, b) => a.track_position - b.track_position);
+    tracks.value.sort((a, b) => a.disc_number - b.disc_number);
+    loaded.value = true;
+}
+
+async function get_federated_album(id) {
+    let data = await ft.fAPI(domain.value, '/album/' + id);
+    if (!data || data.error) {
         return;
     }
 
@@ -245,6 +277,23 @@ async function get_comments() {
     searchFinished.value = true;
 }
 
+async function setup() {
+    if (store.selected_track_id) {
+        selected_track.value = store.selected_track_id;
+        store.selected_track_id = null;
+    }
+
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_federated_album(id);
+        return
+    }
+
+    get_album(id);
+    get_comments();
+}
+
 watch(query_param, (params) => {
     if (store.selected_track_id) {
         selected_track.value = store.selected_track_id;
@@ -256,11 +305,6 @@ watch(query_param, (params) => {
 })
 
 onBeforeMount(() => {
-    if (store.selected_track_id) {
-        selected_track.value = store.selected_track_id;
-        store.selected_track_id = null;
-    }
-    get_album(router.currentRoute.value.params.id);
-    get_comments();
+    setup()
 })
 </script>

@@ -1555,9 +1555,16 @@ async function _get_track(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id]);
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [id]);
 
             if (!track) {
                 res.status(404).json({ "error": "Track not found." });
@@ -2164,8 +2171,8 @@ async function _add_comment(req, res, next) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
-        await t.none("INSERT INTO comments (oid, uuid, type, author, content) VALUES ($1, $2, $3, $4, $5)", [req.body.id, req.body.uuid, req.body.type, req.body.username, req.body.comment]);
-        res.status(200).json({ "success": "Comment added." })
+        let comment = await t.oneOrNone("INSERT INTO comments (oid, uuid, type, author, content) VALUES ($1, $2, $3, $4, $5) RETURNING *", [req.body.id, req.body.uuid, req.body.type, req.body.username, req.body.comment]);
+        res.status(200).json({ "success": "Comment added.", "comment": comment })
     })
 }
 
@@ -2213,12 +2220,23 @@ async function _get_playlist(req, res, next) {
 
 async function _get_profile_playlists(req, res, next) {
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
+        let user = await t.oneOrNone("SELECT username, fav_playlists FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
-        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1", [user.username]);
+        if (!user.fav_playlists) {
+            let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1 ORDER BY title DESC LIMIT 24 OFFSET $2", [user.username, offset]);
+            res.status(200).json({ "playlists": playlists })
+            return;
+        }
+
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1 OR id = ANY($2) ORDER BY title DESC LIMIT 24 OFFSET $3", [user.username, user.fav_playlists, offset]);
         res.status(200).json({ "playlists": playlists })
     })
 }
@@ -2554,6 +2572,12 @@ async function _love_track(req, res, next) {
         return;
     }
 
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
             // Get user
@@ -2564,7 +2588,7 @@ async function _love_track(req, res, next) {
             }
 
             // Get track
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id])
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [id])
             if (!track) {
                 res.status(400).json({ "error": "Track not found." })
                 return;
@@ -2587,6 +2611,12 @@ async function _unlove_track(req, res, next) {
         return;
     }
 
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
             // Get user
@@ -2597,7 +2627,7 @@ async function _unlove_track(req, res, next) {
             }
 
             // Get track
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [id])
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [id])
             if (!track) {
                 res.status(400).json({ "error": "Track not found." })
                 return;
@@ -2620,6 +2650,12 @@ async function _love_artist(req, res, next) {
         return;
     }
 
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
             // Get user
@@ -2630,7 +2666,7 @@ async function _love_artist(req, res, next) {
             }
 
             // Get artist
-            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+            let artist = await t.oneOrNone(`SELECT * FROM artists WHERE ${column} = $1`, [id]);
             if (!artist) {
                 res.status(400).json({ "error": "Artist not found." })
                 return;
@@ -2672,6 +2708,72 @@ async function _unlove_artist(req, res, next) {
             // Remove artist from loved
             await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE username = $2", [id, user.username]);
             res.status(200).json({ "success": "Artist removed from loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return;
+        }
+    })
+}
+
+async function _love_playlist(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get playlist
+            let playlist = await t.oneOrNone("SELECT * FROM playlists WHERE id = $1", [id]);
+            if (!playlist) {
+                res.status(400).json({ "error": "Playlist not found." })
+                return;
+            }
+
+            // Add playlist to loved
+            await t.none("UPDATE users SET fav_playlists = array_append(fav_playlists, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Playlist added to loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return;
+        }
+    })
+}
+
+async function _unlove_playlist(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Get playlist
+            let playlist = await t.oneOrNone("SELECT * FROM playlists WHERE id = $1", [id])
+            if (!playlist) {
+                res.status(400).json({ "error": "Playlist not found." })
+                return;
+            }
+
+            // Remove playlist from loved
+            await t.none("UPDATE users SET fav_playlists = array_remove(fav_playlists, $1) WHERE username = $2", [id, user.username]);
+            res.status(200).json({ "success": "Playlist removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
             return;
@@ -3014,6 +3116,8 @@ const exports = {
     love_album: _love_album,
     love_artist: _love_artist,
     love_track: _love_track,
+    love_playlist: _love_playlist,
+    unlove_playlist: _unlove_playlist,
     remove_friend: _remove_friend,
     remove_user: _remove_user,
     search: _search,

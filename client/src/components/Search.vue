@@ -110,16 +110,38 @@ async function get_federated_search_results() {
 
         // Add federated server results to results
         response.data.forEach(result => {
-            if (!results.value.filter(r => r.uuid == result.uuid).length) {
-                results.value.push(result);
-            }
+            result.server = server;
+            results.value.push(result);
+            // if (!results.value.filter(r => r.uuid == result.uuid).length) {
+            //     results.value.push(result);
+            // }
         });
     }
 }
 
-async function openResult(result) {
+async function openFederatedResult(result) {
     if (result.type == 'track') {
-        ft.playTrack(result.id);
+        ft.playTrack(result.uuid, result.server);
+        return;
+    }
+
+    if (result.type == 'user') {
+        router.push("/user/" + result.title + `@${result.server}`);
+        return;
+    }
+
+    router.push("/" + result.type + "/" + result.uuid + `@${result.server}`);
+}
+
+async function openResult(result) {
+    // Federated result
+    if (result.server) {
+        openFederatedResult(result);
+        return;
+    }
+
+    if (result.type == 'track') {
+        ft.playTrack(id);
         return;
     }
 
@@ -134,6 +156,7 @@ async function openResult(result) {
 watch(query_param, () => {
     if (!router.currentRoute.value.params.query) return;
     get_search_results();
+    get_federated_search_results();
 })
 
 onMounted(() => {

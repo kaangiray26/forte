@@ -54,15 +54,6 @@
                             <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
                                 @click="play_playlist(playlist.id)">
                             </button>
-                            <button class="btn btn-light action-btn bi bi-three-dots ms-0 m-2" type="button"
-                                data-bs-toggle="dropdown">
-                                <ul class="dropdown-menu shadow-lg context-menu">
-                                    <li>
-                                        <button class="dropdown-item" type="button" @click="delete_playlist(playlist.id)">
-                                            <span class="bi bi-trash-fill me-1"></span>Delete playlist</button>
-                                    </li>
-                                </ul>
-                            </button>
                         </div>
                     </div>
                     <div class="d-flex flex-fill">
