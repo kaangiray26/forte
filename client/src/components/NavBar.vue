@@ -47,6 +47,15 @@ import { useRouter } from 'vue-router'
 const router = useRouter();
 const search_field = ref(null);
 
+function debounce(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+
+}
+
 const path = computed(() => {
     return router.currentRoute.value.path;
 })
@@ -59,7 +68,7 @@ async function clear_search() {
     search_field.value.value = "";
 }
 
-async function search(event) {
+const search = debounce(async (event) => {
     event.preventDefault();
     let query = search_field.value.value;
     if (!query.length) {
@@ -67,7 +76,7 @@ async function search(event) {
         return;
     }
     router.push('/search/' + query);
-}
+});
 
 defineExpose({
     focus_search,

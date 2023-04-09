@@ -1219,7 +1219,7 @@ async function _get_artists(req, res, next) {
     }
     db.task(async t => {
         try {
-            let artists = await t.manyOrNone("SELECT id, uuid, type, title, cover FROM artists ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
+            let artists = await t.manyOrNone("SELECT * FROM artists ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
             res.status(200)
                 .json({
                     "artists": artists
@@ -1239,10 +1239,30 @@ async function _get_albums(req, res, next) {
 
     db.task(async t => {
         try {
-            let albums = await t.manyOrNone("SELECT id, uuid, type, title, cover FROM albums ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
+            let albums = await t.manyOrNone("SELECT * FROM albums ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
             res.status(200)
                 .json({
                     "albums": albums
+                })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
+async function _get_playlists(req, res, next) {
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        try {
+            let playlists = await t.manyOrNone("SELECT * FROM playlists ORDER BY title ASC LIMIT 24 OFFSET $1", [req.params.offset]);
+            res.status(200)
+                .json({
+                    "playlists": playlists
                 })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -2263,15 +2283,133 @@ async function _add_comment(req, res, next) {
         return;
     }
 
+    // Check for federated user
+    let author = req.body.username;
+    if (req.body.username.includes('@')) {
+        [req.body.username, req.body.domain] = req.body.username.split('@');
+    }
+
     db.task(async t => {
         let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
-        let comment = await t.oneOrNone("INSERT INTO comments (oid, uuid, type, author, content) VALUES ($1, $2, $3, $4, $5) RETURNING *", [req.body.id, req.body.uuid, req.body.type, req.body.username, req.body.comment]);
+        let comment = await t.oneOrNone("INSERT INTO comments (oid, uuid, type, author, content) VALUES ($1, $2, $3, $4, $5) RETURNING *", [req.body.id, req.body.uuid, req.body.type, author, req.body.comment]);
         res.status(200).json({ "success": "Comment added.", "comment": comment })
     })
+}
+
+async function _add_federated_comment(req, res, next) {
+    if (!['domain', 'challenge', 'username', 'type', 'id', 'uuid', 'comment'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given correctly."
+            });
+        return;
+    }
+
+    // Get server address
+    let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${req.body.domain}`)
+        .then(response => response.json())
+        .then(data => data.address)
+        .catch(() => null);
+
+    // If server address is not found, return error
+    if (!address) {
+        res.status(400).json({ "error": "Server not found." });
+        return;
+    }
+
+    // Check if challenge is given
+    if (req.body.challenge) {
+        // Send request to the server with the federation header
+        let data = await fetch(address + '/api/comments' + `?session=${req.body.challenge}`, {
+            method: 'POST',
+            headers: {
+                'federated': 'true',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "username": req.body.username + "@" + process.env.hostname,
+                "type": req.body.type,
+                "id": req.body.id,
+                "uuid": req.body.uuid,
+                "comment": req.body.comment
+            })
+        })
+            .then(response => response.json())
+            .catch(() => {
+                return { "error": "Federated server has failed to return a response." }
+            });
+
+        data.server = address;
+        data.challenge = req.body.challenge;
+        res.status(200).send(data);
+        return
+    }
+
+    // Otherwise, ask the server for identity challenge
+    let challenge = await fetch(`${address}/f/challenge/${process.env.hostname}`)
+        .then(response => response.json())
+        .then(data => data.challenge)
+        .catch(() => null);
+
+    // If challenge is not found, return error
+    if (!challenge) {
+        res.status(400).json({ "error": "Challenge not found." });
+        return;
+    }
+
+    // Get private key
+    let passphrase = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'passphrase'");
+    let privateKeyArmored = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'private'");
+    if (!passphrase || !privateKeyArmored) {
+        res.status(400).json({ "error": "Keys are not found." });
+        return;
+    }
+
+    let privateKey = await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({
+            armoredKey: privateKeyArmored.value
+        }),
+        passphrase: passphrase.value
+    });
+
+    // Read the message
+    let message = await openpgp.readMessage({
+        armoredMessage: challenge
+    });
+
+    // Decrypt the message
+    let { data: session, signatures } = await openpgp.decrypt({
+        message,
+        decryptionKeys: privateKey
+    });
+
+    // Send request to the server with the federation header
+    let data = await fetch(address + '/api/comments' + `?session=${session}`, {
+        method: 'POST',
+        headers: {
+            'federated': 'true',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            "username": req.body.username + "@" + process.env.hostname,
+            "type": req.body.type,
+            "id": req.body.id,
+            "uuid": req.body.uuid,
+            "comment": req.body.comment
+        })
+    })
+        .then(response => response.json())
+        .catch(() => {
+            return { "error": "Federated server has failed to return a response." }
+        });
+
+    data.server = address;
+    data.challenge = session;
+    res.status(200).send(data);
 }
 
 async function _remove_friend(req, res, next) {
@@ -3153,6 +3291,7 @@ function get_api_sig(obj, sig) {
 // Exported functions
 const exports = {
     add_comment: _add_comment,
+    add_federated_comment: _add_federated_comment,
     add_friend: _add_friend,
     add_history: _add_history,
     add_track_to_playlist: _add_track_to_playlist,
@@ -3170,6 +3309,7 @@ const exports = {
     get_album_loved: _get_album_loved,
     get_album_tracks: _get_album_tracks,
     get_albums: _get_albums,
+    get_playlists: _get_playlists,
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
     get_artist_comments: _get_artist_comments,

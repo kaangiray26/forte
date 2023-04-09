@@ -130,6 +130,7 @@ app.head("/api/stream/:id", isAuthenticated, db.stream_head)
 
 app.get("/api/artists/:offset", isAuthenticated, db.get_artists)
 app.get("/api/albums/:offset", isAuthenticated, db.get_albums)
+app.get("/api/playlists/:offset", isAuthenticated, db.get_playlists)
 
 app.get("/api/profile", isAuthenticated, db.get_profile)
 app.get("/api/profile/history", isAuthenticated, db.get_history)
@@ -165,7 +166,6 @@ app.get("/api/album/:id/love", isAuthenticated, db.love_album)
 app.get("/api/album/:id/unlove", isAuthenticated, db.unlove_album)
 app.get("/api/album/:id/loved", isAuthenticated, db.get_album_loved)
 
-app.get("/api/all/albums", isAuthenticated, db.get_all_albums)
 app.get("/api/random/track", isAuthenticated, db.get_random_track)
 app.get("/api/random/tracks", isAuthenticated, db.get_random_tracks)
 
@@ -196,9 +196,11 @@ app.get("/api/comments/artist/:id/:offset", isAuthenticated, db.get_artist_comme
 app.get("/api/comments/album/:id/:offset", isAuthenticated, db.get_album_comments)
 
 // Federated API
-app.get("/f/challenge/:domain", db.get_federation_challenge)
-
 app.post("/f/api", isAuthenticated, db.federated_api)
+app.get("/f/challenge/:domain", db.get_federation_challenge)
+app.post("/f/api/comments", isAuthenticated, db.add_federated_comment)
+
+// Direct Federated API
 app.get("/f/api/stream/:id", isFederated, db.stream)
 app.head("/f/api/stream/:id", isFederated, db.stream_head)
 

@@ -13,7 +13,7 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile img-thumbnail" :src="get_cover()" width="250" height="250" />
+                        <img class="img-profile img-thumbnail" :src="get_cover()" @error="placeholder" width="250" height="250" />
                         <div class="position-absolute bottom-0 right-0">
                         </div>
                     </div>
@@ -60,6 +60,10 @@ const friend = ref(false);
 const query_param = computed(() => {
     return router.currentRoute.value.params.id;
 })
+
+async function placeholder(obj) {
+    obj.target.src = "/images/default_profile.svg";
+}
 
 function get_cover() {
     if (user.value.cover) {

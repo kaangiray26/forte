@@ -119,38 +119,31 @@ async function get_federated_search_results() {
     }
 }
 
-async function openFederatedResult(result) {
-    if (result.type == 'track') {
-        ft.playTrack(result.uuid, result.server);
-        return;
-    }
-
-    if (result.type == 'user') {
-        router.push("/user/" + result.title + `@${result.server}`);
-        return;
-    }
-
-    router.push("/" + result.type + "/" + result.uuid + `@${result.server}`);
-}
-
 async function openResult(result) {
+    let server = null;
+    let id = result.id;
+    let oid = result.id;
+    let title = result.title;
+
     // Federated result
     if (result.server) {
-        openFederatedResult(result);
-        return;
+        id = result.uuid;
+        server = result.server;
+        oid = result.uuid + `@${result.server}`;
+        title = result.title + `@${result.server}`;
     }
 
     if (result.type == 'track') {
-        ft.playTrack(result.id);
+        ft.playTrack(id, server);
         return;
     }
 
     if (result.type == 'user') {
-        router.push("/user/" + result.title);
+        router.push("/user/" + title);
         return;
     }
 
-    router.push("/" + result.type + "/" + result.id);
+    router.push("/" + result.type + "/" + oid);
 }
 
 watch(query_param, () => {

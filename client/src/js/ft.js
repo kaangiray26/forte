@@ -101,9 +101,7 @@ class Forte {
                 "challenge": challenge
             }),
             credentials: "include"
-        }).then((response) => {
-            return response.json();
-        });
+        }).then((response) => response.json());
 
         if (response.hasOwnProperty('error') && response.error == "Federation failed.") {
             localStorage.removeItem(`@${domain}`);
@@ -161,19 +159,6 @@ class Forte {
         return response;
     }
 
-    async get_all_albums(offset) {
-        let response = await fetch(this.server + '/api/all/albums' + `?session=${this.session}`, {
-            method: "GET",
-            headers: {
-                "offset": offset
-            },
-            credentials: "include"
-        }).then((response) => {
-            return response.json();
-        });
-        return response;
-    }
-
     async upload_cover(data) {
         let response = await fetch(this.server + '/api/cover' + `?session=${this.session}`, {
             method: "POST",
@@ -186,7 +171,7 @@ class Forte {
     }
 
     async add_comment(username, type, id, uuid = null, comment) {
-        let reponse = await fetch(this.server + '/api/comments' + `?session=${this.session}`, {
+        let response = await fetch(this.server + '/api/comments' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -202,7 +187,41 @@ class Forte {
         })
             .then(response => response.json())
             .catch(error => null);
-        return reponse;
+        return response;
+    }
+
+    async add_federated_comment(domain, username, type, id, uuid = null, comment) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+
+        let response = await fetch(this.server + '/f/api/comments' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "domain": domain,
+                "challenge": challenge,
+                "username": username,
+                "type": type,
+                "id": id,
+                "uuid": uuid,
+                "comment": comment
+            }),
+            credentials: "include"
+        }).then(response => response.json());
+
+        if (response.hasOwnProperty('error') && response.error == "Federation failed.") {
+            localStorage.removeItem(`@${domain}`);
+            return this.add_federated_comment(domain, username, type, id, uuid, comment);
+        }
+
+        // Save challenge
+        if (response.hasOwnProperty('challenge')) {
+            localStorage.setItem(`@${domain}`, JSON.stringify(response.challenge));
+        }
+
+        return response;
     }
 
     async check_session(session) {

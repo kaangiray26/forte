@@ -79,7 +79,7 @@
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="add_comment">Post</button>
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="post_comment">Post</button>
                 </div>
                 <div>
                     <ul class="list-group list-group-flush">
@@ -99,7 +99,7 @@
                     </ul>
                     <div class="d-flex justify-content-end">
                         <button v-show="searchFinished && comments.length" type="button"
-                            class="btn btn-dark theme-btn black-on-hover fw-bold" @click="get_comments">Load more</button>
+                            class="btn btn-dark theme-btn black-on-hover fw-bold" @click="load_more">Load more</button>
                         <button v-show="!searchFinished && comments.length" class="btn btn-dark" type="button" disabled>
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             Loading...
@@ -121,7 +121,8 @@ const router = useRouter();
 
 // Federated
 const domain = ref(null);
-
+const album_id = ref(null);
+const federated = ref(false);
 
 const album = ref({});
 const artist = ref({});
@@ -146,6 +147,14 @@ async function track_placeholder(obj) {
     obj.target.src = "/images/track.svg";
 }
 
+async function post_comment(){
+    if(federated.value){
+        add_federated_comment();
+        return;
+    }
+    add_comment();
+}
+
 async function add_comment() {
     let comment = document.querySelector("textarea").value;
     if (!comment.length) {
@@ -155,6 +164,20 @@ async function add_comment() {
     document.querySelector("textarea").value = "";
 
     let response = await ft.add_comment(ft.username, "album", album.value.id, album.value.uuid, comment);
+    if (response.hasOwnProperty('success')) {
+        comments.value.unshift(response.comment);
+    }
+}
+
+async function add_federated_comment(){
+    let comment = document.querySelector("textarea").value;
+    if (!comment.length) {
+        return;
+    }
+
+    document.querySelector("textarea").value = "";
+
+    let response = await ft.add_federated_comment(domain.value, ft.username, "album", album.value.id, album.value.uuid, comment);
     if (response.hasOwnProperty('success')) {
         comments.value.unshift(response.comment);
     }
@@ -260,8 +283,7 @@ async function play_album(id) {
     })
 }
 
-async function get_comments() {
-    let id = router.currentRoute.value.params.id;
+async function get_comments(id) {
     if (!searchFinished.value) {
         return
     }
@@ -277,21 +299,47 @@ async function get_comments() {
     searchFinished.value = true;
 }
 
+async function get_federated_comments(id){
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.fAPI(domain.value, `/comments/album/${id}/${offset.value}`);
+    if (!data || data.error) {
+        return;
+    }
+
+    offset.value += data.comments.length;
+    comments.value = comments.value.concat(data.comments);
+    searchFinished.value = true;
+}
+
 async function setup() {
     if (store.selected_track_id) {
         selected_track.value = store.selected_track_id;
         store.selected_track_id = null;
     }
 
-    let id = router.currentRoute.value.params.id;
-    if (id.includes('@')) {
-        [id, domain.value] = id.split('@');
-        get_federated_album(id);
+    album_id.value = router.currentRoute.value.params.id;
+    if (album_id.value.includes('@')) {
+        [album_id.value, domain.value] = album_id.value.split('@');
+        federated.value = true;
+        get_federated_album(album_id.value);
+        get_federated_comments(album_id.value);
         return
     }
 
-    get_album(id);
-    get_comments();
+    get_album(album_id.value);
+    get_comments(album_id.value);
+}
+
+async function load_more(){
+    if (federated.value) {
+        get_federated_comments(album_id.value);
+        return
+    }
+    get_comments(album_id.value);
 }
 
 watch(query_param, (params) => {

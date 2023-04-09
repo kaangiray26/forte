@@ -3,13 +3,14 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Quick Options</h5>
+                    <h5 class="modal-title">Reset</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="list-group">
-                        <li class="list-group-item list-group-item-action clickable" @click="reset">Reset</li>
-                    </ul>
+                    <p class="fw-bold">Are you sure you really want to reset?</p>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-success fw-bold" @click="reset">Confirm</button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -5,6 +5,7 @@ import Search from "/components/Search.vue";
 
 import AllArtists from "/components/Artists.vue";
 import AllAlbums from "/components/Albums.vue";
+import AllPlaylists from "/components/Playlists.vue";
 
 import Artist from "/components/Artist.vue";
 import Album from "/components/Album.vue";
@@ -52,6 +53,10 @@ const routes = [
     {
         path: "/albums",
         component: AllAlbums
+    },
+    {
+        path: "/playlists",
+        component: AllPlaylists
     },
     {
         path: "/search/:query",
