@@ -388,3 +388,7 @@ hr {
     display: inline;
     line-height: 21px;
 }
+
+.server {
+    color: var(--text-color)
+}

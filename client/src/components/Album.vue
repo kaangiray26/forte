@@ -287,6 +287,7 @@ async function setup() {
     if (id.includes('@')) {
         [id, domain.value] = id.split('@');
         get_federated_album(id);
+        get_federated_comments();
         return
     }
 

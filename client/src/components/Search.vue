@@ -17,8 +17,9 @@
                         style="display:contents;">
                         {{ result.title }}
                     </button>
-                    <div>
+                    <div class="d-flex align-items-center">
                         <span class="badge" :class="result.type">{{ result.type }}</span>
+                        <span v-if="result.server" class="server bi bi-globe-americas ms-2"></span>
                     </div>
                 </div>
             </div>
@@ -103,7 +104,6 @@ async function get_federated_search_results() {
     // Iterate through federated servers
     for (let i = 0; i < federated_servers.length; i++) {
         let server = federated_servers[i];
-        console.log("Getting result from federated server:", server);
         let response = await ft.fAPI(server, '/search/' + query);
         if (!response) return;
 
@@ -141,7 +141,7 @@ async function openResult(result) {
     }
 
     if (result.type == 'track') {
-        ft.playTrack(id);
+        ft.playTrack(result.id);
         return;
     }
 

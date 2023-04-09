@@ -85,15 +85,11 @@ class Forte {
         return response;
     }
 
-    async fAPI(domain, query, challenge = null) {
+    async fAPI(domain, query) {
         if (!this.ready) return null;
 
         // Check for saved challenge
-        let stored_challenge = JSON.parse(localStorage.getItem(`@${domain}`));
-        if (stored_challenge) {
-            challenge = stored_challenge;
-        }
-
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
         let response = await fetch(this.server + '/f/api' + `?session=${this.session}`, {
             method: "POST",
             headers: {
@@ -303,6 +299,45 @@ class Forte {
 
         this.player.unload();
         this.player._src = [ft.server + '/api/stream/' + track.id + `?session=${this.session}`];
+        this.player.load();
+        document.title = track.title;
+    }
+
+    async load_federated_track(track, domain) {
+        store.playing.id = track.id;
+        store.playing.type = track.type;
+        store.playing.title = track.title;
+        store.playing.cover = track.cover;
+        store.playing.album = track.album;
+        store.playing.artist = track.artist;
+        store.playing.loaded = true;
+
+        // Cover
+        let cover = this.get_cover(store.playing.cover);
+
+        // mediaSession metadata
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: store.playing.title,
+            artwork: [
+                { src: cover, sizes: '250x250', type: 'image/png' },
+            ]
+        });
+
+        // Get server address
+        let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
+            .then(response => response.json())
+            .then(data => data.address)
+            .catch(() => null);
+
+        // If server address is not found, return error
+        if (!address) {
+            return;
+        }
+
+        let challenge = JSON.parse(localStorage.getItem(`@${domain}`));
+
+        this.player.unload();
+        this.player._src = [`${address}/f/api/stream/${track.id}?session=${challenge}`];
         this.player.load();
         document.title = track.title;
     }
@@ -523,7 +558,17 @@ class Forte {
         return response;
     }
 
-    async playTrack(track_id) {
+    async playTrack(track_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/track/${track_id}/basic`).then((response) => {
+                store.queue_index = 0;
+                this.load_federated_track(response.track, domain);
+                this.addToQueueStart([response.track]);
+            })
+            return;
+        }
+
         this.API(`/track/${track_id}/basic`).then((response) => {
             store.queue_index = 0;
             this.load_track(response.track);
@@ -531,13 +576,34 @@ class Forte {
         })
     }
 
-    async playTrackNext(track_id) {
+    async playTrackNext(track_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/track/${track_id}/basic`).then((response) => {
+                this.addToQueueNext([response.track]);
+            })
+            return;
+        }
+
         this.API(`/track/${track_id}/basic`).then((response) => {
             this.addToQueueNext([response.track]);
         })
     }
 
-    async playAlbum(album_id) {
+    async playAlbum(album_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/album/${album_id}/tracks`).then((response => {
+                store.queue_index = 0;
+                let tracks = response.tracks;
+                tracks.sort((a, b) => a.track_position - b.track_position);
+                tracks.sort((a, b) => a.disc_number - b.disc_number);
+                this.load_track(tracks[0]);
+                this.addToQueueStart(tracks);
+            }))
+            return;
+        }
+
         this.API(`/album/${album_id}/tracks`).then((response) => {
             store.queue_index = 0;
             let tracks = response.tracks;

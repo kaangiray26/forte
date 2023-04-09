@@ -23,24 +23,15 @@
                                         </button>
                                     </div>
                                 </li>
-                                <li class="list-group-item theme-list-item p-1" v-for="server in servers">
+                                <li class="list-group-item theme-list-item" v-for="server in servers">
                                     <div class="d-flex justify-content-between theme-color">
                                         <div class="d-flex flex-column flex-fill text-break">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <h5 class="fw-bold m-0">{{ server.name }}</h5>
                                                 <div class="d-flex">
                                                     <button type="button"
-                                                        class="btn btn-dark theme-btn fw-bold black-on-hover text-nowrap me-2"
+                                                        class="btn btn-dark theme-btn fw-bold black-on-hover text-nowrap"
                                                         @click="open_server(server)">About</button>
-                                                    <button v-if="!followed.includes(server.name)" type="button"
-                                                        class="btn btn-dark theme-btn fw-bold black-on-hover text-nowrap"
-                                                        @click="follow_server(server)">Follow</button>
-                                                    <button v-if="followed.includes(server.name)" type="button"
-                                                        class="btn btn-dark theme-btn fw-bold black-on-hover text-nowrap"
-                                                        @click="unfollow_server(server)">
-                                                        <span class="bi bi-check me-1"></span>
-                                                        <span>Following</span>
-                                                    </button>
                                                 </div>
                                             </div>
                                             <div>
@@ -83,7 +74,6 @@ let serversModal = null;
 const serversModalEl = ref(null);
 
 const servers = ref([]);
-const followed = ref([]);
 const loading = ref(false);
 
 async function go_back() {
@@ -92,23 +82,8 @@ async function go_back() {
     return
 }
 
-async function follow_server(server) {
-    followed.value.push(server.name);
-    localStorage.setItem('followed', JSON.stringify(followed.value));
-}
-
-async function unfollow_server(server) {
-    followed.value = followed.value.filter((name) => name != server.name);
-    localStorage.setItem('followed', JSON.stringify(followed.value));
-}
-
 async function open_server(server) {
     window.open(`${server.address}/about`, "_blank");
-}
-
-async function get_followed_servers() {
-    followed.value = JSON.parse(localStorage.getItem('followed'));
-    console.log(followed.value);
 }
 
 async function get_servers() {
@@ -179,7 +154,6 @@ onMounted(() => {
         keyboard: false
     });
     serversModal.show();
-    get_followed_servers();
     get_servers();
 })
 </script>

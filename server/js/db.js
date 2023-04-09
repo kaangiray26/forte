@@ -1143,7 +1143,14 @@ async function _stream(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
-    db.oneOrNone("SELECT path FROM tracks WHERE id = $1", [id])
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.oneOrNone(`SELECT path FROM tracks WHERE ${column} = $1`, [id])
         .then(function (data) {
             res.status(200)
                 .sendFile(data.path)
@@ -1156,7 +1163,14 @@ async function _stream_head(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
-    db.oneOrNone("SELECT path FROM tracks WHERE id = $1", [id])
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.oneOrNone(`SELECT path FROM tracks WHERE ${column} = $1`, [id])
         .then(function (data) {
             res.status(200)
                 .sendFile(data.path, { headers: { 'Content-Type': true, 'Content-Length': true } })
@@ -1303,6 +1317,90 @@ async function _federated_api(req, res, next) {
         data.server = address;
         data.challenge = req.body.challenge;
         res.status(200).send(data);
+        return
+    }
+
+    // Otherwise, ask the server for identity challenge
+    let challenge = await fetch(`${address}/f/challenge/${process.env.hostname}`)
+        .then(response => response.json())
+        .then(data => data.challenge)
+        .catch(() => null);
+
+    // If challenge is not found, return error
+    if (!challenge) {
+        res.status(400).json({ "error": "Challenge not found." });
+        return;
+    }
+
+    // Get private key
+    let passphrase = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'passphrase'");
+    let privateKeyArmored = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'private'");
+    if (!passphrase || !privateKeyArmored) {
+        res.status(400).json({ "error": "Keys are not found." });
+        return;
+    }
+
+    let privateKey = await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({
+            armoredKey: privateKeyArmored.value
+        }),
+        passphrase: passphrase.value
+    });
+
+    // Read the message
+    let message = await openpgp.readMessage({
+        armoredMessage: challenge
+    });
+
+    // Decrypt the message
+    let { data: session, signatures } = await openpgp.decrypt({
+        message,
+        decryptionKeys: privateKey
+    });
+
+    // Send request to the server with the federation header
+    let data = await fetch(address + '/api' + req.body.query + `?session=${session}`, {
+        headers: {
+            'federated': 'true'
+        }
+    })
+        .then(response => response.json())
+        .catch(() => {
+            return { "error": "Federated server has failed to return a response." }
+        });
+
+    data.server = address;
+    data.challenge = session;
+    res.status(200).send(data);
+}
+
+async function _federated_stream(req, res, next) {
+    if (!['domain', 'id'].every(key => req.params.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given correctly."
+            });
+        return;
+    }
+
+    // Get server address
+    let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${req.params.domain}`)
+        .then(response => response.json())
+        .then(data => data.address)
+        .catch(() => null);
+
+    // If server address is not found, return error
+    if (!address) {
+        res.status(400).json({ "error": "Server not found." });
+        return;
+    }
+
+    // Check if challenge is given
+    if (req.query.challenge) {
+
+        // Send request to the server with the federation header
+        res.set({ "federated": "true" });
+        res.redirect(address + '/api/stream/' + req.params.id + `?session=${req.query.challenge}`);
         return
     }
 
@@ -3066,14 +3164,15 @@ const exports = {
     delete_playlist: _delete_playlist,
     delete_track_to_playlist: _delete_track_to_playlist,
     federated_api: _federated_api,
+    federated_stream: _federated_stream,
     get_album: _get_album,
+    get_album_comments: _get_album_comments,
     get_album_loved: _get_album_loved,
     get_album_tracks: _get_album_tracks,
     get_albums: _get_albums,
-    get_artist_comments: _get_artist_comments,
-    get_album_comments: _get_album_comments,
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
+    get_artist_comments: _get_artist_comments,
     get_artist_loved: _get_artist_loved,
     get_artists: _get_artists,
     get_config: _get_config,
@@ -3115,9 +3214,8 @@ const exports = {
     lastfm_scrobble: _lastfm_scrobble,
     love_album: _love_album,
     love_artist: _love_artist,
-    love_track: _love_track,
     love_playlist: _love_playlist,
-    unlove_playlist: _unlove_playlist,
+    love_track: _love_track,
     remove_friend: _remove_friend,
     remove_user: _remove_user,
     search: _search,
@@ -3129,6 +3227,7 @@ const exports = {
     stream_head: _stream_head,
     unlove_album: _unlove_album,
     unlove_artist: _unlove_artist,
+    unlove_playlist: _unlove_playlist,
     unlove_track: _unlove_track,
     update_album: _update_album,
     update_artist: _update_artist,

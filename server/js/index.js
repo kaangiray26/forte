@@ -49,6 +49,13 @@ function isAdmin(req, res, next) {
     else next('route')
 }
 
+function isFederated(req, res, next) {
+    db.is_federated(req.query).then((ok) => {
+        if (ok) next()
+        else res.status(401).json({ "error": "Federation failed." })
+    })
+}
+
 function isAuthenticated(req, res, next) {
     // Federated check
     if (req.headers.hasOwnProperty('federated')) {
@@ -189,8 +196,11 @@ app.get("/api/comments/artist/:id/:offset", isAuthenticated, db.get_artist_comme
 app.get("/api/comments/album/:id/:offset", isAuthenticated, db.get_album_comments)
 
 // Federated API
-app.post("/f/api", isAuthenticated, db.federated_api)
 app.get("/f/challenge/:domain", db.get_federation_challenge)
+
+app.post("/f/api", isAuthenticated, db.federated_api)
+app.get("/f/api/stream/:id", isFederated, db.stream)
+app.head("/f/api/stream/:id", isFederated, db.stream_head)
 
 // Error Handling
 app.use((req, res, next) => {
