@@ -30,7 +30,7 @@
         </li>
     </ul>
     <hr />
-    <div v-show="selectedStation" class="col-12">
+    <div v-if="selectedStation" class="col-12">
         <iframe class="w-100" :src="'https://gemini.tunein.com/embed/player/' + selectedStation"></iframe>
     </div>
     <div class="d-inline-flex flex-column">
@@ -96,19 +96,13 @@ async function search_station() {
     if (!name.length) {
         return;
     }
-    console.log("Searching for station: " + name)
 
     let response = await fetch(`https://api.tunein.com/profiles?fullTextSearch=true&query=${name.split(" ").join("+")}`, {
         method: "GET"
     }).then((res) => {
         return res.json()
     });
-    let stats = response.Items[1].Children;
 
-    for (let i = 0; i < stats.length; i++) {
-        let station = stats[i];
-        console.log(station);
-    }
     stations.value = response.Items[1].Children;
     searchFinished.value = true;
 }

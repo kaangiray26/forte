@@ -245,7 +245,7 @@ props.conn.on("data", async function (data) {
 
             case 'addTrackToQueue':
                 store.func_stack.push(async function op() {
-                    ft.queueTrack(data.object).then(() => {
+                    ft.queueTrack(...data.object).then(() => {
                         notify({
                             "title": "Added to the queue."
                         })
@@ -255,7 +255,7 @@ props.conn.on("data", async function (data) {
 
             case 'addAlbumToQueue':
                 store.func_stack.push(async function op() {
-                    ft.queueAlbum(data.object).then(() => {
+                    ft.queueAlbum(...data.object).then(() => {
                         notify({
                             "title": "Added to the queue."
                         })
@@ -265,7 +265,7 @@ props.conn.on("data", async function (data) {
 
             case 'addPlaylistToQueue':
                 store.func_stack.push(async function op() {
-                    ft.queuePlaylist(data.object).then(() => {
+                    ft.queuePlaylist(...data.object).then(() => {
                         notify({
                             "title": "Added to the queue."
                         })
@@ -281,37 +281,37 @@ props.conn.on("data", async function (data) {
             // Play operations
             case 'playTrack':
                 store.func_stack.push(async function op() {
-                    ft.playTrack(data.object)
+                    ft.playTrack(...data.object)
                 });
                 break;
 
             case 'playAlbum':
                 store.func_stack.push(async function op() {
-                    ft.playAlbum(data.object)
+                    ft.playAlbum(...data.object)
                 });
                 break;
 
             case 'playPlaylist':
                 store.func_stack.push(async function op() {
-                    ft.playPlaylist(data.object)
+                    ft.playPlaylist(...data.object)
                 });
                 break;
 
             case 'playTrackNext':
                 store.func_stack.push(async function op() {
-                    ft.playTrackNext(data.object);
+                    ft.playTrackNext(...data.object);
                 });
                 break;
 
             case 'playAlbumNext':
                 store.func_stack.push(async function op() {
-                    ft.playAlbumNext(data.object);
+                    ft.playAlbumNext(...data.object);
                 });
                 break;
 
             case 'playPlaylistNext':
                 store.func_stack.push(async function op() {
-                    ft.playPlaylistNext(data.object);
+                    ft.playPlaylistNext(...data.object);
                 });
                 break;
 

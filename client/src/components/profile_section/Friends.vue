@@ -76,6 +76,9 @@ async function placeholder(obj) {
 
 function get_cover(cover) {
     if (cover) {
+        if (cover.startsWith('http')) {
+            return cover;
+        }
         return ft.server + '/' + cover;
     }
     return "/images/default_profile.svg"
@@ -94,6 +97,23 @@ async function add_friend() {
     get_friends();
 }
 
+async function get_friend(username) {
+    // Check for federated
+    if (username.includes('@')) {
+        let domain = null;
+        [username, domain] = username.split('@');
+        let data = await ft.fAPI(domain, `/user/${username}/basic`);
+        friends.value.push({
+            username: data.user.username + '@' + domain,
+            cover: data.server + `/${data.user.cover}`
+        });
+        return
+    }
+
+    let data = await ft.API(`/user/${username}/basic`);
+    friends.value.push(data.user);
+}
+
 async function get_friends() {
     if (!searchFinished.value) {
         return
@@ -101,8 +121,7 @@ async function get_friends() {
     searchFinished.value = false;
 
     let data = await ft.API('/friends');
-    friends.value = data.friends;
-
+    data.friends.map(username => get_friend(username));
     searchFinished.value = true;
 }
 

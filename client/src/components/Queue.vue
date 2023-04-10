@@ -70,6 +70,7 @@ async function remove_track(index) {
 }
 
 function get_track_cover(cover) {
+    console.log("Cover:", cover);
     if (cover) {
         if (cover.startsWith('http')) {
             return cover;

@@ -13,7 +13,8 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile img-thumbnail" :src="get_cover()" @error="placeholder" width="250" height="250" />
+                        <img class="img-profile img-thumbnail" :src="get_cover()" @error="placeholder" width="250"
+                            height="250" />
                         <div class="position-absolute bottom-0 right-0">
                         </div>
                     </div>
@@ -96,7 +97,7 @@ async function get_federated_user(id) {
     is_self.value = (data.user.username == ft.username && data.server == ft.server);
 
     user.value = data.user;
-    await check_federated_friends();
+    await check_friends();
     loaded.value = true;
     return
 }
@@ -104,30 +105,21 @@ async function get_federated_user(id) {
 async function check_friends() {
     if (is_self.value) return;
 
-    let data = await ft.API('/friends/' + user.value.username);
+    let data = await ft.API('/friends/' + router.currentRoute.value.params.id);
     if (!data) return;
     friend.value = data.friend;
-}
-
-async function check_federated_friends() {
-    if (is_self.value) return;
-
-    let data = await ft.fAPI(domain.value, '/friends/' + user.value.username);
-    if (!data) return;
-    friend.value = data.friend;
-    return
 }
 
 async function add_friend(ev) {
     ev.target.parentElement.setAttribute("disabled", true);
-    await ft.add_friend(user.value.username);
+    await ft.add_friend(router.currentRoute.value.params.id, domain.value);
     await check_friends();
     ev.target.parentElement.disabled = false;
 }
 
 async function remove_friend(ev) {
     ev.target.parentElement.setAttribute("disabled", true);
-    await ft.remove_friend(user.value.username);
+    await ft.remove_friend(router.currentRoute.value.params.id, domain.value);
     await check_friends();
     ev.target.parentElement.disabled = false;
 }

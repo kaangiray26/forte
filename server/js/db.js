@@ -1058,11 +1058,11 @@ async function _is_authenticated(args) {
 }
 
 async function _is_federated(args) {
-    if (!['session'].every(key => args.hasOwnProperty(key))) {
+    if (!['challenge'].every(key => args.hasOwnProperty(key))) {
         return false;
     }
 
-    let challenge = await db.oneOrNone("SELECT * from challenges WHERE value = $1", [args.session]);
+    let challenge = await db.oneOrNone("SELECT * from challenges WHERE value = $1", [args.challenge]);
     if (!challenge) {
         return false;
     }
@@ -1324,7 +1324,7 @@ async function _federated_api(req, res, next) {
     // Check if challenge is given
     if (req.body.challenge) {
         // Send request to the server with the federation header
-        let data = await fetch(address + '/api' + req.body.query + `?session=${req.body.challenge}`, {
+        let data = await fetch(address + '/api' + req.body.query + `?challenge=${req.body.challenge}`, {
             headers: {
                 'federated': 'true'
             }
@@ -1379,7 +1379,7 @@ async function _federated_api(req, res, next) {
     });
 
     // Send request to the server with the federation header
-    let data = await fetch(address + '/api' + req.body.query + `?session=${session}`, {
+    let data = await fetch(address + '/api' + req.body.query + `?challenge=${session}`, {
         headers: {
             'federated': 'true'
         }
@@ -1417,7 +1417,6 @@ async function _federated_stream(req, res, next) {
 
     // Check if challenge is given
     if (req.query.challenge) {
-
         // Send request to the server with the federation header
         res.set({ "federated": "true" });
         res.redirect(address + '/api/stream/' + req.params.id + `?session=${req.query.challenge}`);
@@ -1753,6 +1752,34 @@ async function _get_track_loved(req, res, next) {
     })
 }
 
+async function _get_user_loved(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.query.session]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." });
+            return
+        }
+
+        if (!user.friends) {
+            res.status(200).json({
+                "loved": false
+            })
+            return
+        }
+
+        let friend = user.friends.includes(id);
+        res.status(200).json({
+            "loved": friend
+        })
+    })
+}
+
 async function _get_artist_loved(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -2067,6 +2094,42 @@ async function _get_user(req, res, next) {
     })
 }
 
+async function _get_user_basic(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT username, cover FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." });
+            return
+        }
+        res.status(200).json({
+            "user": user
+        })
+    })
+}
+
+async function _get_user_exists(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "exists": false });
+        return;
+    }
+
+    db.task(async t => {
+        let user = await t.oneOrNone("SELECT username FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "exists": false });
+            return
+        }
+        res.status(400).json({ "exists": true });
+    })
+}
+
 async function _get_federated_user(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -2203,9 +2266,8 @@ async function _get_random_tracks(req, res, next) {
 async function _get_friends(req, res, next) {
     db.task(async t => {
         let data = await t.oneOrNone("SELECT friends FROM users WHERE session = $1", [req.query.session]);
-        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE username = ANY($1)", [data.friends]);
         res.status(200).json({
-            "friends": friends
+            "friends": data.friends
         })
     })
 }
@@ -2254,23 +2316,91 @@ async function _get_user_friends(req, res, next) {
     })
 }
 
+async function _love_user(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.params.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Add user to friends
+            await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.params.id, req.query.session]);
+            res.status(200).json({ "success": "Friend added." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return;
+        }
+    })
+}
+
 async function _add_friend(req, res, next) {
-    if (!['username'].every(key => req.body.hasOwnProperty(key))) {
+    if (!['username', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .json({
-                "error": "Username not given."
+                "error": "Parameters are not given."
             });
         return;
     }
 
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Check for federation
+            if (req.body.username.includes("@")) {
+                let username = null;
+                let domain = null;
+                [username, domain] = req.body.username.split("@");
+
+                // Get server address
+                let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
+                    .then(response => response.json())
+                    .then(data => data.address)
+                    .catch(() => null);
+
+                // If server address is not found, return error
+                if (!address) {
+                    res.status(400).json({ "error": "Server not found." });
+                    return;
+                }
+
+                let user = await fetch(address + `/api/user/${username}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!user) {
+                    res.status(400).json({ "error": "User not found." })
+                    return;
+                }
+            } else {
+                // Check if user exists
+                let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
+                if (!user) {
+                    res.status(400).json({ "error": "User not found." })
+                    return;
+                }
+            }
+
+            // Add user to friends
+            await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
+            res.status(200).json({ "success": "Friend added." });
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-        await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
-        res.status(200).json({ "success": "Friend addded." })
     })
 }
 
@@ -2324,7 +2454,7 @@ async function _add_federated_comment(req, res, next) {
     // Check if challenge is given
     if (req.body.challenge) {
         // Send request to the server with the federation header
-        let data = await fetch(address + '/api/comments' + `?session=${req.body.challenge}`, {
+        let data = await fetch(address + '/api/comments' + `?challenge=${req.body.challenge}`, {
             method: 'POST',
             headers: {
                 'federated': 'true',
@@ -2388,7 +2518,7 @@ async function _add_federated_comment(req, res, next) {
     });
 
     // Send request to the server with the federation header
-    let data = await fetch(address + '/api/comments' + `?session=${session}`, {
+    let data = await fetch(address + '/api/comments' + `?challenge=${session}`, {
         method: 'POST',
         headers: {
             'federated': 'true',
@@ -2413,22 +2543,64 @@ async function _add_federated_comment(req, res, next) {
 }
 
 async function _remove_friend(req, res, next) {
-    if (!['username'].every(key => req.body.hasOwnProperty(key))) {
+    if (!['username', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .json({
-                "error": "Username not given."
+                "error": "Parameters are not given."
             });
         return;
     }
 
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
+        try {
+            // Check for federation
+            if (req.body.username.includes('@')) {
+                let username = null;
+                let domain = null;
+                [username, domain] = req.body.username.split("@");
+
+                // Get server address
+                let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
+                    .then(response => response.json())
+                    .then(data => data.address)
+                    .catch(() => null);
+
+                // If server address is not found, return error
+                if (!address) {
+                    res.status(400).json({ "error": "Server not found." });
+                    return;
+                }
+
+                let user = await fetch(address + `/api/user/${username}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!user) {
+                    res.status(400).json({ "error": "User not found." })
+                    return;
+                }
+            } else {
+                // Check if user exists
+                let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
+                if (!user) {
+                    res.status(400).json({ "error": "User not found." })
+                    return;
+                }
+            }
+
+            // Remove user from friends
+            await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
+            res.status(200).json({ "success": "Friend removed." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
             return;
         }
-        await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
-        res.status(200).json({ "success": "Friend removed." })
     })
 }
 
@@ -2869,9 +3041,35 @@ async function _unlove_track(req, res, next) {
                 return;
             }
 
-            // Add track to loved
+            // Remove track from loved
             await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE username = $2", [id, user.username]);
             res.status(200).json({ "success": "Track removed from loved." })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return;
+        }
+    })
+}
+
+async function _unlove_user(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    db.task(async t => {
+        try {
+            // Get user
+            let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.params.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
+            }
+
+            // Add user to friends
+            await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.params.id, req.query.session]);
+            res.status(200).json({ "success": "Friend removed." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
             return;
@@ -3309,7 +3507,6 @@ const exports = {
     get_album_loved: _get_album_loved,
     get_album_tracks: _get_album_tracks,
     get_albums: _get_albums,
-    get_playlists: _get_playlists,
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
     get_artist_comments: _get_artist_comments,
@@ -3328,6 +3525,7 @@ const exports = {
     get_playlist: _get_playlist,
     get_playlist_loved: _get_playlist_loved,
     get_playlist_tracks: _get_playlist_tracks,
+    get_playlists: _get_playlists,
     get_profile: _get_profile,
     get_profile_albums: _get_profile_albums,
     get_profile_artists: _get_profile_artists,
@@ -3340,10 +3538,13 @@ const exports = {
     get_track_basic: _get_track_basic,
     get_track_loved: _get_track_loved,
     get_user: _get_user,
+    get_user_basic: _get_user_basic,
+    get_user_exists: _get_user_exists,
     get_user_albums: _get_user_albums,
     get_user_artists: _get_user_artists,
     get_user_friends: _get_user_friends,
     get_user_history: _get_user_history,
+    get_user_loved: _get_user_loved,
     get_user_playlists: _get_user_playlists,
     get_user_tracks: _get_user_tracks,
     get_users: _get_users,
@@ -3356,6 +3557,7 @@ const exports = {
     love_artist: _love_artist,
     love_playlist: _love_playlist,
     love_track: _love_track,
+    love_user: _love_user,
     remove_friend: _remove_friend,
     remove_user: _remove_user,
     search: _search,
@@ -3369,6 +3571,7 @@ const exports = {
     unlove_artist: _unlove_artist,
     unlove_playlist: _unlove_playlist,
     unlove_track: _unlove_track,
+    unlove_user: _unlove_user,
     update_album: _update_album,
     update_artist: _update_artist,
     update_config: _update_config,

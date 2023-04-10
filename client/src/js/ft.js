@@ -116,14 +116,17 @@ class Forte {
         return response;
     }
 
-    async add_friend(username) {
-        let response = await fetch(this.server + '/api/friends/add' + `?session=${this.session}`, {
+    async get_user(username, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+        let response = await fetch(this.server + `/api/user/${username}/basic?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "username": username
+                "username": username,
+                "challenge": challenge
             }),
             credentials: "include"
         }).then((response) => {
@@ -132,14 +135,36 @@ class Forte {
         return response;
     }
 
-    async remove_friend(username) {
+    async add_friend(username, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+        let response = await fetch(this.server + '/api/friends/add' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "username": username,
+                "challenge": challenge
+            }),
+            credentials: "include"
+        }).then((response) => {
+            return response.json();
+        });
+        return response;
+    }
+
+    async remove_friend(username, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
         let response = await fetch(this.server + '/api/friends/remove' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "username": username
+                "username": username,
+                "challenge": challenge
             }),
             credentials: "include"
         }).then((response) => {
@@ -356,7 +381,7 @@ class Forte {
         let challenge = JSON.parse(localStorage.getItem(`@${domain}`));
 
         this.player.unload();
-        this.player._src = [`${address}/f/api/stream/${track.id}?session=${challenge}`];
+        this.player._src = [`${address}/f/api/stream/${track.id}?challenge=${challenge}`];
         this.player.load();
         document.title = track.title;
     }
@@ -633,7 +658,18 @@ class Forte {
         })
     }
 
-    async playAlbumNext(album_id) {
+    async playAlbumNext(album_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/album/${album_id}/tracks`).then((response) => {
+                let tracks = response.tracks;
+                tracks.sort((a, b) => a.track_position - b.track_position);
+                tracks.sort((a, b) => a.disc_number - b.disc_number);
+                this.addToQueueNext(tracks);
+            })
+            return
+        }
+
         this.API(`/album/${album_id}/tracks`).then((response) => {
             let tracks = response.tracks;
             tracks.sort((a, b) => a.track_position - b.track_position);
@@ -642,29 +678,66 @@ class Forte {
         })
     }
 
-    async playPlaylist(playlist_id) {
+    async playPlaylist(playlist_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
+                if (!response.tracks.length) return;
+                store.queue_index = 0;
+                this.load_track(response.tracks[0]);
+                this.addToQueueStart(response.tracks);
+            })
+            return
+        }
+
         this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
             if (!response.tracks.length) return;
-
             store.queue_index = 0;
             this.load_track(response.tracks[0]);
             this.addToQueueStart(response.tracks);
         })
     }
 
-    async playPlaylistNext(playlist_id) {
+    async playPlaylistNext(playlist_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
+                this.addToQueueNext(response.tracks);
+            })
+            return
+        }
+
         this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
             this.addToQueueNext(response.tracks);
         })
     }
 
-    async queueTrack(track_id) {
+    async queueTrack(track_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/track/${track_id}/basic`).then((response) => {
+                this.addToQueue([response.track]);
+            })
+            return
+        }
+
         this.API(`/track/${track_id}/basic`).then((response) => {
             this.addToQueue([response.track]);
         })
     }
 
-    async queueAlbum(album_id) {
+    async queueAlbum(album_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/album/${album_id}/tracks`).then((response) => {
+                let tracks = response.tracks;
+                tracks.sort((a, b) => a.track_position - b.track_position);
+                tracks.sort((a, b) => a.disc_number - b.disc_number);
+                this.addToQueue(tracks);
+            })
+            return
+        }
+
         this.API(`/album/${album_id}/tracks`).then((response) => {
             let tracks = response.tracks;
             tracks.sort((a, b) => a.track_position - b.track_position);
@@ -673,7 +746,15 @@ class Forte {
         })
     }
 
-    async queuePlaylist(playlist_id) {
+    async queuePlaylist(playlist_id, domain = null) {
+        // Federated
+        if (domain) {
+            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
+                this.addToQueue(response.tracks);
+            })
+            return
+        }
+
         this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
             this.addToQueue(response.tracks);
         })
@@ -685,8 +766,32 @@ class Forte {
         this.setCurrentQueue(q);
     }
 
-    async downloadTrack(track_id) {
+    async downloadTrack(track_id, domain = null) {
         if (!this.ready) return null;
+
+        // Federated
+        if (domain) {
+            // Get server address
+            let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
+                .then(response => response.json())
+                .then(data => data.address)
+                .catch(() => null);
+
+            // If server address is not found, return error
+            if (!address) {
+                return;
+            }
+
+            let challenge = JSON.parse(localStorage.getItem(`@${domain}`));
+
+            let response = await fetch(address + '/f/api/stream/' + track_id + `?session=${challenge}`, {
+                method: "GET",
+                credentials: "include"
+            }).then((response) => {
+                return response.blob();
+            });
+            return response;
+        }
 
         let response = await fetch(this.server + '/api/stream/' + track_id + `?session=${this.session}`, {
             method: "GET",

@@ -142,12 +142,17 @@ app.get("/api/profile/playlists/:offset", isAuthenticated, db.get_profile_playli
 app.post("/api/profile/create_playlist", isAuthenticated, upload.single('cover'), db.create_playlist)
 
 app.get("/api/user/:id", isAuthenticated, db.get_user)
+app.get("/api/user/:id/basic", isAuthenticated, db.get_user_basic);
+app.get("/api/user/:id/exists", isAuthenticated, db.get_user_exists)
 app.get("/api/user/:id/history", isAuthenticated, db.get_user_history)
 app.get("/api/user/:id/tracks/:offset", isAuthenticated, db.get_user_tracks)
 app.get("/api/user/:id/playlists", isAuthenticated, db.get_user_playlists)
 app.get("/api/user/:id/albums/:offset", isAuthenticated, db.get_user_albums)
 app.get("/api/user/:id/artists/:offset", isAuthenticated, db.get_user_artists)
 app.get("/api/user/:id/friends", isAuthenticated, db.get_user_friends)
+app.get("/api/user/:id/love", isAuthenticated, db.love_user)
+app.get("/api/user/:id/unlove", isAuthenticated, db.unlove_user)
+app.get("/api/user/:id/loved", isAuthenticated, db.get_user_loved)
 
 app.get("/api/track/:id", isAuthenticated, db.get_track)
 app.get("/api/track/:id/basic", isAuthenticated, db.get_track_basic)
