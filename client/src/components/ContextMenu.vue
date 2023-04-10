@@ -42,7 +42,12 @@ const playlistSelection = ref(null);
 
 async function _right_click(obj) {
     selectedItem.value = obj.item;
-    isLoved();
+
+    if (selectedItem.value.server) {
+        federatedIsLoved();
+    } else {
+        isLoved();
+    }
 
     if (selectedItem.value.type == 'track') {
         trackContextModal.value.show(obj.event.x, obj.event.y);
@@ -79,6 +84,19 @@ async function isLoved() {
     }
 
     ft.API(`/${selectedItem.value.type}/${selectedItem.value.id}/loved`).then((response) => {
+        selectedItemLoved.value = response.loved;
+    })
+}
+
+async function federatedIsLoved() {
+    if (selectedItem.value.type == 'user') {
+        ft.API(`/${selectedItem.value.type}/${selectedItem.value.title}@${selectedItem.value.server}/loved`).then((response) => {
+            selectedItemLoved.value = response.loved;
+        })
+        return;
+    }
+
+    ft.API(`/${selectedItem.value.type}/${selectedItem.value.id}@${selectedItem.value.server}/loved`).then((response) => {
         selectedItemLoved.value = response.loved;
     })
 }
@@ -130,14 +148,28 @@ async function federatedContextMenuEvent(event) {
         return
     }
 
+    // Friend Events
+    if (event == 'addToFriends') {
+        ft.add_friend(`${selectedItem.value.title}@${selectedItem.value.server}`, selectedItem.value.server).then(() => {
+            notify({
+                "title": "Added to friends.",
+            })
+        });
+        return
+    }
+
+    if (event == 'removeFromFriends') {
+        ft.remove_friend(`${selectedItem.value.title}@${selectedItem.value.server}`, selectedItem.value.server).then(() => {
+            notify({
+                "title": "Removed from friends.",
+            })
+        });
+        return
+    }
+
     // Love Events
     if (event == 'addToLoved') {
-        let id = selectedItem.value.id;
-        if (selectedItem.value.type == 'user') {
-            id = selectedItem.value.title;
-        }
-
-        ft.love(selectedItem.value.type, id).then(() => {
+        ft.love(selectedItem.value.type, selectedItem.value.id).then(() => {
             notify({
                 "title": "Added to favorites.",
             })
@@ -145,12 +177,7 @@ async function federatedContextMenuEvent(event) {
         return
     }
     if (event == 'removeFromLoved') {
-        let id = selectedItem.value.id;
-        if (selectedItem.value.type == 'user') {
-            id = selectedItem.value.title;
-        }
-
-        ft.unlove(selectedItem.value.type, id).then(() => {
+        ft.unlove(selectedItem.value.type, selectedItem.value.id).then(() => {
             notify({
                 "title": "Removed from favorites.",
             })
@@ -404,14 +431,28 @@ async function contextMenuEvent(event) {
         return
     }
 
+    // Friend Events
+    if (event == 'addToFriends') {
+        ft.add_friend(selectedItem.value.title).then(() => {
+            notify({
+                "title": "Added to friends.",
+            })
+        });
+        return
+    }
+
+    if (event == 'removeFromFriends') {
+        ft.remove_friend(selectedItem.value.title, selectedItem.value.server).then(() => {
+            notify({
+                "title": "Removed from friends.",
+            })
+        });
+        return
+    }
+
     // Love Events
     if (event == 'addToLoved') {
-        let id = selectedItem.value.id;
-        if (selectedItem.value.type == 'user') {
-            id = selectedItem.value.title;
-        }
-
-        ft.love(selectedItem.value.type, id).then(() => {
+        ft.love(selectedItem.value.type, selectedItem.value.id).then(() => {
             notify({
                 "title": "Added to favorites.",
             })
@@ -419,12 +460,7 @@ async function contextMenuEvent(event) {
         return
     }
     if (event == 'removeFromLoved') {
-        let id = selectedItem.value.id;
-        if (selectedItem.value.type == 'user') {
-            id = selectedItem.value.title;
-        }
-
-        ft.unlove(selectedItem.value.type, id).then(() => {
+        ft.unlove(selectedItem.value.type, selectedItem.value.id).then(() => {
             notify({
                 "title": "Removed from favorites.",
             })

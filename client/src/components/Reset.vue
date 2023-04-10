@@ -7,7 +7,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="fw-bold">Are you sure you really want to reset?</p>
+                    <p>Are you sure you really want to reset?</p>
                     <div class="d-flex justify-content-end">
                         <button type="button" class="btn btn-success fw-bold" @click="reset">Confirm</button>
                     </div>

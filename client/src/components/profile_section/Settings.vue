@@ -47,9 +47,9 @@
                 </div>
                 <div class="input-group flex-nowrap mb-2">
                     <span class="input-group-text" id="basic-addon1">Scrobbling</span>
-                    <button v-show="!lastfm_config.scrobbling" type="button" class="btn btn-danger flex-fill"
+                    <button v-show="!lastfm_config.scrobbling" type="button" class="btn btn-danger flex-fill rounded-end"
                         @click="toggle_scrobbling">Off</button>
-                    <button v-show="lastfm_config.scrobbling" type="button" class="btn btn-success flex-fill"
+                    <button v-show="lastfm_config.scrobbling" type="button" class="btn btn-success flex-fill rounded-end"
                         @click="toggle_scrobbling">On</button>
                 </div>
                 <button v-if="lastfm_profile" class="btn btn-dark mb-2" @click="remove_account">Remove account</button>

@@ -5,12 +5,13 @@
                 <ul id="userMenu" class="dropdown-menu shadow show position-fixed"
                     :style="{ 'bottom': posY + 'px', 'right': posX + 'px' }">
                     <li v-show="!props.loved">
-                        <button class="dropdown-item" type="button" @click="emit('context-menu-event', 'addToLoved')"><span
-                                class="bi bi-star me-1"></span>Add Friend</button>
+                        <button class="dropdown-item" type="button"
+                            @click="emit('context-menu-event', 'addToFriends')"><span class="bi bi-star me-1"></span>Add
+                            Friend</button>
                     </li>
                     <li v-show="props.loved">
                         <button class="dropdown-item" type="button"
-                            @click="emit('context-menu-event', 'removeFromLoved')"><span
+                            @click="emit('context-menu-event', 'removeFromFriends')"><span
                                 class="bi bi-star-fill me-1"></span>Remove Friend</button>
                     </li>
                     <li>

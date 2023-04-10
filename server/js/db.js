@@ -1686,8 +1686,25 @@ async function _get_album_tracks(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
     db.task(async t => {
         try {
+            // Get album id from uuid
+            if (column == "uuid") {
+                let album = await t.oneOrNone("SELECT id FROM albums WHERE uuid = $1", [id]);
+                if (!album) {
+                    res.status(404).json({ "error": "Album not found." });
+                    return;
+                }
+                id = album.id;
+            }
+
             let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE album = $1", [id]);
             res.status(200)
                 .send(JSON.stringify({
@@ -2135,7 +2152,7 @@ async function _get_user_basic(req, res, next) {
     }
 
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT username, cover FROM users WHERE username = $1", [id]);
+        let user = await t.oneOrNone("SELECT id, uuid, type, username AS title, cover FROM users WHERE username = $1", [id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." });
             return

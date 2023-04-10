@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
-            <div class="card h-100 w-100 border-0">
+            <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: friend, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.username)">
                         <img class="img-fluid" :src="get_cover(friend.cover)" @error="placeholder" width="250"
@@ -63,6 +63,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { right_click } from '/js/events.js';
 
 const router = useRouter();
 
@@ -103,14 +104,15 @@ async function get_friend(username) {
         let domain = null;
         [username, domain] = username.split('@');
         let data = await ft.fAPI(domain, `/user/${username}/basic`);
-        friends.value.push({
-            username: data.user.username + '@' + domain,
-            cover: data.server + `/${data.user.cover}`
-        });
+        data.user.server = domain;
+        data.user.username = data.user.title + '@' + domain;
+        friends.value.push(data.user);
         return
     }
 
     let data = await ft.API(`/user/${username}/basic`);
+    data.user.username = data.user.title;
+    console.log(data);
     friends.value.push(data.user);
 }
 
