@@ -11,7 +11,7 @@
             <div class="row g-4">
                 <div class="col">
                     <div class="col-12">
-                        <iframe class="w-100" :src="'https://gemini.tunein.com/embed/player/' + station.id"></iframe>
+                        <iframe class="radio-player rounded w-100" :src="get_station_address()"></iframe>
                     </div>
                 </div>
             </div>
@@ -29,9 +29,19 @@ const router = useRouter();
 const station = ref({});
 const loaded = ref(false);
 
+function get_station_address() {
+    // Check for dark theme
+    let background = '?background=light';
+    if (document.body.classList.contains("dark-theme")) {
+        background = '?background=dark'
+    }
+    console.log("https://gemini.tunein.com/embed/player/" + station.value.id + background)
+    return "https://gemini.tunein.com/embed/player/" + station.value.id + background;
+}
+
 async function get_station(id) {
     station.value.id = id;
-    station.value.cover = `https://cdn-profiles.tunein.com/${id}/images/logoq.jpg`;
+    station.value.cover = `https://cdn-profiles.tunein.com/${station.value.id}/images/logoq.jpg`;
     loaded.value = true;
 }
 

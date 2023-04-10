@@ -232,7 +232,6 @@ function year_sort(a, b) {
 async function get_artist(id) {
     let data = await ft.API(`/artist/${id}`);
     if (!data || data.error) {
-        // router.push('/404')
         return;
     }
 
