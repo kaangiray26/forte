@@ -125,6 +125,8 @@ app.get("/api/session/check", isAuthenticated, (req, res, next) => {
 app.post("/api/cover", isAuthenticated, upload.single('cover'), db.upload_cover)
 
 app.get("/api/search/:query", isAuthenticated, db.search)
+app.get("/api/station/search/:query", isAuthenticated, db.station_search)
+
 app.get("/api/stream/:id", isAuthenticated, db.stream)
 app.head("/api/stream/:id", isAuthenticated, db.stream_head)
 

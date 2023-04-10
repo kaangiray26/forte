@@ -1095,6 +1095,39 @@ async function _search(req, res, next) {
         })
 }
 
+async function _station_search(req, res, next) {
+    let query = req.params.query;
+    if (!query) {
+        res.status(400).json({ "error": "Query parameter not given." });
+        return;
+    }
+
+    // Search for station
+    let data = await fetch("https://opml.radiotime.com/search.ashx?" + new URLSearchParams({
+        query: query,
+        render: "json",
+    }))
+        .then(res => res.json())
+        .then(data => data.body)
+        .catch(() => null);
+
+    if (!data) {
+        res.status(400).json({ "error": "Error searching for station." });
+        return;
+    }
+
+    // Send first result with type "audio"
+    let stations = data.filter((station) => station.type == "audio");
+    if (!stations) {
+        res.status(400).json({ "error": "No station found." });
+        return;
+    }
+
+    res.status(200).json({ "stations": stations });
+
+
+}
+
 async function _search_artist(req, res, next) {
     let query = req.params.query;
     if (!query) {
@@ -3561,6 +3594,7 @@ const exports = {
     remove_friend: _remove_friend,
     remove_user: _remove_user,
     search: _search,
+    station_search: _station_search,
     search_album: _search_album,
     search_artist: _search_artist,
     search_track: _search_track,
