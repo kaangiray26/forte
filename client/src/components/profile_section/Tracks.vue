@@ -30,7 +30,7 @@
     </ul>
     <hr />
     <ul class="list-group">
-        <li class="list-group-item theme-btn text-light d-flex">
+        <li class="list-group-item rounded mb-1 theme-btn text-light d-flex">
             <div class="d-flex w-100 justify-content-between">
                 <div>
                     <span class="fw-bold">{{ total }} liked tracks</span>
@@ -44,8 +44,9 @@
                 </div>
             </div>
         </li>
-        <li class="list-group-item theme-list-item clickable d-flex justify-content-between p-1" v-for="track in tracks"
-            @contextmenu.prevent="right_click({ item: track, event: $event })" @click="playTrack(track.id)">
+        <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
+            v-for="track in tracks" @contextmenu.prevent="right_click({ item: track, event: $event })"
+            @click="playTrack(track.id)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" @error="placeholder" />
                 <div class="d-flex flex-column">

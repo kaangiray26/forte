@@ -34,14 +34,15 @@
                     </div>
                     <hr />
                     <ul class="list-group">
-                        <li class="list-group-item theme-btn text-light d-flex">
+                        <li class="list-group-item rounded mb-1 theme-btn text-light d-flex">
                             <div class="d-flex w-100 justify-content-between">
                                 <div>
                                     <span class="fw-bold">Playlist</span>
                                 </div>
                             </div>
                         </li>
-                        <li v-for="(track, index) in tracks" class="list-group-item theme-list-item clickable d-flex p-1"
+                        <li v-for="(track, index) in tracks"
+                            class="list-group-item theme-list-item clickable rounded d-flex p-1"
                             @contextmenu.prevent="right_click({ item: track, event: $event })">
                             <div class="d-flex w-100 justify-content-between" @click="play_track(track.id)">
                                 <div class="d-flex">

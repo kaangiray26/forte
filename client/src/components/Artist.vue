@@ -35,7 +35,7 @@
                         <hr />
                     </div>
                     <ul class="list-group">
-                        <li class="list-group-item theme-btn text-light d-flex">
+                        <li class="list-group-item rounded my-1 theme-btn text-light d-flex">
                             <div class="d-flex w-100 justify-content-between">
                                 <div>
                                     <span class="fw-bold">Album</span>
@@ -45,7 +45,7 @@
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item theme-list-item clickable d-flex p-1" v-for="album in albums"
+                        <li class="list-group-item theme-list-item clickable rounded d-flex p-1" v-for="album in albums"
                             @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album.id)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">

@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
@@ -133,4 +133,8 @@ async function search_station() {
     stations.value = data.stations;
     searchFinished.value = true;
 }
+
+onMounted(() => {
+    station_name.value.focus();
+});
 </script>

@@ -7,8 +7,9 @@
                 </div>
             </div>
         </li>
-        <li class="list-group-item theme-list-item clickable d-flex justify-content-between p-1" v-for="result in results"
-            @contextmenu.prevent="right_click({ item: result, event: $event })" @click="openResult(result)">
+        <li class="list-group-item theme-list-item clickable d-flex justify-content-between rounded p-1"
+            v-for="result in results" @contextmenu.prevent="right_click({ item: result, event: $event })"
+            @click="openResult(result)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(result.type, result.cover)" class="playlist-selection-img me-2" :type="result.type"
                     @error="placeholder" />

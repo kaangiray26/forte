@@ -37,14 +37,15 @@
                     <hr />
                     <ul class="list-group">
                         <div v-for="track in tracks">
-                            <li class="list-group-item theme-btn text-light d-flex" v-if="track.track_position == 1">
+                            <li class="list-group-item rounded my-1 theme-btn text-light d-flex"
+                                v-if="track.track_position == 1">
                                 <div class="d-flex w-100 justify-content-between">
                                     <div>
                                         <span class="fw-bold">Disc {{ track.disc_number }}</span>
                                     </div>
                                 </div>
                             </li>
-                            <li class="list-group-item theme-list-item clickable d-flex p-1"
+                            <li class="list-group-item theme-list-item clickable rounded d-flex p-1"
                                 :class="{ 'now-playing': selected_track == track.id }"
                                 @contextmenu.prevent="right_click({ item: track, event: $event })"
                                 @click="play_track(track.id)">
@@ -147,8 +148,8 @@ async function track_placeholder(obj) {
     obj.target.src = "/images/track.svg";
 }
 
-async function post_comment(){
-    if(federated.value){
+async function post_comment() {
+    if (federated.value) {
         add_federated_comment();
         return;
     }
@@ -169,7 +170,7 @@ async function add_comment() {
     }
 }
 
-async function add_federated_comment(){
+async function add_federated_comment() {
     let comment = document.querySelector("textarea").value;
     if (!comment.length) {
         return;
@@ -299,7 +300,7 @@ async function get_comments(id) {
     searchFinished.value = true;
 }
 
-async function get_federated_comments(id){
+async function get_federated_comments(id) {
     if (!searchFinished.value) {
         return
     }
@@ -334,7 +335,7 @@ async function setup() {
     get_comments(album_id.value);
 }
 
-async function load_more(){
+async function load_more() {
     if (federated.value) {
         get_federated_comments(album_id.value);
         return
