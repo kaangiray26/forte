@@ -10,9 +10,10 @@
                     <div class="row gx-0">
                         <div class="col">
                             <ul class="list-group">
-                                <li class="list-group-item theme-btn text-light d-flex justify-content-between">
+                                <li
+                                    class="list-group-item rounded mb-1 theme-btn text-light d-flex justify-content-between">
                                     <div class="d-flex align-items-center">
-                                        <span class="theme-color fw-bold m-0">Servers</span>
+                                        <span class="fw-bold">Servers</span>
                                     </div>
                                     <div>
                                         <button type="button"
@@ -23,7 +24,7 @@
                                         </button>
                                     </div>
                                 </li>
-                                <li class="list-group-item theme-list-item" v-for="server in servers">
+                                <li class="list-group-item theme-list-item rounded" v-for="server in servers">
                                     <div class="d-flex justify-content-between theme-color">
                                         <div class="d-flex flex-column flex-fill text-break">
                                             <div class="d-flex align-items-center justify-content-between">
