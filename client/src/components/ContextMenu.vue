@@ -97,6 +97,7 @@ async function federatedIsLoved() {
     }
 
     ft.API(`/${selectedItem.value.type}/${selectedItem.value.id}@${selectedItem.value.server}/loved`).then((response) => {
+        console.log(response);
         selectedItemLoved.value = response.loved;
     })
 }
@@ -169,7 +170,8 @@ async function federatedContextMenuEvent(event) {
 
     // Love Events
     if (event == 'addToLoved') {
-        ft.love(selectedItem.value.type, selectedItem.value.id).then(() => {
+        ft.love(selectedItem.value.type, `${selectedItem.value.id}@${selectedItem.value.server}`, selectedItem.value.server).then((response) => {
+            console.log("Response:", response);
             notify({
                 "title": "Added to favorites.",
             })
@@ -177,7 +179,8 @@ async function federatedContextMenuEvent(event) {
         return
     }
     if (event == 'removeFromLoved') {
-        ft.unlove(selectedItem.value.type, selectedItem.value.id).then(() => {
+        console.log("Remove from loved:", selectedItem.value.type, `${selectedItem.value.id}@${selectedItem.value.server}`, selectedItem.value.server)
+        ft.unlove(selectedItem.value.type, `${selectedItem.value.id}@${selectedItem.value.server}`, selectedItem.value.server).then(() => {
             notify({
                 "title": "Removed from favorites.",
             })
@@ -442,7 +445,7 @@ async function contextMenuEvent(event) {
     }
 
     if (event == 'removeFromFriends') {
-        ft.remove_friend(selectedItem.value.title, selectedItem.value.server).then(() => {
+        ft.remove_friend(selectedItem.value.title).then(() => {
             notify({
                 "title": "Removed from friends.",
             })

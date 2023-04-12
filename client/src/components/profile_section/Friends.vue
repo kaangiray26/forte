@@ -103,6 +103,7 @@ async function get_friend(username) {
     if (username.includes('@')) {
         let domain = null;
         [username, domain] = username.split('@');
+
         let data = await ft.fAPI(domain, `/user/${username}/basic`);
         data.user.server = domain;
         data.user.username = data.user.title + '@' + domain;
@@ -112,7 +113,6 @@ async function get_friend(username) {
 
     let data = await ft.API(`/user/${username}/basic`);
     data.user.username = data.user.title;
-    console.log(data);
     friends.value.push(data.user);
 }
 
@@ -123,6 +123,7 @@ async function get_friends() {
     searchFinished.value = false;
 
     let data = await ft.API('/friends');
+    if (!data || !data.friends) return;
     data.friends.map(username => get_friend(username));
     searchFinished.value = true;
 }

@@ -106,7 +106,7 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS auth (id SERIAL PRIMARY KEY, username TEXT NOT NULL, hash TEXT NOT NULL, UNIQUE(username))"),
 
             // users
-            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'user', username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history INTEGER[10], fav_tracks INTEGER[], fav_albums INTEGER[], fav_artists INTEGER[], fav_playlists INTEGER[], fav_stations INTEGER[], friends VARCHAR[], lastfm TEXT, uuid TEXT, UNIQUE(username, token, session))"),
+            t.none("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'user', username TEXT NOT NULL, token TEXT NOT NULL, session TEXT DEFAULT 'null', cover TEXT, history VARCHAR[10], fav_tracks VARCHAR[], fav_albums VARCHAR[], fav_artists VARCHAR[], fav_playlists VARCHAR[], fav_stations VARCHAR[], friends VARCHAR[], lastfm TEXT, uuid TEXT, UNIQUE(username, token, session))"),
 
             // fuzzy
             t.none("CREATE OR REPLACE VIEW fuzzy AS SELECT artists.id id, artists.uuid uuid, artists.type type, artists.title title, artists.cover cover FROM artists UNION SELECT albums.id, albums.uuid, albums.type, albums.title, albums.cover FROM albums UNION SELECT tracks.id, tracks.uuid, tracks.type, tracks.title, tracks.cover FROM tracks UNION SELECT playlists.id, playlists.uuid, playlists.type, playlists.title, playlists.cover FROM playlists UNION SELECT users.id, users.uuid, users.type, users.username, users.cover FROM users;"),
@@ -1644,6 +1644,28 @@ async function _get_artist_comments(req, res, next) {
     })
 }
 
+async function _get_multiple_albums_basic(req, res, next) {
+    if (!['ids'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
+        return;
+    }
+
+    db.task(async t => {
+        try {
+            let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1)", [req.body.ids]);
+            res.status(200)
+                .json({
+                    "albums": albums
+                })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
 async function _get_album(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -1669,11 +1691,11 @@ async function _get_album(req, res, next) {
             let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [album.artist]);
             let tracks = await t.manyOrNone("SELECT * FROM tracks wHERE album = $1", [album.id]);
             res.status(200)
-                .send(JSON.stringify({
+                .json({
                     "album": album,
                     "artist": artist,
                     "tracks": tracks
-                }))
+                })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
         }
@@ -2163,6 +2185,98 @@ async function _get_user_basic(req, res, next) {
     })
 }
 
+async function _get_track_exists(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "exists": false });
+        return;
+    }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        let track = await t.oneOrNone(`SELECT id FROM tracks WHERE ${column} = $1`, [id]);
+        if (!track) {
+            res.status(400).json({ "exists": false });
+            return
+        }
+        res.status(400).json({ "exists": true });
+    })
+}
+
+async function _get_album_exists(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "exists": false });
+        return;
+    }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        let track = await t.oneOrNone(`SELECT id FROM albums WHERE ${column} = $1`, [id]);
+        if (!track) {
+            res.status(400).json({ "exists": false });
+            return
+        }
+        res.status(400).json({ "exists": true });
+    })
+}
+
+async function _get_artist_exists(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "exists": false });
+        return;
+    }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        let track = await t.oneOrNone(`SELECT id FROM artists WHERE ${column} = $1`, [id]);
+        if (!track) {
+            res.status(400).json({ "exists": false });
+            return
+        }
+        res.status(400).json({ "exists": true });
+    })
+}
+
+async function _get_playlist_exists(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "exists": false });
+        return;
+    }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        let track = await t.oneOrNone(`SELECT id FROM playlists WHERE ${column} = $1`, [id]);
+        if (!track) {
+            res.status(400).json({ "exists": false });
+            return
+        }
+        res.status(400).json({ "exists": true });
+    })
+}
+
 async function _get_user_exists(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -2393,7 +2507,7 @@ async function _love_user(req, res, next) {
 }
 
 async function _add_friend(req, res, next) {
-    if (!['username', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .json({
                 "error": "Parameters are not given."
@@ -2403,24 +2517,15 @@ async function _add_friend(req, res, next) {
 
     db.task(async t => {
         try {
-            // Check for federation
-            if (req.body.username.includes("@")) {
-                let username = null;
-                let domain = null;
-                [username, domain] = req.body.username.split("@");
-
-                // Get server address
-                let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
-                    .then(response => response.json())
-                    .then(data => data.address)
-                    .catch(() => null);
-
-                // If server address is not found, return error
-                if (!address) {
-                    res.status(400).json({ "error": "Server not found." });
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
                     return;
                 }
 
+                // Check if user exists
                 let user = await fetch(address + `/api/user/${username}/exists?challenge=${req.body.challenge}`, {
                     method: "GET",
                     headers: {
@@ -2435,17 +2540,23 @@ async function _add_friend(req, res, next) {
                     res.status(400).json({ "error": "User not found." })
                     return;
                 }
-            } else {
-                // Check if user exists
-                let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
-                if (!user) {
-                    res.status(400).json({ "error": "User not found." })
-                    return;
-                }
+
+                // Add user to friends
+                await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Friend added." });
+                return
+            }
+
+            // Without federation
+            // Check if user exists
+            let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
             }
 
             // Add user to friends
-            await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
+            await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Friend added." });
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -2478,6 +2589,39 @@ async function _add_comment(req, res, next) {
         let comment = await t.oneOrNone("INSERT INTO comments (oid, uuid, type, author, content) VALUES ($1, $2, $3, $4, $5) RETURNING *", [req.body.id, req.body.uuid, req.body.type, author, req.body.comment]);
         res.status(200).json({ "success": "Comment added.", "comment": comment })
     })
+}
+
+async function _get_federated_albums_basic(req, res, next) {
+    if (!['ids', 'domain', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given correctly."
+            });
+        return;
+    }
+
+    // Get server address
+    let address = await get_address_from_domain(req.body.domain);
+    if (!address) {
+        res.status(400).json({ "error": "Server not found." });
+        return;
+    }
+
+    let albums = await fetch(address + `/api/albums/basic?challenge=${req.body.challenge}`, {
+        method: "POST",
+        headers: {
+            'federated': 'true',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            "ids": req.body.ids
+        })
+    })
+        .then(response => response.json())
+        .then(response => response.albums)
+        .catch(() => []);
+
+    res.status(200).json({ "albums": albums });
 }
 
 async function _add_federated_comment(req, res, next) {
@@ -2593,7 +2737,7 @@ async function _add_federated_comment(req, res, next) {
 }
 
 async function _remove_friend(req, res, next) {
-    if (!['username', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .json({
                 "error": "Parameters are not given."
@@ -2603,24 +2747,15 @@ async function _remove_friend(req, res, next) {
 
     db.task(async t => {
         try {
-            // Check for federation
+            // With federation
             if (req.body.username.includes('@')) {
-                let username = null;
-                let domain = null;
-                [username, domain] = req.body.username.split("@");
-
-                // Get server address
-                let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
-                    .then(response => response.json())
-                    .then(data => data.address)
-                    .catch(() => null);
-
-                // If server address is not found, return error
-                if (!address) {
-                    res.status(400).json({ "error": "Server not found." });
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
                     return;
                 }
 
+                // Check if user exists
                 let user = await fetch(address + `/api/user/${username}/exists?challenge=${req.body.challenge}`, {
                     method: "GET",
                     headers: {
@@ -2635,17 +2770,23 @@ async function _remove_friend(req, res, next) {
                     res.status(400).json({ "error": "User not found." })
                     return;
                 }
-            } else {
-                // Check if user exists
-                let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.username]);
-                if (!user) {
-                    res.status(400).json({ "error": "User not found." })
-                    return;
-                }
+
+                // Remove user from friends
+                await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Friend removed." })
+                return
+            }
+
+            // Without federation
+            // Check if user exists
+            let user = await t.oneOrNone("SELECT id FROM users WHERE username = $1", [req.body.id]);
+            if (!user) {
+                res.status(400).json({ "error": "User not found." })
+                return;
             }
 
             // Remove user from friends
-            await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.username, req.query.session]);
+            await t.none("UPDATE users SET friends = array_remove(friends, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Friend removed." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -2830,11 +2971,24 @@ async function _get_profile_albums(req, res, next) {
             return;
         }
         if (!user.fav_albums) {
-            res.status(200).json({ "albums": [], "total": 0 })
+            res.status(200).json({ "albums": [], "federated": [], "total": 0 })
             return;
         }
-        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_albums, offset]);
-        res.status(200).json({ "albums": albums, "total": user.fav_albums.length })
+
+        // Filter federated albums
+        let federated = [];
+        let fav_albums = [];
+
+        for (let i = 0; i < user.fav_albums.length; i++) {
+            if (user.fav_albums[i].includes('@')) {
+                federated.push(user.fav_albums[i]);
+                continue
+            }
+            fav_albums.push(parseInt(user.fav_albums[i]));
+        }
+
+        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_albums, offset]);
+        res.status(200).json({ "albums": albums, "federated": federated, "total": user.fav_albums.length })
     })
 }
 
@@ -3024,36 +3178,62 @@ async function _delete_playlist(req, res, next) {
 }
 
 async function _love_track(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
-    }
-
-    // Check for uuid
-    let column = "id";
-    if (id.length == 36) {
-        column = "uuid";
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if track exists
+                let track = await fetch(obj.address + `/api/track/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!track) {
+                    res.status(400).json({ "error": "Track not found." })
+                    return;
+                }
+
+                // Add track to loved
+                await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Track added to loved." })
+                return
             }
 
-            // Get track
-            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [id])
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if track exists
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [req.body.id])
             if (!track) {
                 res.status(400).json({ "error": "Track not found." })
                 return;
             }
 
             // Add track to loved
-            await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Track added to loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3063,28 +3243,54 @@ async function _love_track(req, res, next) {
 }
 
 async function _unlove_track(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
-    }
-
-    // Check for uuid
-    let column = "id";
-    if (id.length == 36) {
-        column = "uuid";
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if track exists
+                let track = await fetch(obj.address + `/api/track/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!track) {
+                    res.status(400).json({ "error": "Track not found." })
+                    return;
+                }
+
+                // Remove track from loved
+                await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Track removed from loved." })
+                return
             }
 
-            // Get track
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if track exists
             let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [id])
             if (!track) {
                 res.status(400).json({ "error": "Track not found." })
@@ -3092,7 +3298,7 @@ async function _unlove_track(req, res, next) {
             }
 
             // Remove track from loved
-            await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Track removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3128,36 +3334,62 @@ async function _unlove_user(req, res, next) {
 }
 
 async function _love_artist(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
-    }
-
-    // Check for uuid
-    let column = "id";
-    if (id.length == 36) {
-        column = "uuid";
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if artist exists
+                let artist = await fetch(obj.address + `/api/artist/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!artist) {
+                    res.status(400).json({ "error": "Artist not found." })
+                    return;
+                }
+
+                // Add artist to loved
+                await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Artist added to loved." })
+                return
             }
 
-            // Get artist
-            let artist = await t.oneOrNone(`SELECT * FROM artists WHERE ${column} = $1`, [id]);
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if artist exists
+            let artist = await t.oneOrNone(`SELECT * FROM artists WHERE ${column} = $1`, [req.body.id]);
             if (!artist) {
                 res.status(400).json({ "error": "Artist not found." })
                 return;
             }
 
             // Add artist to loved
-            await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Artist added to loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3167,30 +3399,62 @@ async function _love_artist(req, res, next) {
 }
 
 async function _unlove_artist(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if artist exists
+                let artist = await fetch(obj.address + `/api/artist/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!artist) {
+                    res.status(400).json({ "error": "Artist not found." })
+                    return;
+                }
+
+                // Remove artist from loved
+                await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Artist removed from loved." })
+                return
             }
 
-            // Get artist
-            let artist = await t.oneOrNone("SELECT * FROM artists WHERE id = $1", [id]);
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if artist exists
+            let artist = await t.oneOrNone(`SELECT * FROM artists WHERE ${column} = $1`, [req.body.id]);
             if (!artist) {
                 res.status(400).json({ "error": "Artist not found." })
                 return;
             }
 
             // Remove artist from loved
-            await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Artist removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3200,30 +3464,62 @@ async function _unlove_artist(req, res, next) {
 }
 
 async function _love_playlist(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if playlist exists
+                let playlist = await fetch(obj.address + `/api/playlist/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!playlist) {
+                    res.status(400).json({ "error": "Playlist not found." })
+                    return;
+                }
+
+                // Add playlist to loved
+                await t.none("UPDATE users SET fav_playlists = array_append(fav_playlists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Playlist added to loved." })
+                return
             }
 
-            // Get playlist
-            let playlist = await t.oneOrNone("SELECT * FROM playlists WHERE id = $1", [id]);
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if playlist exists
+            let playlist = await t.oneOrNone(`SELECT * FROM playlists WHERE ${column} = $1`, [req.body.id]);
             if (!playlist) {
                 res.status(400).json({ "error": "Playlist not found." })
                 return;
             }
 
             // Add playlist to loved
-            await t.none("UPDATE users SET fav_playlists = array_append(fav_playlists, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_playlists = array_append(fav_playlists, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Playlist added to loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3233,30 +3529,62 @@ async function _love_playlist(req, res, next) {
 }
 
 async function _unlove_playlist(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if playlist exists
+                let playlist = await fetch(obj.address + `/api/playlist/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!playlist) {
+                    res.status(400).json({ "error": "Playlist not found." })
+                    return;
+                }
+
+                // Remove playlist from loved
+                await t.none("UPDATE users SET fav_playlists = array_remove(fav_playlists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Playlist removed from loved." })
+                return
             }
 
-            // Get playlist
-            let playlist = await t.oneOrNone("SELECT * FROM playlists WHERE id = $1", [id])
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if playlist exists
+            let playlist = await t.oneOrNone(`SELECT * FROM playlists WHERE ${column} = $1`, [req.body.id]);
             if (!playlist) {
                 res.status(400).json({ "error": "Playlist not found." })
                 return;
             }
 
             // Remove playlist from loved
-            await t.none("UPDATE users SET fav_playlists = array_remove(fav_playlists, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_playlists = array_remove(fav_playlists, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Playlist removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3266,30 +3594,62 @@ async function _unlove_playlist(req, res, next) {
 }
 
 async function _love_album(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if album exists
+                let album = await fetch(obj.address + `/api/album/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!album) {
+                    res.status(400).json({ "error": "Album not found." })
+                    return;
+                }
+
+                // Add album to loved
+                await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Album added to loved." })
+                return
             }
 
-            // Get album
-            let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id]);
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if album exists
+            let album = await t.oneOrNone(`SELECT * FROM albums WHERE ${column} = $1`, [req.body.id]);
             if (!album) {
                 res.status(400).json({ "error": "Album not found." })
                 return;
             }
 
             // Add album to loved
-            await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Album added to loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3299,30 +3659,62 @@ async function _love_album(req, res, next) {
 }
 
 async function _unlove_album(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
+    if (!['id', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .json({
+                "error": "Parameters are not given."
+            });
         return;
     }
 
     db.task(async t => {
         try {
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
+            // With federation
+            if (req.body.id.includes('@')) {
+                let obj = await get_address(req.body.id);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if album exists
+                let album = await fetch(obj.address + `/api/album/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!album) {
+                    res.status(400).json({ "error": "Album not found." })
+                    return;
+                }
+
+                // Add album to loved
+                await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE session = $2", [req.body.id, req.query.session]);
+                res.status(200).json({ "success": "Album removed from loved." })
+                return
             }
 
-            // Get album
-            let album = await t.oneOrNone("SELECT * FROM albums WHERE id = $1", [id])
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.id.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if album exists
+            let album = await t.oneOrNone(`SELECT * FROM albums WHERE ${column} = $1`, [req.body.id])
             if (!album) {
                 res.status(400).json({ "error": "Album not found." })
                 return;
             }
 
             // Remove album from loved
-            await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE username = $2", [id, user.username]);
+            await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Album removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3536,6 +3928,30 @@ function get_api_sig(obj, sig) {
     return crypto.createHash('md5').update(str).digest("hex");
 }
 
+async function get_address(query) {
+    let id = null;
+    let domain = null;
+    [id, domain] = query.split('@');
+
+    // Get server address
+    let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
+        .then(response => response.json())
+        .then(data => data.address)
+        .catch(() => null);
+
+    return { "id": id, "domain": domain, "address": address };
+}
+
+async function get_address_from_domain(domain) {
+    // Get server address
+    let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
+        .then(response => response.json())
+        .then(data => data.address)
+        .catch(() => null);
+
+    return address;
+}
+
 // Exported functions
 const exports = {
     add_comment: _add_comment,
@@ -3589,6 +4005,10 @@ const exports = {
     get_track_loved: _get_track_loved,
     get_user: _get_user,
     get_user_basic: _get_user_basic,
+    get_track_exists: _get_track_exists,
+    get_album_exists: _get_album_exists,
+    get_artist_exists: _get_artist_exists,
+    get_playlist_exists: _get_playlist_exists,
     get_user_exists: _get_user_exists,
     get_user_albums: _get_user_albums,
     get_user_artists: _get_user_artists,
@@ -3622,6 +4042,8 @@ const exports = {
     unlove_artist: _unlove_artist,
     unlove_playlist: _unlove_playlist,
     unlove_track: _unlove_track,
+    get_federated_albums_basic: _get_federated_albums_basic,
+    get_multiple_albums_basic: _get_multiple_albums_basic,
     unlove_user: _unlove_user,
     update_album: _update_album,
     update_artist: _update_artist,

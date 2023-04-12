@@ -51,9 +51,9 @@
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" />
                 <div class="d-flex flex-column">
-                    <button class="btn btn-link theme-color purple-on-hover" :content_id="track.id"
+                    <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
                         :content_type="track.type" @click="playTrack(track.id)" style="display:contents;">
-                        {{ track.title }}
+                        <span class="theme-color text-break">{{ track.title }}</span>
                     </button>
                 </div>
             </div>

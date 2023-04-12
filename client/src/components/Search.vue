@@ -111,7 +111,6 @@ async function get_federated_search_results() {
 
         // Add federated server results to results
         response.data.forEach(result => {
-            console.log(result);
             result.server = server;
             results.value.push(result);
             // if (!results.value.filter(r => r.uuid == result.uuid).length) {

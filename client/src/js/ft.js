@@ -90,6 +90,7 @@ class Forte {
 
         // Check for saved challenge
         let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+
         let response = await fetch(this.server + '/f/api' + `?session=${this.session}`, {
             method: "POST",
             headers: {
@@ -135,6 +136,26 @@ class Forte {
         return response;
     }
 
+    async get_federated_albums(domain, ids) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+
+        let response = await fetch(this.server + '/f/api/albums/basic' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "ids": ids,
+                "domain": domain,
+                "challenge": challenge,
+            }),
+            credentials: "include"
+        }).then((response) => response.json());
+
+        return response;
+    }
+
     async add_friend(username, domain = null) {
         // Check for saved challenge
         let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
@@ -144,7 +165,7 @@ class Forte {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "username": username,
+                "id": username,
                 "challenge": challenge
             }),
             credentials: "include"
@@ -163,7 +184,7 @@ class Forte {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "username": username,
+                "id": username,
                 "challenge": challenge
             }),
             credentials: "include"
@@ -831,12 +852,18 @@ class Forte {
         return response;
     }
 
-    async love(type, id) {
-        let response = await fetch(this.server + `/api/${type}/${id}/love` + `?session=${this.session}`, {
-            method: "GET",
+    async love(type, id, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+        let response = await fetch(this.server + `/api/${type}/love` + `?session=${this.session}`, {
+            method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                "id": id,
+                "challenge": challenge
+            }),
             credentials: "include"
         }).then((response) => {
             return response.json();
@@ -844,12 +871,18 @@ class Forte {
         return response;
     }
 
-    async unlove(type, id) {
-        let response = await fetch(this.server + `/api/${type}/${id}/unlove` + `?session=${this.session}`, {
-            method: "GET",
+    async unlove(type, id, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+        let response = await fetch(this.server + `/api/${type}/unlove` + `?session=${this.session}`, {
+            method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                "id": id,
+                "challenge": challenge
+            }),
             credentials: "include"
         }).then((response) => {
             return response.json();

@@ -47,7 +47,7 @@
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: album, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="img-fluid" :src="get_cover(album.cover)" @click="openAlbum(album.id)"
+                        <img class="playlist-img pe-auto" :src="get_cover(album.cover)" @click="openAlbum(album)"
                             @error="placeholder" width="250" height="250" />
                         <div class="d-flex position-absolute bottom-0 right-0 flex-nowrap">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
@@ -84,6 +84,8 @@ const total = ref(0);
 const offset = ref(0);
 const searchFinished = ref(true);
 
+const domains = ref({});
+
 // Must be synchronized in groupSession: ok
 async function play_album(id) {
     action({
@@ -109,8 +111,34 @@ function get_cover(cover) {
     return "/images/album.svg"
 }
 
-async function openAlbum(id) {
-    router.push("/album/" + id);
+async function openAlbum(album) {
+    if (album.server) {
+        router.push("/album/" + album.uuid + "@" + album.server);
+        return
+    }
+    router.push("/album/" + album.id);
+}
+
+async function get_federated_albums(album_ids) {
+    // Categorize ids by domain
+    let domains = {};
+    for (let album_id of album_ids) {
+        let [id, domain] = album_id.split('@');
+        if (!domains[domain]) {
+            domains[domain] = [];
+        }
+        domains[domain].push(parseInt(id));
+    }
+
+    // Get federated albums from each domain
+    for (let domain in domains) {
+        let data = await ft.get_federated_albums(domain, domains[domain]);
+        if (!data) return;
+
+        data.albums.map(album => album.server = domain);
+        albums.value = albums.value.concat(data.albums);
+    }
+    return
 }
 
 async function get_albums() {
@@ -123,14 +151,13 @@ async function get_albums() {
     if (!data) return;
 
     total.value = data.total;
-    for (let i = 0; i < data.albums.length; i++) {
-        let album = data.albums[i];
-        if (albums.value.includes(album)) {
-            continue;
-        }
-        albums.value.push(album);
-        offset.value += 1;
-    }
+
+    // Get federated albums
+    get_federated_albums(data.federated);
+
+    // Get local albums
+    albums.value = albums.value.concat(data.albums);
+    offset.value += data.albums.length;
     searchFinished.value = true;
 }
 
