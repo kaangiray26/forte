@@ -47,12 +47,12 @@
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: artist, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="img-fluid" :src="get_cover(artist.cover)" @click="openArtist(artist.id)"
+                        <img class="img-fluid pe-auto" :src="get_cover(artist.cover)" @click="openArtist(artist)"
                             @error="placeholder" width="250" height="250" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
-                            @click="openArtist(artist.id)">{{ artist.title }}</h6>
+                            @click="openArtist(artist)">{{ artist.title }}</h6>
                     </div>
                 </div>
             </div>
@@ -93,8 +93,36 @@ function get_cover(cover) {
     return "/images/artist.svg"
 }
 
-async function openArtist(id) {
-    router.push("/artist/" + id);
+async function openArtist(artist) {
+    if (artist.server) {
+        router.push("/artist/" + artist.uuid + "@" + artist.server);
+        return
+    }
+    router.push("/artist/" + artist.id);
+}
+
+async function get_federated_artists(artist_ids) {
+    // Categorize ids by domain
+    let domains = {};
+    for (let artist_id of artist_ids) {
+        let [id, domain] = artist_id.split('@');
+        if (!domains[domain]) {
+            domains[domain] = [];
+        }
+        domains[domain].push(parseInt(id));
+    }
+
+    // Get federated artists from each domain
+    for (let domain in domains) {
+        let data = await ft.get_federated_artists(domain, domains[domain]);
+        if (!data) return;
+
+        data.artists.map(artist => artist.server = domain);
+
+        console.log(data.artists);
+
+        artists.value = artists.value.concat(data.artists);
+    }
 }
 
 async function get_artists() {
@@ -107,14 +135,13 @@ async function get_artists() {
     if (!data) return;
 
     total.value = data.total;
-    for (let i = 0; i < data.artists.length; i++) {
-        let artist = data.artists[i];
-        if (artists.value.includes(artist)) {
-            continue;
-        }
-        artists.value.push(artist);
-        offset.value += 1;
-    }
+
+    // Get federated artists
+    get_federated_artists(data.federated);
+
+    // Get local artists
+    artists.value = artists.value.concat(data.artists);
+    offset.value += data.artists.length;
     searchFinished.value = true;
 }
 

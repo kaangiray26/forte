@@ -136,11 +136,71 @@ class Forte {
         return response;
     }
 
+    async get_federated_tracks(domain, ids) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+
+        let response = await fetch(this.server + '/f/api/tracks/basic' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "ids": ids,
+                "domain": domain,
+                "challenge": challenge,
+            }),
+            credentials: "include"
+        }).then((response) => response.json());
+
+        return response;
+    }
+
     async get_federated_albums(domain, ids) {
         // Check for saved challenge
         let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
 
         let response = await fetch(this.server + '/f/api/albums/basic' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "ids": ids,
+                "domain": domain,
+                "challenge": challenge,
+            }),
+            credentials: "include"
+        }).then((response) => response.json());
+
+        return response;
+    }
+
+    async get_federated_artists(domain, ids) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+
+        let response = await fetch(this.server + '/f/api/artists/basic' + `?session=${this.session}`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "ids": ids,
+                "domain": domain,
+                "challenge": challenge,
+            }),
+            credentials: "include"
+        }).then((response) => response.json());
+
+        return response;
+    }
+
+    async get_federated_playlists(domain, ids) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+
+        let response = await fetch(this.server + '/f/api/playlists/basic' + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -627,6 +687,7 @@ class Forte {
         // Federated
         if (domain) {
             this.fAPI(domain, `/track/${track_id}/basic`).then((response) => {
+                console.log(response);
                 store.queue_index = 0;
                 this.load_federated_track(response.track, domain);
                 this.addToQueueStart([response.track]);

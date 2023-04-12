@@ -47,7 +47,7 @@
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: album, event: $event })">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="playlist-img pe-auto" :src="get_cover(album.cover)" @click="openAlbum(album)"
+                        <img class="img-fluid pe-auto" :src="get_cover(album.cover)" @click="openAlbum(album)"
                             @error="placeholder" width="250" height="250" />
                         <div class="d-flex position-absolute bottom-0 right-0 flex-nowrap">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
@@ -57,7 +57,7 @@
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
-                            @click="openAlbum(album.id)">{{ album.title }}</h6>
+                            @click="openAlbum(album)">{{ album.title }}</h6>
                     </div>
                 </div>
             </div>
@@ -83,8 +83,6 @@ const albums = ref([]);
 const total = ref(0);
 const offset = ref(0);
 const searchFinished = ref(true);
-
-const domains = ref({});
 
 // Must be synchronized in groupSession: ok
 async function play_album(id) {
@@ -113,7 +111,7 @@ function get_cover(cover) {
 
 async function openAlbum(album) {
     if (album.server) {
-        router.push("/album/" + album.uuid + "@" + album.server);
+        router.push("/album/" + aidlbum.uuid + "@" + album.server);
         return
     }
     router.push("/album/" + album.id);
@@ -138,7 +136,6 @@ async function get_federated_albums(album_ids) {
         data.albums.map(album => album.server = domain);
         albums.value = albums.value.concat(data.albums);
     }
-    return
 }
 
 async function get_albums() {

@@ -156,8 +156,6 @@ app.get("/api/user/:id/playlists", isAuthenticated, db.get_user_playlists)
 app.get("/api/user/:id/albums/:offset", isAuthenticated, db.get_user_albums)
 app.get("/api/user/:id/artists/:offset", isAuthenticated, db.get_user_artists)
 app.get("/api/user/:id/friends", isAuthenticated, db.get_user_friends)
-// app.get("/api/user/:id/love", isAuthenticated, db.love_user)
-// app.get("/api/user/:id/unlove", isAuthenticated, db.unlove_user)
 app.get("/api/user/:id/loved", isAuthenticated, db.get_user_loved)
 
 // Track
@@ -171,9 +169,14 @@ app.get("/api/artist/:id/loved", isAuthenticated, db.get_artist_loved)
 
 // Album
 app.get("/api/album/:id", isAuthenticated, db.get_album)
-app.post("/api/albums/basic", isAuthenticated, db.get_multiple_albums_basic)
 app.get("/api/album/:id/tracks", isAuthenticated, db.get_album_tracks)
 app.get("/api/album/:id/loved", isAuthenticated, db.get_album_loved)
+
+// Multiple
+app.post("/api/tracks/basic", isAuthenticated, db.get_multiple_tracks_basic)
+app.post("/api/albums/basic", isAuthenticated, db.get_multiple_albums_basic)
+app.post("/api/artists/basic", isAuthenticated, db.get_multiple_artists_basic)
+app.post("/api/playlists/basic", isAuthenticated, db.get_multiple_playlists_basic)
 
 // Random
 app.get("/api/random/track", isAuthenticated, db.get_random_track)
@@ -228,7 +231,10 @@ app.get("/api/comments/album/:id/:offset", isAuthenticated, db.get_album_comment
 app.post("/f/api", isAuthenticated, db.federated_api)
 app.get("/f/challenge/:domain", db.get_federation_challenge)
 app.post("/f/api/comments", isAuthenticated, db.add_federated_comment)
+app.post("/f/api/tracks/basic", isAuthenticated, db.get_federated_tracks_basic)
 app.post("/f/api/albums/basic", isAuthenticated, db.get_federated_albums_basic)
+app.post("/f/api/artists/basic", isAuthenticated, db.get_federated_artists_basic)
+app.post("/f/api/playlists/basic", isAuthenticated, db.get_federated_playlists_basic)
 
 // Direct Federated API
 app.get("/f/api/stream/:id", isFederated, db.stream)

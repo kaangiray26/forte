@@ -122,7 +122,7 @@ async function federatedContextMenuEvent(event) {
     }
     if (event == 'openArtistPage') {
         if (selectedItem.value.type == 'artist') {
-            router.push(`/artist/${selectedItem.value.uuid} @${selectedItem.value.server}`);
+            router.push(`/artist/${selectedItem.value.uuid}@${selectedItem.value.server}`);
             return
         }
         if (selectedItem.value.type == 'album') {

@@ -4,7 +4,7 @@
             <div class="d-flex flex-column">
                 <div class="d-inline-flex input-group flex-nowrap">
                     <input ref="search_field" type="text" class="form-control search-card-input" placeholder="Search"
-                        aria-label="Search" @input="search" @keyup.enter="search" @focus="clear_search">
+                        aria-label="Search" @input="search" @keyup.enter="search_now" @focus="clear_search">
                 </div>
                 <div class="hide-on-desktop mt-3">
                     <ul class="nav nav-pills nav-justified">
@@ -66,6 +66,15 @@ async function focus_search() {
 
 async function clear_search() {
     search_field.value.value = "";
+}
+
+async function search_now() {
+    let query = search_field.value.value;
+    if (!query.length) {
+        search_field.value.focus();
+        return;
+    }
+    router.push('/search/' + query);
 }
 
 const search = debounce(async (event) => {
