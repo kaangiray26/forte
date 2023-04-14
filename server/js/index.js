@@ -165,6 +165,7 @@ app.get("/api/track/:id/loved", isAuthenticated, db.get_track_loved)
 
 // Artist
 app.get("/api/artist/:id", isAuthenticated, db.get_artist)
+app.get("/api/artist/:id/basic", isAuthenticated, db.get_artist_basic)
 app.get("/api/artist/:id/loved", isAuthenticated, db.get_artist_loved)
 
 // Album
@@ -220,6 +221,7 @@ app.get("/api/artist/:id/exists", isAuthenticated, db.get_artist_exists)
 app.get("/api/playlist/:id/exists", isAuthenticated, db.get_playlist_exists)
 app.get("/api/user/:id/exists", isAuthenticated, db.get_user_exists)
 
+// Lyrics
 app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
 
 // Last.fm

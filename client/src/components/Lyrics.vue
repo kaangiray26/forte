@@ -19,6 +19,7 @@
                             <h1 class="fs-5 fw-bold">Lyrics not found</h1>
                         </div>
                     </div>
+                    <h3 v-show="loaded" class="fs-5 fw-bold">{{ store.playing.title }}</h3>
                     <div v-show="loaded" class="lyrics">
                     </div>
                 </div>
@@ -31,13 +32,23 @@
 import { ref, onMounted } from 'vue';
 import { Modal } from 'bootstrap';
 import { store } from '/js/store.js';
+import { notify } from '/js/events.js';
 
 const modal = ref(null);
 const track_id = ref(null);
+const lyrics_id = ref(null);
 const loaded = ref(false);
 const error = ref(false);
 
 async function _get_lyrics(preload = false) {
+    if (!store.playing.loaded) return;
+    if (store.playing.type != 'track') {
+        notify({
+            "title": "Can't get lyrics for this item.",
+        })
+        return
+    }
+
     if (!preload) {
         _show();
     }
@@ -50,9 +61,18 @@ async function _get_lyrics(preload = false) {
     loaded.value = false;
     error.value = false;
 
-    let response = await ft.lyrics(store.playing.artist, store.playing.title);
+    // Get the lyrics
+    let artist_id = store.playing.artist;
+    let title = store.playing.title;
+    let server = null;
 
-    if (response.hasOwnProperty('error')) {
+    if (store.playing.server) {
+        server = store.playing.server;
+        artist_id = `${store.playing.artist}@${store.playing.server}`;
+    }
+
+    let response = await ft.lyrics(artist_id, title, server);
+    if (!response || response.error) {
         document.querySelector(".lyrics").innerHTML = '';
         track_id.value = store.playing.id;
         error.value = true;
@@ -60,20 +80,21 @@ async function _get_lyrics(preload = false) {
         return
     }
 
-    track_id.value = store.playing.id;
-    let parser = new DOMParser();
-    let doc = parser.parseFromString(response.lyrics, "text/html");
-    let lyrics = doc.querySelector('#lyrics-root');
+    lyrics_id.value = response.id;
 
-    if (!lyrics) {
-        document.querySelector(".lyrics").innerHTML = '';
-        error.value = true;
-        loaded.value = true;
-        return
-    }
+    let lyrics = await fetch(`https://genius.com/songs/${lyrics_id.value}/embed.js`)
+        .then(res => res.text());
 
-    document.querySelector(".lyrics").innerHTML = lyrics.childNodes[2].innerHTML;
+    let div = document.createElement('div');
+    div.innerHTML = eval(lyrics.match(/JSON\.parse\('(.*)'\)/)[0]);
+
+    div.querySelector(".rg_embed_header").remove();
+    div.querySelector(".rg_embed_footer").remove();
+    div.querySelector(`#rg_embed_analytics_${lyrics_id.value}`).remove();
+
+    document.querySelector(".lyrics").innerHTML = div.innerHTML;
     loaded.value = true;
+    return
 }
 
 function _show() {

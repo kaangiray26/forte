@@ -1210,6 +1210,37 @@ async function _stream_head(req, res, next) {
         })
 }
 
+async function _get_artist_basic(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        try {
+            let artist = await t.oneOrNone(`SELECT * FROM artists WHERE ${column} = $1`, [id]);
+
+            if (!artist) {
+                res.status(404).json({ "error": "Artist not found." });
+                return;
+            }
+
+            res.status(200).json({
+                "artist": artist
+            })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
 async function _get_artist(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -4105,15 +4136,61 @@ async function _unlove_album(req, res, next) {
 }
 
 async function _get_lyrics(req, res, next) {
-    if (!['artist', 'title'].every(key => req.body.hasOwnProperty(key))) {
-        res.status(400)
-            .send(JSON.stringify({
-                "error": "Parameters not given correctly."
-            }));
+    if (!['artist', 'title', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400).json({
+            "error": "Parameters not given correctly."
+        });
         return;
     }
 
     db.task(async t => {
+        // With federation
+        if (req.body.challenge) {
+            let obj = await get_address(req.body.artist);
+            if (!obj.address) {
+                res.status(400).json({ "error": "Server not found." })
+                return;
+            }
+
+            // Get artist
+            let artist = await fetch(obj.address + `/api/artist/${obj.id}/basic?challenge=${req.body.challenge}`, {
+                method: "GET",
+                headers: {
+                    'federated': 'true',
+                }
+            })
+                .then(response => response.json())
+                .then(response => response.artist)
+                .catch(() => null);
+
+            if (!artist) {
+                res.status(400).json({ "error": "Artist not found." })
+                return;
+            }
+
+            let genius_token = await t.one("SELECT value FROM config WHERE name = 'genius_token'");
+            let src = 'https://api.genius.com/search/?' + new URLSearchParams({
+                q: artist.title + ' ' + req.body.title
+            })
+
+            let data = await fetch(src, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + genius_token.value
+                }
+            }).then((res) => res.json());
+
+            if (!data.response.hits.length) {
+                res.status(400).json({ "error": "No lyrics found." });
+                return
+            }
+
+            res.status(200).json({ "id": data.response.hits[0].result.id })
+            return
+        }
+
+        // Without federation
         // Get artist
         let artist = await t.oneOrNone("SELECT title FROM artists WHERE id = $1", [req.body.artist]);
         if (!artist) {
@@ -4122,9 +4199,11 @@ async function _get_lyrics(req, res, next) {
         }
 
         let genius_token = await t.one("SELECT value FROM config WHERE name = 'genius_token'");
-        let data = await fetch('https://api.genius.com/search/?' + new URLSearchParams({
+        let src = 'https://api.genius.com/search/?' + new URLSearchParams({
             q: artist.title + ' ' + req.body.title
-        }), {
+        })
+
+        let data = await fetch(src, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -4132,17 +4211,13 @@ async function _get_lyrics(req, res, next) {
             }
         }).then((res) => res.json());
 
-
         if (!data.response.hits.length) {
             res.status(400).json({ "error": "No lyrics found." });
             return
         }
 
-        let lyric = await fetch(data.response.hits[0].result.url, {
-            method: 'GET',
-        }).then((res) => res.text());
-
-        res.status(200).json({ "lyrics": lyric })
+        res.status(200).json({ "id": data.response.hits[0].result.id })
+        return
     })
 }
 
@@ -4356,6 +4431,7 @@ const exports = {
     get_albums: _get_albums,
     get_all_albums: _get_all_albums,
     get_artist: _get_artist,
+    get_artist_basic: _get_artist_basic,
     get_artist_comments: _get_artist_comments,
     get_artist_loved: _get_artist_loved,
     get_artists: _get_artists,

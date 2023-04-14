@@ -548,6 +548,18 @@ class Forte {
     }
 
     async track_finished() {
+        if (store.playing.type == 'station') {
+            store.queue_index = 0;
+            this.player._sounds[0]._node.pause();
+            store.playing.is_playing = false;
+            navigator.mediaSession.playbackState = "paused";
+
+            if (store.queue.length) {
+                store.queue[0].server ? this.load_federated_track(store.queue[0]) : this.load_track(store.queue[0]);
+            }
+            return
+        }
+
         let queue = this.getCurrentQueue();
         let track = queue[store.queue_index];
 
@@ -1006,7 +1018,9 @@ class Forte {
         return response;
     }
 
-    async lyrics(artist_id, title) {
+    async lyrics(artist_id, title, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
         let response = await fetch(this.server + '/api/lyrics' + `?session=${this.session}`, {
             method: "POST",
             headers: {
@@ -1014,7 +1028,8 @@ class Forte {
             },
             body: JSON.stringify({
                 "artist": artist_id,
-                "title": title
+                "title": title,
+                "challenge": challenge
             }),
             credentials: "include"
         }).then((response) => {
