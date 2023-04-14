@@ -51,6 +51,7 @@ async function _get_lyrics(preload = false) {
 
     if (!preload) {
         _show();
+        return
     }
 
     if (store.playing.id == track_id.value) {
