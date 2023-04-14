@@ -47,12 +47,12 @@
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             v-for="track in tracks" @contextmenu.prevent="right_click({ item: track, event: $event })"
             @click="playTrack(track)">
+            <div class="d-flex align-items-center position-absolute bottom-0 right-0 p-1">
+                <span v-if="track.server" class="server bi bi-globe-americas"></span>
+            </div>
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" @error="placeholder" />
                 <div class="d-flex">
-                    <div class="d-flex align-items-center">
-                        <span v-if="track.server" class="server bi bi-globe-americas"></span>
-                    </div>
                     <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
                         :content_type="track.type" style="display:contents;">
                         <span class="theme-color text-break">{{ track.title }}</span>
@@ -156,6 +156,8 @@ async function get_tracks() {
 
     let data = await ft.API(`/profile/tracks/${offset.value}`);
     if (!data) return;
+
+    console.log(data);
 
     total.value = data.total;
     offset.value += data.tracks.length;

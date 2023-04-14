@@ -2188,9 +2188,24 @@ async function _get_history(req, res, next) {
         if (!user.history) {
             res.status(200).json({ "tracks": [], "federated": [] })
         }
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [user.history]);
+
+        // Filter federated tracks
+        let federated = [];
+        let history = [];
+
+        for (let i = 0; i < user.history.length; i++) {
+            if (user.history[i].includes('@')) {
+                federated.push(user.history[i]);
+                continue
+            }
+            history.push(parseInt(user.history[i]));
+        }
+
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [history]);
         res.status(200).json({
-            "tracks": tracks
+            "tracks": tracks,
+            "federated": federated,
+            "order": user.history
         });
     })
 }
@@ -3172,7 +3187,7 @@ async function _get_profile_tracks(req, res, next) {
         }
 
         let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_tracks, offset]);
-        res.status(200).json({ "tracks": tracks, "federated": federated, "total": user.fav_tracks.length })
+        res.status(200).json({ "tracks": tracks, "federated": federated, "total": user.fav_tracks.length, "order": user.fav_tracks })
     })
 }
 

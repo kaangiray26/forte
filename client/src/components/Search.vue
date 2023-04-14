@@ -14,13 +14,15 @@
                 <img :src="get_cover(result.type, result.cover)" class="playlist-selection-img me-2" :type="result.type"
                     @error="placeholder" />
                 <div class="d-flex flex-column">
+                    <div class="d-flex align-items-center position-absolute bottom-0 right-0 p-1">
+                        <span v-if="result.server" class="server bi bi-globe-americas"></span>
+                    </div>
                     <button class="btn btn-link theme-color fw-bold" :content_id="result.id" :content_type="result.type"
                         style="display:contents;">
                         {{ result.title }}
                     </button>
                     <div class="d-flex align-items-center">
                         <span class="badge" :class="result.type">{{ result.type }}</span>
-                        <span v-if="result.server" class="server bi bi-globe-americas ms-2"></span>
                     </div>
                 </div>
             </div>
