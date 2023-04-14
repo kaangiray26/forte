@@ -24,6 +24,7 @@ const store = reactive({
         bitrate: 0,
         format: null,
         quality: 'LQ',
+        server: null,
     },
     queue: [],
     queue_index: 0,

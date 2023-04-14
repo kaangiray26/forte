@@ -51,7 +51,7 @@
                             @error="placeholder" width="250" height="250" />
                         <div class="d-flex position-absolute bottom-0 right-0 flex-nowrap">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
-                                @click="play_album(album.id)">
+                                @click="play_album(album)">
                             </button>
                         </div>
                     </div>
@@ -76,21 +76,34 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { right_click } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 const albums = ref([]);
+
 const total = ref(0);
 const offset = ref(0);
 const searchFinished = ref(true);
 
 // Must be synchronized in groupSession: ok
-async function play_album(id) {
+async function play_album(album) {
+    // Federated
+    if (album.server) {
+        action({
+            func: async function op() {
+                ft.playAlbum(album.id, album.server)
+            },
+            object: [album.id, album.server],
+            operation: "playAlbum"
+        })
+        return
+    }
+
     action({
         func: async function op() {
-            ft.playAlbum(id)
+            ft.playAlbum(album.id)
         },
-        object: id,
+        object: [album.id],
         operation: "playAlbum"
     })
 }
@@ -111,7 +124,7 @@ function get_cover(cover) {
 
 async function openAlbum(album) {
     if (album.server) {
-        router.push("/album/" + aidlbum.uuid + "@" + album.server);
+        router.push("/album/" + album.uuid + "@" + album.server);
         return
     }
     router.push("/album/" + album.id);
@@ -134,7 +147,14 @@ async function get_federated_albums(album_ids) {
         if (!data) return;
 
         data.albums.map(album => album.server = domain);
-        albums.value = albums.value.concat(data.albums);
+
+        let existing = albums.value.filter(album => album.server).map(album => album.uuid);
+        for (let i = 0; i < data.albums.length; i++) {
+            let album = data.albums[i];
+            if (!existing.includes(album.uuid)) {
+                albums.value.push(album);
+            }
+        }
     }
 }
 
@@ -148,13 +168,19 @@ async function get_albums() {
     if (!data) return;
 
     total.value = data.total;
+    offset.value += data.albums.length;
 
     // Get federated albums
     get_federated_albums(data.federated);
 
     // Get local albums
-    albums.value = albums.value.concat(data.albums);
-    offset.value += data.albums.length;
+    let existing = albums.value.filter(album => !album.server).map(album => album.id);
+    for (let i = 0; i < data.albums.length; i++) {
+        let album = data.albums[i];
+        if (!existing.includes(album.id)) {
+            albums.value.push(album);
+        }
+    }
     searchFinished.value = true;
 }
 

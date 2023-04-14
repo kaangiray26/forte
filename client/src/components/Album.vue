@@ -26,13 +26,13 @@
                         <small class="text-muted">{{ tracks.length }} tracks</small>
                     </div>
                     <div class="pt-2">
-                        <router-link :to="'/artist/' + artist.id" class="search-link">
+                        <a class="search-link clickable" @click="openArtist(artist)">
                             <div class="d-inline-flex align-content-center align-items-center">
                                 <img class="img-fluid figure-img rounded m-0" :src="get_artist_cover(artist.cover)"
                                     width="28" height="28">
                                 <span class="purple-on-hover theme-color mx-2">{{ artist.title }}</span>
                             </div>
-                        </router-link>
+                        </a>
                     </div>
                     <hr />
                     <ul class="list-group">
@@ -148,6 +148,15 @@ async function track_placeholder(obj) {
     obj.target.src = "/images/track.svg";
 }
 
+async function openArtist(artist) {
+    // Federated
+    if (domain.value) {
+        router.push(`/artist/${artist.uuid}@${domain.value}`)
+        return
+    }
+    router.push(`/artist/${artist.id}`)
+}
+
 async function post_comment() {
     if (federated.value) {
         add_federated_comment();
@@ -235,11 +244,23 @@ function get_artist_cover(cover) {
 
 // Must be synchronized in groupSession: ok
 async function play_track(id) {
+    // Federated
+    if (domain.value) {
+        action({
+            func: async function op() {
+                ft.playTrack(id, domain.value)
+            },
+            object: [id, domain.value],
+            operation: "playTrack"
+        })
+        return
+    }
+
     action({
         func: async function op() {
             ft.playTrack(id)
         },
-        object: id,
+        object: [id],
         operation: "playTrack"
     })
 }
@@ -268,6 +289,8 @@ async function get_federated_album(id) {
     artist.value = data.artist;
     album.value = data.album;
     tracks.value = data.tracks;
+
+    tracks.value.map(track => track.server = domain.value);
     tracks.value.sort((a, b) => a.track_position - b.track_position);
     tracks.value.sort((a, b) => a.disc_number - b.disc_number);
     loaded.value = true;
@@ -275,11 +298,23 @@ async function get_federated_album(id) {
 
 // Must be synchronized in groupSession: ok
 async function play_album(id) {
+    // Federated
+    if (domain.value) {
+        action({
+            func: async function op() {
+                ft.playAlbum(id, domain.value)
+            },
+            object: [id, domain.value],
+            operation: "playAlbum"
+        })
+        return
+    }
+
     action({
         func: async function op() {
             ft.playAlbum(id)
         },
-        object: id,
+        object: [id],
         operation: "playAlbum"
     })
 }

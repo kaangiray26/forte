@@ -56,7 +56,7 @@
                                 <img :src="station.image" class="track-cover" @error="placeholder" />
                                 <div v-if="station.hover" class="position-absolute bottom-0 right-0">
                                     <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
-                                        @click="play_station(station.guide_id)">
+                                        @click="play_station(station)">
                                     </button>
                                 </div>
                             </div>
@@ -106,8 +106,8 @@ async function openStation(id, hover) {
     router.push("/station/" + id);
 }
 
-async function play_station(id) {
-    selectedStation.value = id;
+async function play_station(station) {
+    ft.playStation(station);
 }
 
 async function search_station() {

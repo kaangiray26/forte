@@ -152,7 +152,7 @@ app.get("/api/user/:id", isAuthenticated, db.get_user)
 app.get("/api/user/:id/basic", isAuthenticated, db.get_user_basic);
 app.get("/api/user/:id/history", isAuthenticated, db.get_user_history)
 app.get("/api/user/:id/tracks/:offset", isAuthenticated, db.get_user_tracks)
-app.get("/api/user/:id/playlists", isAuthenticated, db.get_user_playlists)
+app.get("/api/user/:id/playlists/:offset", isAuthenticated, db.get_user_playlists)
 app.get("/api/user/:id/albums/:offset", isAuthenticated, db.get_user_albums)
 app.get("/api/user/:id/artists/:offset", isAuthenticated, db.get_user_artists)
 app.get("/api/user/:id/friends", isAuthenticated, db.get_user_friends)
@@ -195,6 +195,13 @@ app.get("/api/playlist/:id/tracks", isAuthenticated, db.get_playlist_tracks)
 app.post("/api/playlist/:id/add_track", isAuthenticated, db.add_track_to_playlist)
 app.post("/api/playlist/:id/delete_track", isAuthenticated, db.delete_track_to_playlist)
 app.get("/api/playlist/:id/loved", isAuthenticated, db.get_playlist_loved)
+
+// Station
+app.get("/api/station/:id", isAuthenticated, db.get_station)
+app.get("/api/station/:id/url", isAuthenticated, db.get_station_url)
+
+// Author
+app.get("/api/author/:author/playlists", isAuthenticated, db.get_author_playlists)
 
 // Love
 app.post("/api/track/love", isAuthenticated, db.love_track)

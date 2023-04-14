@@ -46,7 +46,7 @@
                             </div>
                         </li>
                         <li class="list-group-item theme-list-item clickable rounded d-flex p-1" v-for="album in albums"
-                            @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album.id)">
+                            @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex align-items-center">
@@ -164,14 +164,12 @@ function format_date(dt) {
 }
 
 async function add_comment() {
-    console.log("post comment");
     let comment = document.querySelector("textarea").value;
     if (!comment.length) {
         return;
     }
 
     let response = await ft.add_comment(ft.username, "artist", artist.value.id, artist.value.uuid, comment);
-    console.log(response);
 }
 
 async function get_wiki_page() {
@@ -235,8 +233,6 @@ async function get_artist(id) {
         return;
     }
 
-    console.log(data);
-
     artist.value = data.artist;
     albums.value = data.albums;
     albums.value.sort(year_sort);
@@ -251,6 +247,8 @@ async function get_federated_artist(id) {
 
     artist.value = data.artist;
     albums.value = data.albums;
+
+    albums.value.map(album => album.server = domain.value);
     albums.value.sort(year_sort);
     loaded.value = true;
 }
@@ -272,8 +270,12 @@ async function get_comments() {
     searchFinished.value = true;
 }
 
-async function openAlbum(id) {
-    router.push("/album/" + id);
+async function openAlbum(album) {
+    if (album.server) {
+        router.push(`/album/${album.uuid}@${album.server}`)
+        return;
+    }
+    router.push("/album/" + album.id);
 }
 
 async function setup() {

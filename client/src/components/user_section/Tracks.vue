@@ -50,7 +50,7 @@
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             v-for="track in tracks" @contextmenu.prevent="right_click({ item: track, event: $event })">
             <div class="d-flex flex-fill align-items-center">
-                <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" />
+                <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" @error="placeholder" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
                         :content_type="track.type" @click="playTrack(track.id)" style="display:contents;">
@@ -99,6 +99,10 @@ function get_cover(cover) {
     return ft.server + '/' + cover;
 }
 
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
+}
+
 // Must be synchronized in groupSession: ok
 async function playTrack(track_id) {
     action({
@@ -121,18 +125,38 @@ async function get_tracks(id) {
     if (!data) return;
 
     total.value = data.total;
-    for (let i = 0; i < data.tracks.length; i++) {
-        let track = data.tracks[i];
-        if (tracks.value.includes(track)) {
-            continue;
-        }
-        tracks.value.push(track);
-        offset.value += 1;
-    }
+
+    // Get federated tracks
+    get_federated_tracks(data.federated);
+
+    // Get local tracks
+    tracks.value = tracks.value.concat(data.tracks);
+    offset.value += data.tracks.length;
     searchFinished.value = true;
 }
 
-async function get_federated_tracks(id) {
+async function get_federated_tracks(track_ids) {
+    // Categorize ids by domain
+    let domains = {};
+    for (let track_id of track_ids) {
+        let [id, domain] = track_id.split('@');
+        if (!domains[domain]) {
+            domains[domain] = [];
+        }
+        domains[domain].push(parseInt(id));
+    }
+
+    // Get federated tracks from each domain
+    for (let domain in domains) {
+        let data = await ft.get_federated_tracks(domain, domains[domain]);
+        if (!data) return;
+
+        data.tracks.map(track => track.server = domain);
+        tracks.value = tracks.value.concat(data.tracks);
+    }
+}
+
+async function get_tracks_from_domain(id) {
     if (!searchFinished.value) {
         return
     }
@@ -142,14 +166,13 @@ async function get_federated_tracks(id) {
     if (!data) return;
 
     total.value = data.total;
-    for (let i = 0; i < data.tracks.length; i++) {
-        let track = data.tracks[i];
-        if (tracks.value.includes(track)) {
-            continue;
-        }
-        tracks.value.push(track);
-        offset.value += 1;
-    }
+
+    // Get federated tracks
+    get_federated_tracks(data.federated);
+
+    // Get local tracks
+    tracks.value = tracks.value.concat(data.tracks);
+    offset.value += data.tracks.length;
     searchFinished.value = true;
 }
 
@@ -157,7 +180,7 @@ async function setup() {
     let id = router.currentRoute.value.params.id;
     if (id.includes('@')) {
         [id, domain.value] = id.split('@');
-        get_federated_tracks(id);
+        get_tracks_from_domain(id);
         return
     }
     get_tracks(id);

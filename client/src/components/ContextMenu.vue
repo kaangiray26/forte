@@ -97,7 +97,6 @@ async function federatedIsLoved() {
     }
 
     ft.API(`/${selectedItem.value.type}/${selectedItem.value.id}@${selectedItem.value.server}/loved`).then((response) => {
-        console.log(response);
         selectedItemLoved.value = response.loved;
     })
 }
@@ -170,8 +169,7 @@ async function federatedContextMenuEvent(event) {
 
     // Love Events
     if (event == 'addToLoved') {
-        ft.love(selectedItem.value.type, `${selectedItem.value.id}@${selectedItem.value.server}`, selectedItem.value.server).then((response) => {
-            console.log("Response:", response);
+        ft.love(selectedItem.value.type, `${selectedItem.value.id}@${selectedItem.value.server}`, selectedItem.value.server).then(() => {
             notify({
                 "title": "Added to favorites.",
             })
@@ -179,7 +177,6 @@ async function federatedContextMenuEvent(event) {
         return
     }
     if (event == 'removeFromLoved') {
-        console.log("Remove from loved:", selectedItem.value.type, `${selectedItem.value.id}@${selectedItem.value.server}`, selectedItem.value.server)
         ft.unlove(selectedItem.value.type, `${selectedItem.value.id}@${selectedItem.value.server}`, selectedItem.value.server).then(() => {
             notify({
                 "title": "Removed from favorites.",
@@ -193,9 +190,9 @@ async function federatedContextMenuEvent(event) {
     if (event == 'playTrack') {
         action({
             func: async function op() {
-                ft.playTrack(selectedItem.value.uuid, selectedItem.value.server);
+                ft.playTrack(selectedItem.value.id, selectedItem.value.server);
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "playTrack",
         })
         return
@@ -204,9 +201,9 @@ async function federatedContextMenuEvent(event) {
     if (event == 'playAlbum') {
         action({
             func: async function op() {
-                ft.playAlbum(selectedItem.value.uuid, selectedItem.value.server);
+                ft.playAlbum(selectedItem.value.id, selectedItem.value.server);
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "playAlbum",
         })
         return
@@ -215,9 +212,9 @@ async function federatedContextMenuEvent(event) {
     if (event == 'playPlaylist') {
         action({
             func: async function op() {
-                ft.playPlaylist(selectedItem.value.uuid, selectedItem.value.server);
+                ft.playPlaylist(selectedItem.value.id, selectedItem.value.server);
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "playPlaylist",
         })
         return
@@ -228,13 +225,13 @@ async function federatedContextMenuEvent(event) {
     if (event == 'addTrackToQueue') {
         action({
             func: async function op() {
-                ft.queueTrack(selectedItem.value.uuid, selectedItem.value.server).then(() => {
+                ft.queueTrack(selectedItem.value.id, selectedItem.value.server).then(() => {
                     notify({
                         "title": "Added to the queue."
                     })
                 })
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "addTrackToQueue",
         })
         return
@@ -244,13 +241,13 @@ async function federatedContextMenuEvent(event) {
     if (event == 'addAlbumToQueue') {
         action({
             func: async function op() {
-                ft.queueAlbum(selectedItem.value.uuid, selectedItem.value.server).then(() => {
+                ft.queueAlbum(selectedItem.value.id, selectedItem.value.server).then(() => {
                     notify({
                         "title": "Added to the queue."
                     })
                 })
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "addAlbumToQueue",
         })
         return
@@ -260,13 +257,13 @@ async function federatedContextMenuEvent(event) {
     if (event == 'addPlaylistToQueue') {
         action({
             func: async function op() {
-                ft.queuePlaylist(selectedItem.value.uuid, selectedItem.value.server).then(() => {
+                ft.queuePlaylist(selectedItem.value.id, selectedItem.value.server).then(() => {
                     notify({
                         "title": "Added to the queue."
                     })
                 })
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "addPlaylistToQueue",
         })
         return
@@ -274,7 +271,7 @@ async function federatedContextMenuEvent(event) {
 
     // Add to Playlist Events
     if (event == 'addTrackToPlaylist') {
-        playlistSelection.value.show(selectedItem.value.id);
+        playlistSelection.value.show(`${selectedItem.value.id}@${selectedItem.value.server}`);
         return
     }
 

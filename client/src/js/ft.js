@@ -402,6 +402,31 @@ class Forte {
         return ft.server + '/' + cover;
     }
 
+    async load_station(station) {
+        store.playing.type = 'station';
+        store.playing.id = station.guide_id
+        store.playing.title = station.text;
+        store.playing.cover = station.image;
+        store.playing.loaded = true;
+
+        // mediaSession metadata
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: station.text,
+            artwork: [
+                { src: store.playing.cover, sizes: '250x250', type: 'image/jpeg' },
+            ]
+        });
+
+        // Get station url
+        let response = await this.API(`/station/${station.guide_id}/url`);
+        if (!response || !response.url) return;
+
+        this.player.unload();
+        this.player._src = [response.url];
+        this.player.load();
+        document.title = station.text;
+    }
+
     async load_track(track) {
         store.playing.id = track.id;
         store.playing.type = track.type;
@@ -409,6 +434,7 @@ class Forte {
         store.playing.cover = track.cover;
         store.playing.album = track.album;
         store.playing.artist = track.artist;
+        store.playing.server = null;
         store.playing.loaded = true;
 
         // Cover
@@ -428,13 +454,14 @@ class Forte {
         document.title = track.title;
     }
 
-    async load_federated_track(track, domain) {
+    async load_federated_track(track) {
         store.playing.id = track.id;
         store.playing.type = track.type;
         store.playing.title = track.title;
         store.playing.cover = track.cover;
         store.playing.album = track.album;
         store.playing.artist = track.artist;
+        store.playing.server = track.server;
         store.playing.loaded = true;
 
         // Cover
@@ -449,7 +476,7 @@ class Forte {
         });
 
         // Get server address
-        let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${domain}`)
+        let address = await fetch(`https://raw.githubusercontent.com/kaangiray26/forte/servers/hostnames/${track.server}`)
             .then(response => response.json())
             .then(data => data.address)
             .catch(() => null);
@@ -459,7 +486,7 @@ class Forte {
             return;
         }
 
-        let challenge = JSON.parse(localStorage.getItem(`@${domain}`));
+        let challenge = JSON.parse(localStorage.getItem(`@${track.server}`));
 
         this.player.unload();
         this.player._src = [`${address}/f/api/stream/${track.id}?challenge=${challenge}`];
@@ -481,54 +508,71 @@ class Forte {
     }
 
     async track_quality() {
-        fetch(this.server + `/api/stream/${store.playing.id}` + `?session=${this.session}`, {
+        if (store.playing.type == 'station') {
+            store.playing.format = 'audio/mpeg';
+            store.playing.bitrate = 128;
+            store.playing.quality = 'LQ';
+            return;
+        }
+
+        let response = await fetch(this.server + `/api/stream/${store.playing.id}` + `?session=${this.session}`, {
             method: "HEAD",
             credentials: "include"
-        }).then((response) => {
-            let length = response.headers.get("content-length");
-            let duration = store.playing.duration;
-            let kbit = (length * 8) / 1000;
-
-            store.playing.format = response.headers.get("content-type");;
-            store.playing.bitrate = Math.round(kbit / duration);;
-
-            if (store.playing.bitrate <= 160) {
-                store.playing.quality = "LQ";
-                return;
-            }
-            if (store.playing.bitrate <= 320) {
-                store.playing.quality = "SQ";
-                return;
-            }
-            if (store.playing.bitrate <= 1411) {
-                store.playing.quality = "HQ";
-                return;
-            }
-            store.playing.quality = "Hi-Res";
         })
+
+        let length = response.headers.get("content-length");
+        let duration = store.playing.duration;
+        let kbit = (length * 8) / 1000;
+
+        store.playing.format = response.headers.get("content-type");;
+        store.playing.bitrate = Math.round(kbit / duration);;
+
+        if (store.playing.bitrate <= 160) {
+            store.playing.quality = "LQ";
+            return;
+        }
+        if (store.playing.bitrate <= 320) {
+            store.playing.quality = "SQ";
+            return;
+        }
+        if (store.playing.bitrate <= 1411) {
+            store.playing.quality = "HQ";
+            return;
+        }
+        store.playing.quality = "Hi-Res";
     }
 
     async track_lyrics() {
+        if (store.playing.type == 'station') return;
         window.dispatchEvent(new CustomEvent('lyrics'));
     }
 
     async track_finished() {
         let queue = this.getCurrentQueue();
-        let track = queue[store.queue_index].id;
-        this.addTrackToHistory(track);
-        this.scrobble(track);
+        let track = queue[store.queue_index];
+
+        // With federation
+        if (track.server) {
+            this.addTrackToHistory(`${track.id}@${track.server}`, track.server);
+            this.scrobble(`${track.id}@${track.server}`);
+        }
+        // Without federation
+        else {
+            this.addTrackToHistory(track.id);
+            this.scrobble(track.id);
+        }
 
         // At the end of the queue
         if (store.queue_index + 1 == queue.length) {
             // Repeat queue
             if (store.playing.repeat == 1) {
                 store.queue_index = 0;
-                this.load_track(queue[0]);
+                queue[0].server ? this.load_federated_track(queue[0]) : this.load_track(queue[0]);
                 return;
             }
             // Repeat track
             if (store.playing.repeat == 2) {
-                this.load_track(queue[store.queue_index]);
+                queue[store.queue_index].server ? this.load_federated_track(queue[store.queue_index]) : this.load_track(queue[store.queue_index]);
                 return;
             }
             // Radio
@@ -543,11 +587,11 @@ class Forte {
         // Somewhere in the queue
         // Repeat track
         if (store.playing.repeat == 2) {
-            this.load_track(queue[store.queue_index]);
+            queue[store.queue_index].server ? this.load_federated_track(queue[store.queue_index]) : this.load_track(queue[store.queue_index]);
             return;
         }
         store.queue_index += 1;
-        this.load_track(queue[store.queue_index]);
+        queue[store.queue_index].server ? this.load_federated_track(queue[store.queue_index]) : this.load_track(queue[store.queue_index]);
     }
 
     async mute() {
@@ -624,14 +668,17 @@ class Forte {
         this.setCurrentQueue(q);
     }
 
-    async addTrackToPlaylist(track_id, playlist_id) {
+    async addTrackToPlaylist(track_id, playlist_id, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
         let response = await fetch(this.server + `/api/playlist/${playlist_id}/add_track` + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "track": track_id
+                "track": track_id,
+                "challenge": challenge
             }),
             credentials: "include"
         }).then((response) => {
@@ -640,14 +687,17 @@ class Forte {
         return response;
     }
 
-    async addTrackToHistory(track) {
+    async addTrackToHistory(track, domain = null) {
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
         let response = await fetch(this.server + `/api/profile/history/add` + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "track": track
+                "track": track,
+                "challenge": challenge
             }),
             credentials: "include"
         }).then((response) => {
@@ -683,13 +733,18 @@ class Forte {
         return response;
     }
 
+    async playStation(station) {
+        store.queue_index = 0;
+        this.load_station(station);
+    }
+
     async playTrack(track_id, domain = null) {
         // Federated
         if (domain) {
             this.fAPI(domain, `/track/${track_id}/basic`).then((response) => {
-                console.log(response);
                 store.queue_index = 0;
-                this.load_federated_track(response.track, domain);
+                response.track.server = domain;
+                this.load_federated_track(response.track);
                 this.addToQueueStart([response.track]);
             })
             return;
@@ -724,7 +779,7 @@ class Forte {
                 let tracks = response.tracks;
                 tracks.sort((a, b) => a.track_position - b.track_position);
                 tracks.sort((a, b) => a.disc_number - b.disc_number);
-                this.load_track(tracks[0]);
+                this.load_federated_track(tracks[0], domain);
                 this.addToQueueStart(tracks);
             }))
             return;

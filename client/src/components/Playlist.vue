@@ -47,7 +47,7 @@
                             <div class="d-flex w-100 justify-content-between" @click="play_track(track.id)">
                                 <div class="d-flex">
                                     <div class="d-flex align-items-start">
-                                        <img :src="get_track_cover(track.cover)" class="track-cover" />
+                                        <img :src="get_track_cover(track.cover)" class="track-cover" @error="placeholder" />
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-link search-link d-flex text-start"
@@ -112,6 +112,10 @@ function get_track_cover(cover) {
         return ft.server + '/' + cover;
     }
     return "/images/track.svg"
+}
+
+async function placeholder(obj) {
+    obj.target.src = "/images/track.svg";
 }
 
 async function delete_track_from_playlist(id) {

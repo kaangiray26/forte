@@ -1965,6 +1965,39 @@ async function _get_album_loved(req, res, next) {
     })
 }
 
+async function _get_station(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "Parameters are not given correctly." });
+        return;
+    }
+
+    let data = await fetch('https://opml.radiotime.com/Describe.ashx?' + new URLSearchParams({
+        id: id,
+        render: 'json'
+    }))
+        .then(res => res.json())
+        .then(res => res.body[0])
+        .catch(() => null);
+    res.status(200).json({ "station": data });
+}
+
+async function _get_station_url(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "Parameters are not given correctly." });
+        return;
+    }
+
+    let m3u = await fetch('https://opml.radiotime.com/Tune.ashx?' + new URLSearchParams({
+        id: id
+    }))
+        .then(res => res.text())
+        .then(text => text.split("\n")[0])
+        .catch(() => null);
+    res.status(200).json({ "url": m3u });
+}
+
 async function _get_playlist_loved(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -2048,26 +2081,64 @@ async function _get_users(req, res, next) {
 }
 
 async function _add_history(req, res, next) {
-    if (!['track'].every(key => req.body.hasOwnProperty(key))) {
+    if (!['track', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400).json({
             "error": "Track not given."
         });
         return;
     }
+
     db.task(async t => {
         try {
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+            // With federation
+            if (req.body.challenge) {
+                let obj = await get_address(req.body.track);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if track exists
+                let track = await fetch(obj.address + `/api/track/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!track) {
+                    res.status(400).json({ "error": "Track not found." })
+                    return;
+                }
+
+                // Add track to history
+                await t.oneOrNone("UPDATE users SET history = array_prepend($1, history[0:9]) WHERE session = $2", [req.body.track, req.query.session]);
+                res.status(200).json({ "success": "History updated." })
+                return
+            }
+
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.track.length == 36) {
+                column = "uuid";
+            }
+
+            // Check if track exists
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [req.body.track]);
             if (!track) {
                 res.status(400).json({
                     "error": "Track not found."
                 });
                 return;
             }
-            await t.oneOrNone("UPDATE users SET history = array_prepend($1, history[0:9]) WHERE session = $2", [req.body.track, req.query.session]);
-            res.status(200)
-                .json({
-                    "success": "History updated."
-                });
+
+            // Add track to history
+            await t.oneOrNone("UPDATE users SET history = array_prepend($1::text, history[0:9]) WHERE session = $2", [req.body.track, req.query.session]);
+            res.status(200).json({ "success": "History updated." });
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
         }
@@ -2082,6 +2153,9 @@ async function _get_history(req, res, next) {
                 "error": "User not found."
             });
             return;
+        }
+        if (!user.history) {
+            res.status(200).json({ "tracks": [], "federated": [] })
         }
         let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [user.history]);
         res.status(200).json({
@@ -2583,7 +2657,7 @@ async function _add_friend(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -2591,7 +2665,7 @@ async function _add_friend(req, res, next) {
                 }
 
                 // Check if user exists
-                let user = await fetch(address + `/api/user/${username}/exists?challenge=${req.body.challenge}`, {
+                let user = await fetch(obj.address + `/api/user/${obj.id}/exists?challenge=${req.body.challenge}`, {
                     method: "GET",
                     headers: {
                         'federated': 'true',
@@ -2624,6 +2698,7 @@ async function _add_friend(req, res, next) {
             await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Friend added." });
         } catch (e) {
+            console.log(e);
             res.status(500).json({ "error": "Internal server error." });
             return;
         }
@@ -2912,7 +2987,7 @@ async function _remove_friend(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.username.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -2920,7 +2995,7 @@ async function _remove_friend(req, res, next) {
                 }
 
                 // Check if user exists
-                let user = await fetch(address + `/api/user/${username}/exists?challenge=${req.body.challenge}`, {
+                let user = await fetch(obj.address + `/api/user/${obj.id}/exists?challenge=${req.body.challenge}`, {
                     method: "GET",
                     headers: {
                         'federated': 'true',
@@ -2978,6 +3053,27 @@ async function _get_playlist(req, res, next) {
             res.status(500).json({ "error": "Internal server error." });
             return
         }
+    })
+}
+
+async function _get_author_playlists(req, res, next) {
+    db.task(async t => {
+        let author = req.params.author;
+        if (!author) {
+            res.status(400).json({ "error": "Parameters not given" })
+            return
+        }
+        let user = await t.oneOrNone("SELECT username FROM users WHERE username = $1", [author]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1", [author]);
+        if (!playlists) {
+            res.status(200).json({ "playlists": [] })
+            return
+        }
+        res.status(200).json({ "playlists": playlists })
     })
 }
 
@@ -3050,99 +3146,153 @@ async function _get_profile_tracks(req, res, next) {
 }
 
 async function _get_user_tracks(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
-        return;
-    }
-
-    let offset = req.params.offset;
-    if (!offset) {
-        res.status(400).json({ "error": "Offset parameter not given." });
-        return;
-    }
-
     db.task(async t => {
-        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE username = $1", [id]);
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
+        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE username = $1", [req.params.id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_tracks) {
-            res.status(200).json({ "tracks": [], "total": 0 })
+            res.status(200).json({ "tracks": [], "federated": [], "total": 0 })
             return;
         }
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_tracks, offset]);
-        res.status(200).json({ "tracks": tracks, "total": user.fav_tracks.length })
+
+        // Filter federated tracks
+        let federated = [];
+        let fav_tracks = [];
+
+        for (let i = 0; i < user.fav_tracks.length; i++) {
+            if (user.fav_tracks[i].includes('@')) {
+                federated.push(user.fav_tracks[i]);
+                continue
+            }
+            fav_tracks.push(parseInt(user.fav_tracks[i]));
+        }
+
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_tracks, offset]);
+        res.status(200).json({ "tracks": tracks, "federated": federated, "total": user.fav_tracks.length })
     })
 }
 
 async function _get_user_albums(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
-        return;
-    }
-
-    let offset = req.params.offset;
-    if (!offset) {
-        res.status(400).json({ "error": "Offset parameter not given." });
-        return;
-    }
-
     db.task(async t => {
+        let id = req.params.id;
+        if (!id) {
+            res.status(400).json({ "error": "ID parameter not given." });
+            return;
+        }
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
         let user = await t.oneOrNone("SELECT fav_albums FROM users WHERE username = $1", [id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_albums) {
-            res.status(200).json({ "albums": [], "total": 0 })
+            res.status(200).json({ "albums": [], "federated": [], "total": 0 })
             return;
         }
-        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_albums, offset]);
-        res.status(200).json({ "albums": albums, "total": user.fav_albums.length })
+
+        // Filter federated albums
+        let federated = [];
+        let fav_albums = [];
+
+        for (let i = 0; i < user.fav_albums.length; i++) {
+            if (user.fav_albums[i].includes('@')) {
+                federated.push(user.fav_albums[i]);
+                continue
+            }
+            fav_albums.push(parseInt(user.fav_albums[i]));
+        }
+
+        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_albums, offset]);
+        res.status(200).json({ "albums": albums, "federated": federated, "total": user.fav_albums.length })
     })
 }
 
 async function _get_user_artists(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
-        return;
-    }
-
-    let offset = req.params.offset;
-    if (!offset) {
-        res.status(400).json({ "error": "Offset parameter not given." });
-        return;
-    }
-
     db.task(async t => {
+        let id = req.params.id;
+        if (!id) {
+            res.status(400).json({ "error": "ID parameter not given." });
+            return;
+        }
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
         let user = await t.oneOrNone("SELECT fav_artists FROM users WHERE username = $1", [id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_artists) {
-            res.status(200).json({ "artists": [], "total": 0 })
+            res.status(200).json({ "artists": [], "federated": [], "total": 0 })
             return;
         }
-        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [user.fav_artists, offset]);
-        res.status(200).json({ "artists": artists, "total": user.fav_artists.length })
+
+        // Filter federated artists
+        let federated = [];
+        let fav_artists = [];
+
+        for (let i = 0; i < user.fav_artists.length; i++) {
+            if (user.fav_artists[i].includes('@')) {
+                federated.push(user.fav_artists[i]);
+                continue
+            }
+            fav_artists.push(parseInt(user.fav_artists[i]));
+        }
+
+        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_artists, offset]);
+        res.status(200).json({ "artists": artists, "federated": federated, "total": user.fav_artists.length })
     })
 }
 
 async function _get_user_playlists(req, res, next) {
-    let id = req.params.id;
-    if (!id) {
-        res.status(400).json({ "error": "ID parameter not given." });
-        return;
-    }
-
     db.task(async t => {
-        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1", [id]);
-        res.status(200).json({ "playlists": playlists })
+        let id = req.params.id;
+        if (!id) {
+            res.status(400).json({ "error": "ID parameter not given." });
+            return;
+        }
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
+        let user = await t.oneOrNone("SELECT username, fav_playlists FROM users WHERE username = $1", [id]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_playlists) {
+            res.status(200).json({ "playlists": [], "federated": [], "total": 0 })
+            return;
+        }
+
+        // Filter federated playlists
+        let federated = [];
+        let fav_playlists = [];
+
+        for (let i = 0; i < user.fav_playlists.length; i++) {
+            if (user.fav_playlists[i].includes('@')) {
+                federated.push(user.fav_playlists[i]);
+                continue
+            }
+            fav_playlists.push(parseInt(user.fav_playlists[i]));
+        }
+
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE id = ANY($1) ORDER BY title DESC LIMIT 24 OFFSET $2", [fav_playlists, offset]);
+        res.status(200).json({ "playlists": playlists, "federated": federated, "total": user.fav_playlists.length })
     })
 }
 
@@ -3251,32 +3401,62 @@ async function _add_track_to_playlist(req, res, next) {
         return;
     }
 
-    if (!['track'].every(key => req.body.hasOwnProperty(key))) {
+    if (!['track', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .send(JSON.stringify({
-                "error": "Track not given."
+                "error": "Parameters not given."
             }));
         return;
     }
 
     db.task(async t => {
         try {
+            // With federation
+            if (req.body.challenge) {
+                let obj = await get_address(req.body.track);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Check if track exists
+                let track = await fetch(obj.address + `/api/track/${obj.id}/exists?challenge=${req.body.challenge}`, {
+                    method: "GET",
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.exists)
+                    .catch(() => false);
+
+                if (!track) {
+                    res.status(400).json({ "error": "Track not found." })
+                    return;
+                }
+
+                // Add to playlist
+                await t.none("UPDATE playlists SET tracks = array_append(tracks, $1) WHERE id = $2", [req.body.track, id]);
+                res.status(200).json({ "success": "Track addded." })
+                return
+            }
+
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.track.length == 36) {
+                column = "uuid";
+            }
+
             // Checking if the track exists
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1`, [req.body.track]);
             if (!track) {
                 res.status(400).json({ "error": "Track not found." })
                 return;
             }
 
-            // Get user
-            let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
-            if (!user) {
-                res.status(400).json({ "error": "User not found." })
-                return;
-            }
-
             // Add to playlist
-            await t.none("UPDATE playlists SET tracks = array_append(tracks, $1) WHERE id = $2 AND author = $3", [req.body.track, id, user.username]);
+            await t.none("UPDATE playlists SET tracks = array_append(tracks, $1) WHERE id = $2", [req.body.track, id]);
             res.status(200).json({ "success": "Track addded." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3390,7 +3570,7 @@ async function _love_track(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3434,10 +3614,9 @@ async function _love_track(req, res, next) {
             }
 
             // Add track to loved
-            await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_tracks = array_append(fav_tracks, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Track added to loved." })
         } catch (e) {
-            console.log(e);
             res.status(500).json({ "error": "Internal server error." });
             return;
         }
@@ -3456,7 +3635,7 @@ async function _unlove_track(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3493,14 +3672,14 @@ async function _unlove_track(req, res, next) {
             }
 
             // Check if track exists
-            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1 LIMIT 1`, [id])
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1 LIMIT 1`, [req.body.id])
             if (!track) {
                 res.status(400).json({ "error": "Track not found." })
                 return;
             }
 
             // Remove track from loved
-            await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_tracks = array_remove(fav_tracks, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Track removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3547,7 +3726,7 @@ async function _love_artist(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3612,7 +3791,7 @@ async function _unlove_artist(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3656,7 +3835,7 @@ async function _unlove_artist(req, res, next) {
             }
 
             // Remove artist from loved
-            await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_artists = array_remove(fav_artists, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Artist removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3677,7 +3856,7 @@ async function _love_playlist(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3742,7 +3921,7 @@ async function _unlove_playlist(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3786,7 +3965,7 @@ async function _unlove_playlist(req, res, next) {
             }
 
             // Remove playlist from loved
-            await t.none("UPDATE users SET fav_playlists = array_remove(fav_playlists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_playlists = array_remove(fav_playlists, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Playlist removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3807,7 +3986,7 @@ async function _love_album(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3872,7 +4051,7 @@ async function _unlove_album(req, res, next) {
     db.task(async t => {
         try {
             // With federation
-            if (req.body.id.includes('@')) {
+            if (req.body.challenge) {
                 let obj = await get_address(req.body.id);
                 if (!obj.address) {
                     res.status(400).json({ "error": "Server not found." })
@@ -3916,7 +4095,7 @@ async function _unlove_album(req, res, next) {
             }
 
             // Remove album from loved
-            await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_albums = array_remove(fav_albums, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Album removed from loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -4192,12 +4371,15 @@ const exports = {
     get_pgp_keys: _get_pgp_keys,
     get_playlist: _get_playlist,
     get_playlist_loved: _get_playlist_loved,
+    get_station: _get_station,
+    get_station_url: _get_station_url,
     get_playlist_tracks: _get_playlist_tracks,
     get_playlists: _get_playlists,
     get_profile: _get_profile,
     get_profile_albums: _get_profile_albums,
     get_profile_artists: _get_profile_artists,
     get_profile_playlists: _get_profile_playlists,
+    get_author_playlists: _get_author_playlists,
     get_profile_tracks: _get_profile_tracks,
     get_random_track: _get_random_track,
     get_random_tracks: _get_random_tracks,

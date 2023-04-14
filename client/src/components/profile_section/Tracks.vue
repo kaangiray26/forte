@@ -49,7 +49,10 @@
             @click="playTrack(track)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" @error="placeholder" />
-                <div class="d-flex flex-column">
+                <div class="d-flex">
+                    <div class="d-flex align-items-center">
+                        <span v-if="track.server" class="server bi bi-globe-americas"></span>
+                    </div>
                     <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
                         :content_type="track.type" style="display:contents;">
                         <span class="theme-color text-break">{{ track.title }}</span>
@@ -134,7 +137,14 @@ async function get_federated_tracks(track_ids) {
         if (!data) return;
 
         data.tracks.map(track => track.server = domain);
-        tracks.value = tracks.value.concat(data.tracks);
+
+        let existing = tracks.value.filter(track => track.server).map(track => track.uuid);
+        for (let i = 0; i < data.tracks.length; i++) {
+            let track = data.tracks[i];
+            if (!existing.includes(track.uuid)) {
+                tracks.value.push(track);
+            }
+        }
     }
 }
 
@@ -148,13 +158,19 @@ async function get_tracks() {
     if (!data) return;
 
     total.value = data.total;
+    offset.value += data.tracks.length;
 
     // Get federated tracks
     get_federated_tracks(data.federated);
 
     // Get local tracks
-    tracks.value = tracks.value.concat(data.tracks);
-    offset.value += data.tracks.length;
+    let existing = tracks.value.filter(track => !track.server).map(track => track.id);
+    for (let i = 0; i < data.tracks.length; i++) {
+        let track = data.tracks[i];
+        if (!existing.includes(track.id)) {
+            tracks.value.push(track);
+        }
+    }
     searchFinished.value = true;
 }
 

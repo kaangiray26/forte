@@ -112,7 +112,17 @@ async function get_history() {
     let data = await ft.API(`/profile/history`);
     if (!data) return;
 
-    tracks.value = data.tracks;
+    // Get federated tracks
+    get_federated_tracks(data.federated);
+
+    // Get local tracks
+    let existing = tracks.value.filter(track => !track.server).map(track => track.id);
+    for (let i = 0; i < data.tracks.length; i++) {
+        let track = data.tracks[i];
+        if (!existing.includes(track.id)) {
+            tracks.value.push(track);
+        }
+    }
     searchFinished.value = true;
 }
 

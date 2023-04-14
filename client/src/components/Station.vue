@@ -6,12 +6,36 @@
             </div>
         </div>
     </div>
-    <div class="card border-0 mx-4 shadow-lg" v-show="loaded">
-        <div class="card-body">
-            <div class="row g-4">
-                <div class="col">
-                    <div class="col-12">
-                        <iframe class="radio-player rounded w-100" :src="get_station_address()"></iframe>
+    <div class="card rounded-0 border-0 mx-3" v-show="loaded">
+        <div class="card-body px-3">
+            <div class="row g-3">
+                <div class="col-12 col-sm-auto">
+                    <div class="d-inline-flex position-relative"
+                        @contextmenu.prevent="right_click({ item: station, event: $event })">
+                        <img class="playlist-img shadow" :src="station.logo" @error="placeholder" />
+                        <div class="position-absolute bottom-0 right-0">
+                            <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
+                                @click="play_station()">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col theme-color">
+                    <div class="d-flex flex-column">
+                        <h1 class="album-title">{{ station.name }}</h1>
+                        <small class="text-muted">{{ station.slogan }}</small>
+                    </div>
+                    <div class="pt-2">
+                        <div class="d-flex flex-wrap">
+                            <div class="m-1">
+                                <button ref="wiki_btn" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
+                                    @click="get_website">Website</button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div>
+                        <p>{{ station.description }}</p>
                     </div>
                 </div>
             </div>
@@ -29,19 +53,30 @@ const router = useRouter();
 const station = ref({});
 const loaded = ref(false);
 
-function get_station_address() {
-    // Check for dark theme
-    let background = '?background=light';
-    if (document.body.classList.contains("dark-theme")) {
-        background = '?background=dark'
-    }
-    console.log("https://gemini.tunein.com/embed/player/" + station.value.id + background)
-    return "https://gemini.tunein.com/embed/player/" + station.value.id + background;
+async function placeholder(obj) {
+    obj.target.src = "/images/station.svg";
+}
+
+async function get_website() {
+    window.open(station.value.url, "_blank")
+}
+
+async function play_station() {
+    ft.playStation({
+        guide_id: station.value.guide_id,
+        text: station.value.name,
+        image: station.value.logo,
+    });
 }
 
 async function get_station(id) {
-    station.value.id = id;
-    station.value.cover = `https://cdn-profiles.tunein.com/${station.value.id}/images/logoq.jpg`;
+    // Get station info
+    let data = await ft.API("/station/" + id);
+    if (!data || data.error) {
+        return;
+    }
+
+    station.value = data.station;
     loaded.value = true;
 }
 

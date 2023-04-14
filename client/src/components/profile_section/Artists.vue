@@ -119,9 +119,13 @@ async function get_federated_artists(artist_ids) {
 
         data.artists.map(artist => artist.server = domain);
 
-        console.log(data.artists);
-
-        artists.value = artists.value.concat(data.artists);
+        let existing = artists.value.filter(artist => artist.server).map(artist => artist.uuid);
+        for (let i = 0; i < data.artists.length; i++) {
+            let artist = data.artists[i];
+            if (!existing.includes(artist.uuid)) {
+                artists.value.push(artist);
+            }
+        }
     }
 }
 

@@ -31,6 +31,7 @@
 import { ref, onMounted } from 'vue';
 import { Modal } from 'bootstrap';
 import { notify } from "/js/events.js";
+import { track } from '@vue/reactivity';
 
 const modal = ref(null);
 const track_id = ref(null);
@@ -44,6 +45,10 @@ function get_cover(cover) {
 }
 
 async function add_to_playlist(playlist_id) {
+    // Federated
+    if (track_id.value.includes('@')) {
+        return
+    }
     ft.addTrackToPlaylist(track_id.value, playlist_id).then((response) => {
         if (response.hasOwnProperty("success")) {
             _hide();
@@ -55,8 +60,9 @@ async function add_to_playlist(playlist_id) {
 }
 
 async function get_playlists() {
-    let data = await ft.API('/profile/playlists');
+    let data = await ft.API(`/author/${ft.username}/playlists`);
     if (!data) return;
+
     playlists.value = data.playlists;
 }
 

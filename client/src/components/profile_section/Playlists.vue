@@ -92,8 +92,8 @@ import { right_click, action } from '/js/events.js';
 import PlaylistCreate from '../PlaylistCreate.vue';
 
 const router = useRouter();
-
 const playlists = ref([]);
+
 const offset = ref(0);
 const searchFinished = ref(true);
 const playlistCreate = ref(null);
@@ -131,6 +131,34 @@ async function play_playlist(id) {
     })
 }
 
+async function get_federated_playlists(playlist_ids) {
+    // Categorize ids by domain
+    let domains = {};
+    for (let playlist_id of playlist_ids) {
+        let [id, domain] = playlist_id.split('@');
+        if (!domains[domain]) {
+            domains[domain] = [];
+        }
+        domains[domain].push(parseInt(id));
+    }
+
+    // Get federated albums from each domain
+    for (let domain in domains) {
+        let data = await ft.get_federated_playlists(domain, domains[domain]);
+        if (!data) return;
+
+        data.playlists.map(playlist => playlist.server = domain);
+
+        let existing = playlists.value.filter(playlist => playlist.server).map(playlist => playlist.id);
+        for (let i = 0; i < data.playlists.length; i++) {
+            let playlist = data.playlists[i];
+            if (!existing.includes(playlist.uuid)) {
+                playlists.value.push(playlist);
+            }
+        }
+    }
+}
+
 async function get_playlists() {
     if (!searchFinished.value) {
         return
@@ -140,8 +168,19 @@ async function get_playlists() {
     let data = await ft.API(`/profile/playlists/${offset.value}`);
     if (!data) return;
 
-    playlists.value = playlists.value.concat(data.playlists);
-    offset.value = playlists.value.length;
+    offset.value = data.playlists.length;
+
+    // Get federated playlists
+    get_federated_playlists(data.federated);
+
+    // Get local playlists
+    let existing = playlists.value.filter(playlist => !playlist.server).map(playlist => playlist.id);
+    for (let i = 0; i < data.playlists.length; i++) {
+        let playlist = data.playlist[i];
+        if (!existing.includes(playlist.id)) {
+            playlist.value.push(playlist);
+        }
+    }
     searchFinished.value = true;
 }
 
