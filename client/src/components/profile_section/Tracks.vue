@@ -76,6 +76,7 @@ import { ref, onMounted } from 'vue';
 import { right_click, action } from '/js/events.js';
 
 const tracks = ref([]);
+
 const total = ref(0);
 const offset = ref(0);
 const searchFinished = ref(true);
@@ -120,7 +121,7 @@ async function playTrack(track) {
     return;
 }
 
-async function get_federated_tracks(track_ids) {
+async function get_federated_tracks(track_ids, order, _offset) {
     // Categorize ids by domain
     let domains = {};
     for (let track_id of track_ids) {
@@ -137,12 +138,11 @@ async function get_federated_tracks(track_ids) {
         if (!data) return;
 
         data.tracks.map(track => track.server = domain);
-
-        let existing = tracks.value.filter(track => track.server).map(track => track.uuid);
-        for (let i = 0; i < data.tracks.length; i++) {
-            let track = data.tracks[i];
-            if (!existing.includes(track.uuid)) {
-                tracks.value.push(track);
+        for (let i = 0; i < order.length; i++) {
+            let track_id = order[i];
+            let found_tracks = data.tracks.filter(t => `${t.id}@${t.server}` == track_id);
+            if (found_tracks.length) {
+                tracks.value[i + _offset] = found_tracks[0];
             }
         }
     }
@@ -154,25 +154,32 @@ async function get_tracks() {
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/profile/tracks/${offset.value}`);
+    let data = await ft.API(`/profile/tracks/${offset.value}/${total.value}`);
     if (!data) return;
 
-    console.log(data);
+    console.log(`/profile/tracks/${offset.value}/${total.value}`);
+    console.log("Response:", data);
 
-    total.value = data.total;
-    offset.value += data.tracks.length;
+    // Push track placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        tracks.value.push({});
+    }
 
     // Get federated tracks
-    get_federated_tracks(data.federated);
+    get_federated_tracks(data.federated, data.order, offset.value);
 
     // Get local tracks
-    let existing = tracks.value.filter(track => !track.server).map(track => track.id);
-    for (let i = 0; i < data.tracks.length; i++) {
-        let track = data.tracks[i];
-        if (!existing.includes(track.id)) {
-            tracks.value.push(track);
+    for (let i = 0; i < data.order.length; i++) {
+        let track_id = data.order[i];
+        let tracks_found = data.tracks.filter(t => t.id == track_id);
+        if (tracks_found.length) {
+            tracks.value[i + offset.value] = tracks_found[0];
         }
     }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
     searchFinished.value = true;
 }
 

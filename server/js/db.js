@@ -3164,6 +3164,15 @@ async function _get_profile_tracks(req, res, next) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
         let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
@@ -3174,10 +3183,37 @@ async function _get_profile_tracks(req, res, next) {
             return;
         }
 
-        // Filter federated tracks
         let federated = [];
         let fav_tracks = [];
 
+        let response_total = old_total;
+        let current_total = user.fav_tracks.length;
+
+        // Reverse the array
+        user.fav_tracks.reverse();
+
+        // User does not have any tracks
+        if (old_total == 0) {
+            user.fav_tracks = user.fav_tracks.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total tracks changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding tracks
+            user.fav_tracks = user.fav_tracks.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total tracks haven't changed
+        else {
+            user.fav_tracks = user.fav_tracks.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated tracks
         for (let i = 0; i < user.fav_tracks.length; i++) {
             if (user.fav_tracks[i].includes('@')) {
                 federated.push(user.fav_tracks[i]);
@@ -3186,8 +3222,8 @@ async function _get_profile_tracks(req, res, next) {
             fav_tracks.push(parseInt(user.fav_tracks[i]));
         }
 
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_tracks, offset]);
-        res.status(200).json({ "tracks": tracks, "federated": federated, "total": user.fav_tracks.length, "order": user.fav_tracks })
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_tracks]);
+        res.status(200).json({ "tracks": tracks, "federated": federated, "total": response_total, "order": user.fav_tracks })
     })
 }
 
