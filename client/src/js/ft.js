@@ -833,6 +833,7 @@ class Forte {
             this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
                 if (!response.tracks.length) return;
                 store.queue_index = 0;
+                console.log(response.tracks);
                 this.load_track(response.tracks[0]);
                 this.addToQueueStart(response.tracks);
             })

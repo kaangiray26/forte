@@ -54,7 +54,8 @@
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
                         :content_type="track.type" @click="playTrack(track.id)" style="display:contents;">
-                        <span class="theme-color text-break">{{ track.title }}</span>
+                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': track.server }">{{
+                            track.title }}</span>
                     </button>
                 </div>
             </div>

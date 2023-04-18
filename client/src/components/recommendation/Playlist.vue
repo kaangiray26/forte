@@ -29,12 +29,12 @@ import { right_click } from '/js/events.js';
 const router = useRouter();
 
 async function placeholder(obj) {
-    obj.target.src = "/images/playlist.svg";
+    obj.target.src = "/images/cassette.svg";
 }
 
 function get_cover(cover) {
     if (!cover) {
-        return "/images/playlist.svg"
+        return "/images/cassette.svg"
     }
 
     if (cover.startsWith("http")) {

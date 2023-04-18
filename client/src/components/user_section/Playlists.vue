@@ -61,7 +61,8 @@
                 <div class="d-flex">
                     <button class="btn btn-link search-link d-flex text-start" :content_id="playlist.id"
                         :content_type="playlist.type" style="display:contents;">
-                        <span class="theme-color text-break">{{ playlist.title }}</span>
+                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': playlist.server }">{{
+                            playlist.title }}</span>
                     </button>
                 </div>
             </div>

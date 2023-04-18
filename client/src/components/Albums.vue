@@ -3,7 +3,7 @@
         <div class="card-body px-3">
             <div class="row g-3">
                 <h3 class="theme-color fw-bold">Albums</h3>
-                <p v-if="!albums.length" class="px-3 text-decoration-underline">No albums in the library.</p>
+                <p v-if="!albums.length" class="px-3 text-decoration-underline theme-color">No albums in the library.</p>
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="album in albums">
                     <Album :album="album" />
                 </div>

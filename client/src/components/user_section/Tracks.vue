@@ -55,7 +55,8 @@
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
                         :content_type="track.type" @click="playTrack(track)" style="display:contents;">
-                        <span class="theme-color text-break">{{ track.title }}</span>
+                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': track.server }">{{
+                            track.title }}</span>
                     </button>
                 </div>
             </div>
@@ -159,7 +160,7 @@ async function get_tracks(id) {
     searchFinished.value = true;
 }
 
-async function get_federated_tracks(track_ids) {
+async function get_federated_tracks(track_ids, order, _offset) {
     // Categorize ids by domain
     let domains = {};
     for (let track_id of track_ids) {

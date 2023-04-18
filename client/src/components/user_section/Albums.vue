@@ -39,18 +39,23 @@
                 </div>
             </div>
         </li>
+        <li v-if="albums.length == 0" class="list-group-item list-group-item-action d-flex justify-content-between">
+            <div class="d-flex flex-fill align-items-center">
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">No albums found</span>
+                </div>
+            </div>
+        </li>
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             v-for="album in albums" @contextmenu.prevent="right_click({ item: album, event: $event })"
             @click="openAlbum(album)">
-            <div class="d-flex align-items-center position-absolute bottom-0 right-0 p-1">
-                <span v-if="album.server" class="server bi bi-globe-americas"></span>
-            </div>
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(album.cover)" class="playlist-selection-img me-2" @error="placeholder" />
                 <div class="d-flex">
                     <button class="btn btn-link search-link d-flex text-start" :content_id="album.id"
                         :content_type="album.type" style="display:contents;">
-                        <span class="theme-color text-break">{{ album.title }}</span>
+                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': album.server }">{{
+                            album.title }}</span>
                     </button>
                 </div>
             </div>

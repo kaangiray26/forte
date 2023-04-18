@@ -3,7 +3,8 @@
         <div class="card-body px-3">
             <div class="row g-3">
                 <h3 class="theme-color fw-bold">Playlists</h3>
-                <p v-if="!playlists.length" class="px-3 text-decoration-underline">No playlists in the library.</p>
+                <p v-if="!playlists.length" class="px-3 text-decoration-underline theme-color">No playlists in the library.
+                </p>
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="playlist in playlists">
                     <Playlist :playlist="playlist" />
                 </div>

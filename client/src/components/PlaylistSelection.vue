@@ -46,9 +46,19 @@ function get_cover(cover) {
 
 async function add_to_playlist(playlist_id) {
     // Federated
-    if (track_id.value.includes('@')) {
+    if (String(track_id.value).includes('@')) {
+        let server = track_id.value.split('@')[1];
+        ft.addTrackToPlaylist(track_id.value, playlist_id, server).then((response) => {
+            if (response.hasOwnProperty("success")) {
+                _hide();
+                notify({
+                    "title": "Added to playlist.",
+                })
+            }
+        })
         return
     }
+
     ft.addTrackToPlaylist(track_id.value, playlist_id).then((response) => {
         if (response.hasOwnProperty("success")) {
             _hide();

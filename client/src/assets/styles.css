@@ -232,12 +232,6 @@ img {
     color: unset !important;
 }
 
-.form-control:focus {
-    border-color: #595AFF;
-    box-shadow: inset 0 0 0 1px #595AFF;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
 .radio-player {
     width: 100%;
     height: 100px;
@@ -271,6 +265,12 @@ body.light-theme {
     --text-color: #000;
     --card-background: #fff;
     --shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+.form-control:focus {
+    border-color: #595AFF;
+    box-shadow: inset 0 0 0 1px #595AFF;
+    box-shadow: 0 0 1rem var(--shadow-color) !important;
 }
 
 .theme-color {

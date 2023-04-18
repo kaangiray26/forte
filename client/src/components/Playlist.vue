@@ -12,7 +12,7 @@
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative"
                         @contextmenu.prevent="right_click({ item: playlist, event: $event })">
-                        <img class="playlist-img shadow rounded" :src="get_cover(playlist.cover)" />
+                        <img class="playlist-img shadow rounded" :src="get_cover(playlist.cover)" @error="placeholder" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_playlist(playlist.id)">
@@ -44,23 +44,26 @@
                         <li v-for="(track, index) in tracks"
                             class="list-group-item theme-list-item clickable rounded d-flex p-1"
                             @contextmenu.prevent="right_click({ item: track, event: $event })">
-                            <div class="d-flex w-100 justify-content-between" @click="play_track(track.id)">
+                            <div class="d-flex w-100 justify-content-between" @click="play_track(track)">
                                 <div class="d-flex">
                                     <div class="d-flex align-items-start">
-                                        <img :src="get_track_cover(track.cover)" class="track-cover" @error="placeholder" />
+                                        <img :src="get_track_cover(track.cover)" class="track-cover"
+                                            @error="track_placeholder" />
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-link search-link d-flex text-start"
                                             style="display:contents;">
                                             <span class="text-muted me-2">{{ index + 1 }}.</span>
-                                            <span class="theme-color text-break">{{ track.title }}</span>
+                                            <span class="theme-color text-break"
+                                                :class="{ 'text-decoration-underline': track.server }">{{ track.title
+                                                }}</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             <div v-show="isAuthor">
                                 <div class="d-flex h-100 align-items-center">
-                                    <button class="btn btn-light action-btn bi bi-three-dots ms-0 m-2" type="button"
+                                    <button class="btn btn-light action-btn bi bi-three-dots m-0 me-3" type="button"
                                         data-bs-toggle="dropdown">
                                         <ul class="dropdown-menu shadow-lg context-menu">
                                             <li>
@@ -79,20 +82,73 @@
             </div>
         </div>
     </div>
+    <div class="card rounded-0 border-0 mx-3 mt-3">
+        <div class="card-body px-3">
+            <h5 class="theme-color fw-bold">Comments</h5>
+            <div class="row g-3">
+                <div class="input-group">
+                    <textarea class="form-control" aria-label="With textarea" rows="5" cols="33"
+                        placeholder="Remember, be nice!"></textarea>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="post_comment">Post</button>
+                </div>
+                <div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item theme-comment-item p-1" v-for="comment in comments">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <router-link :to="'/user/' + comment.author"
+                                        class="theme-color purple-on-hover fw-bold me-2">{{
+                                            comment.author
+                                        }}</router-link>
+                                    <span class="text-muted timestamp">{{ format_date(comment.created_at)
+                                    }}</span>
+                                </div>
+                                <p class="theme-color">{{ comment.content }}</p>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="d-flex justify-content-end">
+                        <button v-show="searchFinished && comments.length" type="button"
+                            class="btn btn-dark theme-btn black-on-hover fw-bold" @click="load_more">Load more</button>
+                        <button v-show="!searchFinished && comments.length" class="btn btn-dark" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Loading...
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, watch, computed, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 
-const playlist = ref({})
+// Federated
+const domain = ref(null);
+const playlist_id = ref(null);
+const federated = ref(false);
+
 const tracks = ref([]);
+const playlist = ref({})
+const comments = ref([]);
+
+const offset = ref(0);
+
 const loaded = ref(false);
+const searchFinished = ref(true);
 
 const isAuthor = ref(false);
+
+const query_param = computed(() => {
+    return router.currentRoute.value.params;
+})
 
 function get_cover(cover) {
     if (cover) {
@@ -115,7 +171,98 @@ function get_track_cover(cover) {
 }
 
 async function placeholder(obj) {
+    obj.target.src = "/images/playlist.svg";
+}
+
+async function track_placeholder(obj) {
     obj.target.src = "/images/track.svg";
+}
+
+async function post_comment() {
+    if (federated.value) {
+        add_federated_comment();
+        return;
+    }
+    add_comment();
+}
+
+async function add_comment() {
+    let comment = document.querySelector("textarea").value;
+    if (!comment.length) {
+        return;
+    }
+
+    document.querySelector("textarea").value = "";
+
+    let response = await ft.add_comment(ft.username, "album", album.value.id, album.value.uuid, comment);
+    if (response.hasOwnProperty('success')) {
+        comments.value.unshift(response.comment);
+    }
+}
+
+async function add_federated_comment() {
+    let comment = document.querySelector("textarea").value;
+    if (!comment.length) {
+        return;
+    }
+
+    document.querySelector("textarea").value = "";
+
+    let response = await ft.add_federated_comment(domain.value, ft.username, "album", album.value.id, album.value.uuid, comment);
+    if (response.hasOwnProperty('success')) {
+        comments.value.unshift(response.comment);
+    }
+}
+
+function format_date(dt) {
+    let date = new Date(dt);
+
+    let date_string = date.toLocaleString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+
+    let time_string = date.toLocaleString("en-GB", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+    })
+
+    return `${date_string} ${time_string}`
+
+}
+
+async function get_comments(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.API(`/comments/album/${id}/${offset.value}`);
+    if (!data || data.error) {
+        return;
+    }
+
+    offset.value += data.comments.length;
+    comments.value = comments.value.concat(data.comments);
+    searchFinished.value = true;
+}
+
+async function get_federated_comments(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.fAPI(domain.value, `/comments/album/${id}/${offset.value}`);
+    if (!data || data.error) {
+        return;
+    }
+
+    offset.value += data.comments.length;
+    comments.value = comments.value.concat(data.comments);
+    searchFinished.value = true;
 }
 
 async function delete_track_from_playlist(id) {
@@ -124,22 +271,77 @@ async function delete_track_from_playlist(id) {
 }
 
 // Must be synchronized in groupSession: ok
-async function play_track(id) {
+async function play_track(track) {
+    // Federated
+    if (track.server) {
+        action({
+            func: async function op() {
+                ft.playTrack(track.id, track.server)
+            },
+            object: [track.id, track.server],
+            operation: "playTrack"
+        })
+        return
+    }
+
     action({
         func: async function op() {
-            ft.playTrack(id)
+            ft.playTrack(track.id)
         },
-        object: id,
+        object: [track.id],
         operation: "playTrack"
     })
 }
 
+async function get_federated_tracks(track_ids, order, _offset) {
+    // Categorize ids by domain
+    let domains = {};
+    for (let track_id of track_ids) {
+        let [id, domain] = track_id.split('@');
+        if (!domains[domain]) {
+            domains[domain] = [];
+        }
+        domains[domain].push(parseInt(id));
+    }
+
+    // Get federated tracks from each domain
+    for (let domain in domains) {
+        let data = await ft.get_federated_tracks(domain, domains[domain]);
+        if (!data) return;
+
+        data.tracks.map(track => track.server = domain);
+        for (let i = 0; i < order.length; i++) {
+            let track_id = order[i];
+            let found_tracks = data.tracks.filter(t => `${t.id}@${t.server}` == track_id);
+            if (found_tracks.length) {
+                tracks.value[i + _offset] = found_tracks[0];
+            }
+        }
+    }
+}
+
 async function get_playlist(id) {
     let data = await ft.API(`/playlist/${id}`);
-    if (!data) return;
+    if (!data || data.error) return;
+
+    // Push track placeholders
+    for (let i = 0; i < data.playlist.tracks.length; i++) {
+        tracks.value.push({});
+    }
+
+    // Get federated tracks
+    get_federated_tracks(data.federated, data.playlist.tracks, offset.value);
+
+    // Get local tracks
+    for (let i = 0; i < data.playlist.tracks.length; i++) {
+        let track_id = data.playlist.tracks[i];
+        let tracks_found = data.tracks.filter(t => t.id == track_id);
+        if (tracks_found.length) {
+            tracks.value[i + offset.value] = tracks_found[0];
+        }
+    }
 
     playlist.value = data.playlist;
-    tracks.value = data.tracks;
 
     if (JSON.parse(localStorage.getItem('username')) == playlist.value.author) {
         isAuthor.value = true;
@@ -150,16 +352,68 @@ async function get_playlist(id) {
 
 // Must be synchronized in groupSession: ok
 async function play_playlist(id) {
+    // Federated
+    if (domain.value) {
+        action({
+            func: async function op() {
+                ft.playPlaylist(id, domain.value)
+            },
+            object: [id, domain.value],
+            operation: "playAlbum"
+        })
+        return
+    }
+
     action({
         func: async function op() {
             ft.playPlaylist(id)
         },
-        object: id,
+        object: [id],
         operation: "playPlaylist"
     })
 }
 
-onMounted(() => {
-    get_playlist(router.currentRoute.value.params.id);
+async function get_federated_playlist(id) {
+    let data = await ft.fAPI(domain.value, '/playlist/' + id);
+    if (!data || data.error) {
+        return;
+    }
+
+    playlist.value = data.playlist;
+    tracks.value = data.tracks;
+
+    loaded.value = true;
+}
+
+async function setup() {
+    playlist_id.value = router.currentRoute.value.params.id;
+    if (playlist_id.value.includes('@')) {
+        [playlist_id.value, domain.value] = playlist_id.value.split('@');
+        federated.value = true;
+        get_federated_playlist(playlist_id.value);
+        get_federated_comments(playlist_id.value);
+        return
+    }
+
+    get_playlist(playlist_id.value);
+    get_comments(playlist_id.value);
+}
+
+async function load_more() {
+    if (federated.value) {
+        get_federated_comments(playlist_id.value);
+        return
+    }
+    get_comments(playlist_id.value);
+}
+
+watch(query_param, (params) => {
+    if (params.id) {
+        setup();
+    }
+})
+
+onBeforeMount(() => {
+    setup()
 })
 </script>

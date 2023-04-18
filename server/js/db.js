@@ -13,6 +13,7 @@ import mime from 'mime-types';
 import { exit } from 'process';
 import { fileURLToPath } from 'url';
 import * as openpgp from 'openpgp';
+import { response } from 'express';
 
 // Path to library
 const library_path = '/library';
@@ -94,7 +95,7 @@ async function _init(args) {
             t.none("CREATE TABLE IF NOT EXISTS albums (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'album', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, nb_tracks SMALLINT, genre TEXT[], year SMALLINT, date DATE, path TEXT NOT NULL, uuid TEXT, UNIQUE(title, artist))"),
 
             // playlists
-            t.none("CREATE TABLE IF NOT EXISTS playlists(id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'playlist', title TEXT NOT NULL, cover TEXT, author TEXT, tracks INTEGER[], uuid TEXT, UNIQUE(title, author))"),
+            t.none("CREATE TABLE IF NOT EXISTS playlists(id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'playlist', title TEXT NOT NULL, cover TEXT, author TEXT, tracks VARCHAR[], uuid TEXT, UNIQUE(title, author))"),
 
             // tracks
             t.none("CREATE TABLE IF NOT EXISTS tracks (id SERIAL PRIMARY KEY, type VARCHAR DEFAULT 'track', title TEXT NOT NULL, cover TEXT, cover_path TEXT, artist SERIAL, album SERIAL, track_position SMALLINT, disc_number SMALLINT, path TEXT NOT NULL, uuid TEXT, UNIQUE(title, artist, album))"),
@@ -158,7 +159,7 @@ async function _init(args) {
                 if (key == publicKey.value) {
                     log("==> Public Key confirmed.");
                 } else {
-                    console.log("\x1b[31m%s\x1b[0m", "==> Public Key mismatch!");
+                    console.log("\x1b[31m%s\x1b[0m", "==> Public Key mismatch!", "\nPlease Update your key in the GitHub repo: https://github.com/kaangiray26/forte/tree/servers/hostnames");
                 }
 
                 refresh_library()
@@ -3113,8 +3114,26 @@ async function _get_playlist(req, res, next) {
                 res.status(400).json({ "error": "Playlist not found." })
                 return;
             }
-            let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
-            res.status(200).json({ "playlist": playlist, "tracks": tracks })
+
+            if (!playlist.tracks) {
+                res.status(200).json({ "playlist": playlist, "tracks": [], "federated": [], "order": [] })
+                return;
+            }
+
+            let federated = [];
+            let playlist_tracks = [];
+
+            // Filter federated tracks
+            for (let i = 0; i < playlist.tracks.length; i++) {
+                if (playlist.tracks[i].includes('@')) {
+                    federated.push(playlist.tracks[i]);
+                    continue
+                }
+                playlist_tracks.push(parseInt(playlist.tracks[i]));
+            }
+
+            let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist_tracks]);
+            res.status(200).json({ "playlist": playlist, "tracks": tracks, "federated": federated })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
             return
@@ -3819,7 +3838,7 @@ async function _add_track_to_playlist(req, res, next) {
             }
 
             // Add to playlist
-            await t.none("UPDATE playlists SET tracks = array_append(tracks, $1) WHERE id = $2", [req.body.track, id]);
+            await t.none("UPDATE playlists SET tracks = array_append(tracks, $1::text) WHERE id = $2", [req.body.track, id]);
             res.status(200).json({ "success": "Track addded." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
