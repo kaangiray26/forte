@@ -14,12 +14,12 @@
                             </div>
                         </div>
                     </div>
+                    <h3 v-show="loaded" class="fs-5 fw-bold">{{ store.playing.title }}</h3>
                     <div v-show="error">
                         <div class="d-flex justify-content-center text-dark p-2">
                             <h1 class="fs-5 fw-bold">Lyrics not found</h1>
                         </div>
                     </div>
-                    <h3 v-show="loaded" class="fs-5 fw-bold">{{ store.playing.title }}</h3>
                     <div v-show="loaded" class="lyrics">
                     </div>
                 </div>

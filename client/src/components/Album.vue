@@ -12,7 +12,7 @@
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative"
                         @contextmenu.prevent="right_click({ item: album, event: $event })">
-                        <img class="playlist-img shadow" :src="get_cover(album.cover)" @error="placeholder" />
+                        <img class="playlist-img shadow rounded" :src="get_cover(album.cover)" @error="placeholder" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_album(album.id)">

@@ -46,9 +46,10 @@
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: friend, event: $event })">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.username)">
-                        <img class="img-fluid" :src="get_cover(friend.cover)" @error="placeholder" width="250"
-                            height="250" />
+                    <div class="d-inline-flex position-relative clickable-shadow rounded"
+                        @click="openProfile(friend.username)">
+                        <img class="img-fluid bg-light rounded" :src="get_cover(friend.cover)" @error="placeholder"
+                            width="250" height="250" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"

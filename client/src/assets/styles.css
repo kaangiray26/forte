@@ -228,6 +228,10 @@ img {
     aspect-ratio: 1/1;
 }
 
+.form-control::placeholder {
+    color: unset !important;
+}
+
 .form-control:focus {
     border-color: #595AFF;
     box-shadow: inset 0 0 0 1px #595AFF;
@@ -237,6 +241,14 @@ img {
 .radio-player {
     width: 100%;
     height: 100px;
+}
+
+.list-group-item {
+    border: none;
+}
+
+.text-muted {
+    color: #6c757d !important;
 }
 
 /* 
@@ -250,6 +262,7 @@ body.dark-theme {
     --background-color: #191922;
     --text-color: #eee;
     --card-background: transparent;
+    --shadow-color: rgb(255, 255, 255, 0.4);
 }
 
 /* Light Theme */
@@ -257,6 +270,7 @@ body.light-theme {
     --background-color: #fff;
     --text-color: #000;
     --card-background: #fff;
+    --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
 .theme-color {
@@ -280,12 +294,11 @@ hr {
 }
 
 .now-playing {
-    /* background-color: #FFF3CD !important; */
     box-shadow: inset 0 0 0 1px #595AFF !important;
 }
 
 .clickable-shadow:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 0 1rem var(--shadow-color) !important;
 }
 
 .red-on-hover:hover {

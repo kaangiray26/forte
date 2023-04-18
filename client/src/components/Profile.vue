@@ -4,7 +4,7 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile img-thumbnail shadow" :src="get_cover()" @error="placeholder" width="250"
+                        <img class="img-profile img-thumbnail" :src="get_cover()" @error="placeholder" width="250"
                             height="250" />
                         <div class=" position-absolute bottom-0 right-0 m-2">
                             <button class="btn btn-dark theme-btn black-on-hover fw-bold bi bi-pencil-square shadow"

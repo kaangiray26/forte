@@ -11,7 +11,7 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div @contextmenu.prevent="right_click({ item: artist, event: $event })">
-                        <img class="playlist-img shadow" :src="get_artist_cover(artist.cover)" />
+                        <img class="playlist-img shadow rounded" :src="get_artist_cover(artist.cover)" />
                     </div>
                 </div>
                 <div class="col d-flex flex-column justify-content-between">

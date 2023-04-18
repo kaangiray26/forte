@@ -12,7 +12,7 @@
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative"
                         @contextmenu.prevent="right_click({ item: station, event: $event })">
-                        <img class="playlist-img shadow" :src="station.logo" @error="placeholder" />
+                        <img class="playlist-img shadow rounded" :src="station.logo" @error="placeholder" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_station()">

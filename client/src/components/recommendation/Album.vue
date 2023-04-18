@@ -1,9 +1,9 @@
 <template>
     <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.album, event: $event })">
         <div class="p-3">
-            <div class="position-relative clickable-shadow">
+            <div class="position-relative clickable-shadow rounded">
                 <div @click="openAlbum">
-                    <img class="img-fluid placeholder-img" :src="get_cover(props.album.cover)" @error="placeholder"
+                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.album.cover)" @error="placeholder"
                         height="250" width="250" />
                 </div>
                 <div class="position-absolute bottom-0 right-0 m-2">
@@ -12,9 +12,10 @@
                 </div>
             </div>
             <div class="d-flex flex-fill">
-                <h6 class="theme-color red-on-hover fw-bold text-break text-wrap clickable p-2 ps-0" @click="openAlbum">{{
-                    props.album.title
-                }}</h6>
+                <h6 class="theme-color purple-on-hover fw-bold text-break text-wrap clickable p-2 ps-0" @click="openAlbum">
+                    {{
+                        props.album.title
+                    }}</h6>
             </div>
         </div>
     </div>

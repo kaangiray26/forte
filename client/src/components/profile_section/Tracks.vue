@@ -37,13 +37,6 @@
                 </div>
             </div>
         </li>
-        <li v-if="tracks.length == 0" class="list-group-item list-group-item-action d-flex justify-content-between">
-            <div class="d-flex flex-fill align-items-center">
-                <div class="d-flex flex-column">
-                    <span class="fw-bold">No tracks found</span>
-                </div>
-            </div>
-        </li>
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             v-for="track in tracks" @contextmenu.prevent="right_click({ item: track, event: $event })"
             @click="playTrack(track)">
@@ -118,7 +111,6 @@ async function playTrack(track) {
         object: [track.id],
         operation: "playTrack"
     })
-    return;
 }
 
 async function get_federated_tracks(track_ids, order, _offset) {
@@ -156,9 +148,6 @@ async function get_tracks() {
 
     let data = await ft.API(`/profile/tracks/${offset.value}/${total.value}`);
     if (!data) return;
-
-    console.log(`/profile/tracks/${offset.value}/${total.value}`);
-    console.log("Response:", data);
 
     // Push track placeholders
     for (let i = 0; i < data.order.length; i++) {

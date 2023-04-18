@@ -4,7 +4,7 @@
             <div class="d-flex flex-column">
                 <div class="d-inline-flex input-group flex-nowrap">
                     <input ref="search_field" type="text" class="form-control search-card-input" placeholder="Search"
-                        aria-label="Search" @input="search" @keyup.enter="search_now" @focus="clear_search">
+                        aria-label="Search" @input="search" @keyup.enter="search_now">
                 </div>
                 <div class="hide-on-desktop mt-3">
                     <ul class="nav nav-pills nav-justified">
@@ -47,7 +47,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter();
 const search_field = ref(null);
 
-function debounce(func, timeout = 300) {
+function debounce(func, timeout = 200) {
     let timer;
     return (...args) => {
         clearTimeout(timer);

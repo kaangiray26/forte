@@ -76,7 +76,7 @@ import { ref, onMounted } from 'vue';
 import { right_click, action } from '/js/events.js';
 
 const order = ref([]);
-const tracks = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]);
+const tracks = ref([]);
 const searchFinished = ref(true);
 
 function get_cover(cover) {
@@ -155,7 +155,12 @@ async function get_history() {
     let data = await ft.API(`/profile/history`);
     if (!data) return;
 
-    tracks.value = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+    // Push tracks placeholders
+    tracks.value = [];
+    for (let i = 0; i < data.order.length; i++) {
+        tracks.value.push({});
+    }
+
     order.value = data.order;
 
     // Get federated tracks
@@ -169,6 +174,7 @@ async function get_history() {
             tracks.value[i] = tracks_found[0];
         }
     }
+
     searchFinished.value = true;
 }
 

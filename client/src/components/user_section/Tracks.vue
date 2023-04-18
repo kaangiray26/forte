@@ -48,12 +48,13 @@
             </div>
         </li>
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
-            v-for="track in tracks" @contextmenu.prevent="right_click({ item: track, event: $event })">
+            v-for="track in tracks" @contextmenu.prevent="right_click({ item: track, event: $event })"
+            @click="playTrack(track)">
             <div class="d-flex flex-fill align-items-center">
                 <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" @error="placeholder" />
                 <div class="d-flex flex-column">
                     <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
-                        :content_type="track.type" @click="playTrack(track.id)" style="display:contents;">
+                        :content_type="track.type" @click="playTrack(track)" style="display:contents;">
                         <span class="theme-color text-break">{{ track.title }}</span>
                     </button>
                 </div>
@@ -104,15 +105,26 @@ async function placeholder(obj) {
 }
 
 // Must be synchronized in groupSession: ok
-async function playTrack(track_id) {
+async function playTrack(track) {
+    // Federated
+    if (track.server) {
+        action({
+            func: async function op() {
+                ft.playTrack(track.uuid, track.server)
+            },
+            object: [track.uuid, track.server],
+            operation: "playTrack"
+        })
+        return
+    }
+
     action({
         func: async function op() {
-            ft.playTrack(track_id)
+            ft.playTrack(track.id)
         },
-        object: track_id,
+        object: [track.id],
         operation: "playTrack"
     })
-    return;
 }
 
 async function get_tracks(id) {
@@ -121,17 +133,29 @@ async function get_tracks(id) {
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/user/${id}/tracks/${offset.value}`);
+    let data = await ft.API(`/user/${id}/tracks/${offset.value}/${total.value}`);
     if (!data) return;
 
-    total.value = data.total;
+    // Push track placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        tracks.value.push({});
+    }
 
     // Get federated tracks
-    get_federated_tracks(data.federated);
+    get_federated_tracks(data.federated, data.order, offset.value);
 
     // Get local tracks
-    tracks.value = tracks.value.concat(data.tracks);
-    offset.value += data.tracks.length;
+    for (let i = 0; i < data.order.length; i++) {
+        let track_id = data.order[i];
+        let tracks_found = data.tracks.filter(t => t.id == track_id);
+        if (tracks_found.length) {
+            tracks.value[i + offset.value] = tracks_found[0];
+        }
+    }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
     searchFinished.value = true;
 }
 
@@ -152,7 +176,13 @@ async function get_federated_tracks(track_ids) {
         if (!data) return;
 
         data.tracks.map(track => track.server = domain);
-        tracks.value = tracks.value.concat(data.tracks);
+        for (let i = 0; i < order.length; i++) {
+            let track_id = order[i];
+            let found_tracks = data.tracks.filter(t => `${t.id}@${t.server}` == track_id);
+            if (found_tracks.length) {
+                tracks.value[i + _offset] = found_tracks[0];
+            }
+        }
     }
 }
 

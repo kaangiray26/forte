@@ -2186,7 +2186,8 @@ async function _get_history(req, res, next) {
             return;
         }
         if (!user.history) {
-            res.status(200).json({ "tracks": [], "federated": [] })
+            res.status(200).json({ "tracks": [], "federated": [], "order": [] })
+            return
         }
 
         // Filter federated tracks
@@ -2216,6 +2217,7 @@ async function _get_user_history(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
+
     db.task(async t => {
         let user = await t.oneOrNone("SELECT history FROM users WHERE username = $1", [id]);
         if (!user) {
@@ -2224,9 +2226,28 @@ async function _get_user_history(req, res, next) {
             });
             return;
         }
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [user.history]);
+        if (!user.history) {
+            res.status(200).json({ "tracks": [], "federated": [], "order": [] })
+            return
+        }
+
+        // Filter federated tracks
+        let federated = [];
+        let history = [];
+
+        for (let i = 0; i < user.history.length; i++) {
+            if (user.history[i].includes('@')) {
+                federated.push(user.history[i]);
+                continue
+            }
+            history.push(parseInt(user.history[i]));
+        }
+
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [history]);
         res.status(200).json({
-            "tracks": tracks
+            "tracks": tracks,
+            "federated": federated,
+            "order": user.history
         });
     })
 }
@@ -2658,9 +2679,8 @@ async function _get_user_friends(req, res, next) {
 
     db.task(async t => {
         let data = await t.oneOrNone("SELECT friends FROM users WHERE username = $1", [id]);
-        let friends = await t.manyOrNone("SELECT id, username, cover FROM users WHERE username = ANY($1)", [data.friends]);
         res.status(200).json({
-            "friends": friends
+            "friends": data.friends
         })
     })
 }
@@ -3130,20 +3150,56 @@ async function _get_profile_playlists(req, res, next) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
         let user = await t.oneOrNone("SELECT username, fav_playlists FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_playlists) {
-            res.status(200).json({ "playlists": [], "federated": [], "total": 0 })
+            res.status(200).json({ "playlists": [], "federated": [], "total": 0, "order": [] })
             return;
         }
 
-        // Filter federated playlists
         let federated = [];
         let fav_playlists = [];
 
+        let response_total = old_total;
+        let current_total = user.fav_playlists.length;
+
+        // Reverse the array
+        user.fav_playlists.reverse();
+
+        // User does not have any playlists
+        if (old_total == 0) {
+            user.fav_playlists = user.fav_playlists.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total playlists changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding playlists
+            user.fav_playlists = user.fav_playlists.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total playlists haven't changed
+        else {
+            user.fav_playlists = user.fav_playlists.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated playlists
         for (let i = 0; i < user.fav_playlists.length; i++) {
             if (user.fav_playlists[i].includes('@')) {
                 federated.push(user.fav_playlists[i]);
@@ -3152,8 +3208,8 @@ async function _get_profile_playlists(req, res, next) {
             fav_playlists.push(parseInt(user.fav_playlists[i]));
         }
 
-        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE id = ANY($1) ORDER BY title DESC LIMIT 24 OFFSET $2", [fav_playlists, offset]);
-        res.status(200).json({ "playlists": playlists, "federated": federated, "total": user.fav_playlists.length })
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_playlists]);
+        res.status(200).json({ "playlists": playlists, "federated": federated, "total": response_total, "order": user.fav_playlists })
     })
 }
 
@@ -3174,6 +3230,82 @@ async function _get_profile_tracks(req, res, next) {
         old_total = parseInt(old_total);
 
         let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE session = $1", [req.query.session]);
+        if (!user) {
+            res.status(400).json({ "error": "User not found." })
+            return;
+        }
+        if (!user.fav_tracks) {
+            res.status(200).json({ "tracks": [], "federated": [], "total": 0, "order": [] })
+            return;
+        }
+
+        let federated = [];
+        let fav_tracks = [];
+
+        let response_total = old_total;
+        let current_total = user.fav_tracks.length;
+
+        // Reverse the array
+        user.fav_tracks.reverse();
+
+        // User does not have any tracks
+        if (old_total == 0) {
+            user.fav_tracks = user.fav_tracks.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total tracks changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding tracks
+            user.fav_tracks = user.fav_tracks.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total tracks haven't changed
+        else {
+            user.fav_tracks = user.fav_tracks.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated tracks
+        for (let i = 0; i < user.fav_tracks.length; i++) {
+            if (user.fav_tracks[i].includes('@')) {
+                federated.push(user.fav_tracks[i]);
+                continue
+            }
+            fav_tracks.push(parseInt(user.fav_tracks[i]));
+        }
+
+        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_tracks]);
+        res.status(200).json({ "tracks": tracks, "federated": federated, "total": response_total, "order": user.fav_tracks })
+    })
+}
+
+async function _get_user_tracks(req, res, next) {
+    db.task(async t => {
+        let id = req.params.id;
+        if (!id) {
+            res.status(400).json({ "error": "ID parameter not given." });
+            return;
+        }
+
+        let offset = req.params.offset;
+        if (!offset) {
+            res.status(400).json({ "error": "Offset parameter not given." });
+            return;
+        }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
+        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE username = $1", [id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
@@ -3227,40 +3359,6 @@ async function _get_profile_tracks(req, res, next) {
     })
 }
 
-async function _get_user_tracks(req, res, next) {
-    db.task(async t => {
-        let offset = req.params.offset;
-        if (!offset) {
-            res.status(400).json({ "error": "Offset parameter not given." });
-            return;
-        }
-        let user = await t.oneOrNone("SELECT fav_tracks FROM users WHERE username = $1", [req.params.id]);
-        if (!user) {
-            res.status(400).json({ "error": "User not found." })
-            return;
-        }
-        if (!user.fav_tracks) {
-            res.status(200).json({ "tracks": [], "federated": [], "total": 0 })
-            return;
-        }
-
-        // Filter federated tracks
-        let federated = [];
-        let fav_tracks = [];
-
-        for (let i = 0; i < user.fav_tracks.length; i++) {
-            if (user.fav_tracks[i].includes('@')) {
-                federated.push(user.fav_tracks[i]);
-                continue
-            }
-            fav_tracks.push(parseInt(user.fav_tracks[i]));
-        }
-
-        let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_tracks, offset]);
-        res.status(200).json({ "tracks": tracks, "federated": federated, "total": user.fav_tracks.length })
-    })
-}
-
 async function _get_user_albums(req, res, next) {
     db.task(async t => {
         let id = req.params.id;
@@ -3268,25 +3366,62 @@ async function _get_user_albums(req, res, next) {
             res.status(400).json({ "error": "ID parameter not given." });
             return;
         }
+
         let offset = req.params.offset;
         if (!offset) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
         let user = await t.oneOrNone("SELECT fav_albums FROM users WHERE username = $1", [id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_albums) {
-            res.status(200).json({ "albums": [], "federated": [], "total": 0 })
+            res.status(200).json({ "albums": [], "federated": [], "total": 0, "order": [] })
             return;
         }
 
-        // Filter federated albums
         let federated = [];
         let fav_albums = [];
 
+        let response_total = old_total;
+        let current_total = user.fav_albums.length;
+
+        // Reverse the array
+        user.fav_albums.reverse();
+
+        // User does not have any albums
+        if (old_total == 0) {
+            user.fav_albums = user.fav_albums.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total albums changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding albums
+            user.fav_albums = user.fav_albums.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total albums haven't changed
+        else {
+            user.fav_albums = user.fav_albums.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated albums
         for (let i = 0; i < user.fav_albums.length; i++) {
             if (user.fav_albums[i].includes('@')) {
                 federated.push(user.fav_albums[i]);
@@ -3295,8 +3430,8 @@ async function _get_user_albums(req, res, next) {
             fav_albums.push(parseInt(user.fav_albums[i]));
         }
 
-        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_albums, offset]);
-        res.status(200).json({ "albums": albums, "federated": federated, "total": user.fav_albums.length })
+        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_albums]);
+        res.status(200).json({ "albums": albums, "federated": federated, "total": response_total, "order": user.fav_albums })
     })
 }
 
@@ -3307,25 +3442,62 @@ async function _get_user_artists(req, res, next) {
             res.status(400).json({ "error": "ID parameter not given." });
             return;
         }
+
         let offset = req.params.offset;
         if (!offset) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
         let user = await t.oneOrNone("SELECT fav_artists FROM users WHERE username = $1", [id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_artists) {
-            res.status(200).json({ "artists": [], "federated": [], "total": 0 })
+            res.status(200).json({ "artists": [], "federated": [], "total": 0, "order": [] })
             return;
         }
 
-        // Filter federated artists
         let federated = [];
         let fav_artists = [];
 
+        let response_total = old_total;
+        let current_total = user.fav_artists.length;
+
+        // Reverse the array
+        user.fav_artists.reverse();
+
+        // User does not have any artists
+        if (old_total == 0) {
+            user.fav_artists = user.fav_artists.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total artists changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding artists
+            user.fav_artists = user.fav_artists.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total artists haven't changed
+        else {
+            user.fav_artists = user.fav_artists.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated artists
         for (let i = 0; i < user.fav_artists.length; i++) {
             if (user.fav_artists[i].includes('@')) {
                 federated.push(user.fav_artists[i]);
@@ -3334,8 +3506,8 @@ async function _get_user_artists(req, res, next) {
             fav_artists.push(parseInt(user.fav_artists[i]));
         }
 
-        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_artists, offset]);
-        res.status(200).json({ "artists": artists, "federated": federated, "total": user.fav_artists.length })
+        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_artists]);
+        res.status(200).json({ "artists": artists, "federated": federated, "total": response_total, "order": user.fav_artists })
     })
 }
 
@@ -3346,25 +3518,62 @@ async function _get_user_playlists(req, res, next) {
             res.status(400).json({ "error": "ID parameter not given." });
             return;
         }
+
         let offset = req.params.offset;
         if (!offset) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
         let user = await t.oneOrNone("SELECT username, fav_playlists FROM users WHERE username = $1", [id]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_playlists) {
-            res.status(200).json({ "playlists": [], "federated": [], "total": 0 })
+            res.status(200).json({ "playlists": [], "federated": [], "total": 0, "order": [] })
             return;
         }
 
-        // Filter federated playlists
         let federated = [];
         let fav_playlists = [];
 
+        let response_total = old_total;
+        let current_total = user.fav_playlists.length;
+
+        // Reverse the array
+        user.fav_playlists.reverse();
+
+        // User does not have any playlists
+        if (old_total == 0) {
+            user.fav_playlists = user.fav_playlists.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total playlists changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding playlists
+            user.fav_playlists = user.fav_playlists.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total playlists haven't changed
+        else {
+            user.fav_playlists = user.fav_playlists.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated playlists
         for (let i = 0; i < user.fav_playlists.length; i++) {
             if (user.fav_playlists[i].includes('@')) {
                 federated.push(user.fav_playlists[i]);
@@ -3373,8 +3582,8 @@ async function _get_user_playlists(req, res, next) {
             fav_playlists.push(parseInt(user.fav_playlists[i]));
         }
 
-        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE id = ANY($1) ORDER BY title DESC LIMIT 24 OFFSET $2", [fav_playlists, offset]);
-        res.status(200).json({ "playlists": playlists, "federated": federated, "total": user.fav_playlists.length })
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_playlists]);
+        res.status(200).json({ "playlists": playlists, "federated": federated, "total": response_total, "order": user.fav_playlists })
     })
 }
 
@@ -3385,20 +3594,56 @@ async function _get_profile_albums(req, res, next) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
         let user = await t.oneOrNone("SELECT fav_albums FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_albums) {
-            res.status(200).json({ "albums": [], "federated": [], "total": 0 })
+            res.status(200).json({ "albums": [], "federated": [], "total": 0, "order": [] })
             return;
         }
 
-        // Filter federated albums
         let federated = [];
         let fav_albums = [];
 
+        let response_total = old_total;
+        let current_total = user.fav_albums.length;
+
+        // Reverse the array
+        user.fav_albums.reverse();
+
+        // User does not have any albums
+        if (old_total == 0) {
+            user.fav_albums = user.fav_albums.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total albums changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding albums
+            user.fav_albums = user.fav_albums.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total albums haven't changed
+        else {
+            user.fav_albums = user.fav_albums.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated albums
         for (let i = 0; i < user.fav_albums.length; i++) {
             if (user.fav_albums[i].includes('@')) {
                 federated.push(user.fav_albums[i]);
@@ -3407,8 +3652,8 @@ async function _get_profile_albums(req, res, next) {
             fav_albums.push(parseInt(user.fav_albums[i]));
         }
 
-        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_albums, offset]);
-        res.status(200).json({ "albums": albums, "federated": federated, "total": user.fav_albums.length })
+        let albums = await t.manyOrNone("SELECT * FROM albums WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_albums]);
+        res.status(200).json({ "albums": albums, "federated": federated, "total": response_total, "order": user.fav_albums })
     })
 }
 
@@ -3419,20 +3664,56 @@ async function _get_profile_artists(req, res, next) {
             res.status(400).json({ "error": "Offset parameter not given." });
             return;
         }
+        offset = parseInt(offset);
+
+        let old_total = req.params.total;
+        if (!old_total) {
+            res.status(400).json({ "error": "Total parameter not given." });
+            return;
+        }
+        old_total = parseInt(old_total);
+
         let user = await t.oneOrNone("SELECT fav_artists FROM users WHERE session = $1", [req.query.session]);
         if (!user) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
         if (!user.fav_artists) {
-            res.status(200).json({ "artists": [], "federated": [], "total": 0 })
+            res.status(200).json({ "artists": [], "federated": [], "total": 0, "order": [] })
             return;
         }
 
-        // Filter federated artists
         let federated = [];
         let fav_artists = [];
 
+        let response_total = old_total;
+        let current_total = user.fav_artists.length;
+
+        // Reverse the array
+        user.fav_artists.reverse();
+
+        // User does not have any artists
+        if (old_total == 0) {
+            user.fav_artists = user.fav_artists.slice(0, 24);
+            response_total = current_total;
+        }
+
+        // Total artists changed
+        else if (current_total > old_total) {
+            // Get the difference
+            let difference = current_total - old_total;
+
+            // Get corresponding artists
+            user.fav_artists = user.fav_artists.slice(difference + offset, difference + offset + 24);
+        }
+
+        // Total artists haven't changed
+        else {
+            user.fav_artists = user.fav_artists.slice(offset, offset + 24);
+            response_total = current_total;
+        }
+
+        // Filter federated artists
         for (let i = 0; i < user.fav_artists.length; i++) {
             if (user.fav_artists[i].includes('@')) {
                 federated.push(user.fav_artists[i]);
@@ -3441,8 +3722,8 @@ async function _get_profile_artists(req, res, next) {
             fav_artists.push(parseInt(user.fav_artists[i]));
         }
 
-        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC LIMIT 24 OFFSET $2", [fav_artists, offset]);
-        res.status(200).json({ "artists": artists, "federated": federated, "total": user.fav_artists.length })
+        let artists = await t.manyOrNone("SELECT * FROM artists WHERE id = ANY($1) ORDER BY array_position($1, id) DESC", [fav_artists]);
+        res.status(200).json({ "artists": artists, "federated": federated, "total": response_total, "order": user.fav_artists })
     })
 }
 
@@ -3852,7 +4133,7 @@ async function _love_artist(req, res, next) {
             }
 
             // Add artist to loved
-            await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_artists = array_append(fav_artists, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Artist added to loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -3982,7 +4263,7 @@ async function _love_playlist(req, res, next) {
             }
 
             // Add playlist to loved
-            await t.none("UPDATE users SET fav_playlists = array_append(fav_playlists, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_playlists = array_append(fav_playlists, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Playlist added to loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -4112,7 +4393,7 @@ async function _love_album(req, res, next) {
             }
 
             // Add album to loved
-            await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1) WHERE session = $2", [req.body.id, req.query.session]);
+            await t.none("UPDATE users SET fav_albums = array_append(fav_albums, $1::text) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Album added to loved." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });

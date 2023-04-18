@@ -104,7 +104,7 @@
     </div>
     <hr />
     <div>
-        <a class="purple-on-hover fw-bold text-muted" href="https://github.com/kaangiray26/forte/tree/gh-pages"
+        <a class="purple-on-hover fw-bold theme-color" href="https://github.com/kaangiray26/forte/tree/gh-pages"
             target="_blank">
             <span>Forte Mar 16 Version.</span>
         </a>

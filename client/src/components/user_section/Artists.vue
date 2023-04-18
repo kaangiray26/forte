@@ -31,33 +31,31 @@
         </li>
     </ul>
     <hr />
-    <div class="row g-2">
-        <div v-show="!total" class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2">
-            <div class="card h-100 w-100 border-0">
-                <div class="p-3">
-                    <div class="d-inline-flex position-relative">
-                        <img class="playlist-img" src="/images/empty.svg" />
-                    </div>
-                    <div class="d-flex flex-fill">
-                        <h6 class="theme-color fw-bold text-break text-wrap p-2 ps-0">No artists added yet</h6>
-                    </div>
+    <ul class="list-group">
+        <li class="list-group-item rounded mb-1 theme-btn text-light d-flex">
+            <div class="d-flex w-100 justify-content-between">
+                <div>
+                    <span class="fw-bold">{{ total }} liked artists</span>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="artist in artists">
-            <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: artist, event: $event })">
-                <div class="p-3">
-                    <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="playlist-img pe-auto" :src="get_cover(artist.cover)" @click="openArtist(artist.id)" />
-                    </div>
-                    <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
-                            @click="openArtist(artist.id)">{{ artist.title }}</h6>
-                    </div>
+        </li>
+        <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
+            v-for="artist in artists" @contextmenu.prevent="right_click({ item: artist, event: $event })"
+            @click="openArtist(artist)">
+            <div class="d-flex align-items-center position-absolute bottom-0 right-0 p-1">
+                <span v-if="artist.server" class="server bi bi-globe-americas"></span>
+            </div>
+            <div class="d-flex flex-fill align-items-center">
+                <img :src="get_cover(artist.cover)" class="playlist-selection-img me-2" @error="placeholder" />
+                <div class="d-flex">
+                    <button class="btn btn-link search-link d-flex text-start" :content_id="artist.id"
+                        :content_type="artist.type" style="display:contents;">
+                        <span class="theme-color text-break">{{ artist.title }}</span>
+                    </button>
                 </div>
             </div>
-        </div>
-    </div>
+        </li>
+    </ul>
     <div class="d-flex justify-content-end mt-2">
         <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
             @click="setup">Load more</button>
@@ -105,40 +103,57 @@ async function get_artists(id) {
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/user/${id}/artists/${offset.value}`);
+    let data = await ft.API(`/user/${id}/artists/${offset.value}/${total.value}`);
     if (!data) return;
 
-    total.value = data.total;
-    for (let i = 0; i < data.artists.length; i++) {
-        let artist = data.artists[i];
-        if (artists.value.includes(artist)) {
-            continue;
-        }
-        artists.value.push(artist);
-        offset.value += 1;
+    // Push artist placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        artists.value.push({});
     }
+
+    // Get federated artists
+    get_federated_artists(data.federated, data.order, offset.value);
+
+    // Get local artists
+    for (let i = 0; i < data.order.length; i++) {
+        let artist_id = data.order[i];
+        let artists_found = data.artists.filter(t => t.id == artist_id);
+        if (artists_found.length) {
+            artists.value[i + offset.value] = artists_found[0];
+        }
+    }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
     searchFinished.value = true;
 }
 
-async function get_federated_artists(id) {
-    if (!searchFinished.value) {
-        return
-    }
-    searchFinished.value = false;
-
-    let data = await ft.fAPI(domain.value, `/user/${id}/artists/${offset.value}`);
-    if (!data) return;
-
-    total.value = data.total;
-    for (let i = 0; i < data.artists.length; i++) {
-        let artist = data.artists[i];
-        if (artists.value.includes(artist)) {
-            continue;
+async function get_federated_artists(artist_ids, order, _offset) {
+    // Categorize ids by domain
+    let domains = {};
+    for (let artist_id of artist_ids) {
+        let [id, domain] = artist_id.split('@');
+        if (!domains[domain]) {
+            domains[domain] = [];
         }
-        artists.value.push(artist);
-        offset.value += 1;
+        domains[domain].push(parseInt(id));
     }
-    searchFinished.value = true;
+
+    // Get federated artists from each domain
+    for (let domain in domains) {
+        let data = await ft.get_federated_artists(domain, domains[domain]);
+        if (!data) return;
+
+        data.artists.map(artist => artist.server = domain);
+        for (let i = 0; i < order.length; i++) {
+            let artist_id = order[i];
+            let found_artists = data.artists.filter(t => `${t.id}@${t.server}` == artist_id);
+            if (found_artists.length) {
+                artists.value[i + _offset] = found_artists[0];
+            }
+        }
+    }
 }
 
 async function setup() {
