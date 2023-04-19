@@ -1,14 +1,14 @@
 <template>
     <div class="card rounded-0 border-0 mx-3" v-if="loaded">
-        <div class="card-body px-3">
+        <div class="card-body rounded px-3">
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile img-thumbnail" :src="get_cover()" @error="placeholder" width="250"
+                        <img class="img-profile shadow rounded" :src="get_cover()" @error="placeholder" width="250"
                             height="250" />
-                        <div class=" position-absolute bottom-0 right-0 m-2">
-                            <button class="btn btn-dark theme-btn black-on-hover fw-bold bi bi-pencil-square shadow"
-                                type="button" @click="change_cover">
+                        <div class="position-absolute bottom-0 right-0">
+                            <button class="btn btn-light action-btn bi bi-pencil-square m-2" type="button"
+                                @click="change_cover">
                             </button>
                         </div>
                         <input ref="cover_upload" type="file" class="visually-hidden" @change="handle_cover" />

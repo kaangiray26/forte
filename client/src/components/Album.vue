@@ -45,18 +45,18 @@
                                     </div>
                                 </div>
                             </li>
-                            <li class="list-group-item theme-list-item clickable rounded d-flex p-1"
+                            <li class="list-group-item theme-list-item foreground-content clickable rounded d-flex p-1"
                                 :class="{ 'now-playing': selected_track == track.id }"
                                 @contextmenu.prevent="right_click({ item: track, event: $event })"
                                 @click="play_track(track.id)">
                                 <div class="d-flex w-100 justify-content-between">
                                     <div class="d-flex">
                                         <div class="d-flex align-items-center">
-                                            <img :src="get_track_cover(album.cover)" class="track-cover"
-                                                @error="track_placeholder" />
+                                            <img :src="get_track_cover(album.cover)"
+                                                class="track-cover theme-border rounded" @error="track_placeholder" />
                                         </div>
                                         <div class="d-flex align-items-center">
-                                            <button class="btn btn-link search-link d-flex text-start"
+                                            <button class="btn btn-link search-link d-flex text-start py-0"
                                                 style="display:contents;">
                                                 <span class="text-muted me-2">{{ track.track_position }}.</span>
                                                 <span class="theme-color text-break">{{ track.title }}</span>
@@ -76,7 +76,7 @@
             <h5 class="theme-color fw-bold">Comments</h5>
             <div class="row g-3">
                 <div class="input-group">
-                    <textarea class="form-control" aria-label="With textarea" rows="5" cols="33"
+                    <textarea class="form-control search-card-input" aria-label="With textarea" rows="5" cols="33"
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">
@@ -284,9 +284,12 @@ async function get_federated_album(id) {
     }
 
     artist.value = data.artist;
-    album.value = data.album;
-    tracks.value = data.tracks;
+    artist.server = domain.value;
 
+    album.value = data.album;
+    album.value.server = domain.value;
+
+    tracks.value = data.tracks;
     tracks.value.map(track => track.server = domain.value);
     tracks.value.sort((a, b) => a.track_position - b.track_position);
     tracks.value.sort((a, b) => a.disc_number - b.disc_number);

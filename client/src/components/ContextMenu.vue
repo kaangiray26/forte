@@ -104,35 +104,37 @@ async function federatedIsLoved() {
 async function federatedContextMenuEvent(event) {
     // Open Page Events
     if (event == 'openPlaylistPage') {
-        router.push(`/playlist/${selectedItem.value.uiud}@${selectedItem.value.server}`);
+        router.push(`/playlist/${selectedItem.value.id}@${selectedItem.value.server}`);
         return
     }
+
     if (event == 'openAlbumPage') {
         if (selectedItem.value.type == 'album') {
-            router.push(`/album/${selectedItem.value.uuid}@${selectedItem.value.server}`);
+            router.push(`/album/${selectedItem.value.id}@${selectedItem.value.server}`);
             return
         }
         if (selectedItem.value.type == 'track') {
             ft.fAPI(selectedItem.value.server, `/track/${selectedItem.value.id}`).then(response => {
-                router.push(`/album/${response.album.uuid}@${selectedItem.value.server}`);
+                router.push(`/album/${response.album.id}@${selectedItem.value.server}`);
             })
         }
         return
     }
+
     if (event == 'openArtistPage') {
         if (selectedItem.value.type == 'artist') {
-            router.push(`/artist/${selectedItem.value.uuid}@${selectedItem.value.server}`);
+            router.push(`/artist/${selectedItem.value.id}@${selectedItem.value.server}`);
             return
         }
         if (selectedItem.value.type == 'album') {
             ft.fAPI(selectedItem.value.server, `/album/${selectedItem.value.id}`).then(response => {
-                router.push(`/artist/${response.artist.uuid}@${selectedItem.value.server}`);
+                router.push(`/artist/${response.artist.id}@${selectedItem.value.server}`);
             })
             return
         }
         if (selectedItem.value.type == 'track') {
             ft.fAPI(selectedItem.value.server, `/track/${selectedItem.value.id}`).then(response => {
-                router.push(`/artist/${response.artist.uuid}@${selectedItem.value.server}`);
+                router.push(`/artist/${response.artist.id}@${selectedItem.value.server}`);
             })
         }
         return
@@ -144,7 +146,9 @@ async function federatedContextMenuEvent(event) {
     }
 
     if (event == 'openAuthorPage') {
-        router.push(`/user/${selectedItem.value.author}@${selectedItem.value.server}`);
+        ft.fAPI(selectedItem.value.server, `/playlist/${selectedItem.value.id}/basic`).then(response => {
+            router.push(`/user/${response.playlist.author}@${selectedItem.value.server}`);
+        })
         return
     }
 
@@ -280,9 +284,9 @@ async function federatedContextMenuEvent(event) {
     if (event == 'playTrackNext') {
         action({
             func: async function op() {
-                ft.playTrackNext(selectedItem.value.uuid, selectedItem.value.server);
+                ft.playTrackNext(selectedItem.value.id, selectedItem.value.server);
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "playTrackNext",
         })
         return
@@ -292,9 +296,9 @@ async function federatedContextMenuEvent(event) {
     if (event == 'playAlbumNext') {
         action({
             func: async function op() {
-                ft.playAlbumNext(selectedItem.value.uuid, selectedItem.value.server);
+                ft.playAlbumNext(selectedItem.value.id, selectedItem.value.server);
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "playAlbumNext",
         })
         return
@@ -303,9 +307,9 @@ async function federatedContextMenuEvent(event) {
     if (event == 'playPlaylistNext') {
         action({
             func: async function op() {
-                ft.playPlaylistNext(selectedItem.value.uuid, selectedItem.value.server);
+                ft.playPlaylistNext(selectedItem.value.id, selectedItem.value.server);
             },
-            object: [selectedItem.value.uuid, selectedItem.value.server],
+            object: [selectedItem.value.id, selectedItem.value.server],
             operation: "playPlaylistNext",
         })
         return
@@ -313,8 +317,8 @@ async function federatedContextMenuEvent(event) {
 
     // Download Events
     if (event == 'downloadTrack') {
-        let data = await ft.fAPI(selectedItem.value.server, "/track/" + selectedItem.value.uuid + "/basic");
-        let response = await ft.downloadTrack(selectedItem.value.uuid, selectedItem.value.server);
+        let data = await ft.fAPI(selectedItem.value.server, "/track/" + selectedItem.value.id + "/basic");
+        let response = await ft.downloadTrack(selectedItem.value.id, selectedItem.value.server);
         downloadLink.value.href = window.URL.createObjectURL(response);
         downloadLink.value.download = `${data.track.disc_number} - ${data.track.track_position} - ${data.track.title}.flac`;
         downloadLink.value.click();
@@ -323,7 +327,7 @@ async function federatedContextMenuEvent(event) {
 
     // Share Events
     if (event == 'shareArtist') {
-        navigator.clipboard.writeText(`https://forte.buzl.uk/artist/${selectedItem.value.uuid}@${selectedItem.value.server}`).then(function () {
+        navigator.clipboard.writeText(`https://forte.buzl.uk/artist/${selectedItem.value.id}@${selectedItem.value.server}`).then(function () {
             notify({
                 "title": "Copied to clipboard.",
             })
@@ -334,7 +338,7 @@ async function federatedContextMenuEvent(event) {
     }
 
     if (event == 'shareAlbum') {
-        navigator.clipboard.writeText(`https://forte.buzl.uk/album/${selectedItem.value.uuid}@${selectedItem.value.server}`).then(function () {
+        navigator.clipboard.writeText(`https://forte.buzl.uk/album/${selectedItem.value.id}@${selectedItem.value.server}`).then(function () {
             notify({
                 "title": "Copied to clipboard.",
             })
@@ -345,7 +349,7 @@ async function federatedContextMenuEvent(event) {
     }
 
     if (event == 'shareTrack') {
-        navigator.clipboard.writeText(`https://forte.buzl.uk/track/${selectedItem.value.uuid}@${selectedItem.value.server}`).then(function () {
+        navigator.clipboard.writeText(`https://forte.buzl.uk/track/${selectedItem.value.id}@${selectedItem.value.server}`).then(function () {
             notify({
                 "title": "Copied to clipboard",
             })
@@ -356,7 +360,7 @@ async function federatedContextMenuEvent(event) {
     }
 
     if (event == 'sharePlaylist') {
-        navigator.clipboard.writeText(`https://forte.buzl.uk/playlist/${selectedItem.value.uuid}@${selectedItem.value.server}`).then(function () {
+        navigator.clipboard.writeText(`https://forte.buzl.uk/playlist/${selectedItem.value.id}@${selectedItem.value.server}`).then(function () {
             notify({
                 "title": "Copied to clipboard",
             })

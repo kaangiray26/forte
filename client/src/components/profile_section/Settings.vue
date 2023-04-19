@@ -82,18 +82,18 @@
             <div class="d-inline-flex">
                 <div class="d-flex flex-column">
                     <router-link to="/servers">
-                        <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1">
+                        <button class="btn theme-btn black-on-hover text-white fw-bold flex-nowrap text-start m-1">
                             <span class="bi bi-globe me-2"></span>
                             <span>Servers</span>
                         </button>
                     </router-link>
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1"
+                    <button class="btn theme-btn black-on-hover text-white fw-bold flex-nowrap text-start m-1"
                         @click="change_theme">
                         <span class="bi me-2"
                             :class="{ 'bi-sun-fill': store.theme == 'light', 'bi-moon-fill': store.theme == 'dark' }"></span>
                         <span>Theme</span>
                     </button>
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap text-start m-1"
+                    <button class="btn theme-btn black-on-hover text-white fw-bold flex-nowrap text-start m-1"
                         @click="reset_menu">
                         <span class="bi bi-list me-2"></span>
                         <span>Reset</span>

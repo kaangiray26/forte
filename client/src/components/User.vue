@@ -1,26 +1,17 @@
 <template>
-    <div v-show="error">
-        <div class="d-flex justify-content-center p-2">
-            <div class="d-flex flex-column fw-bold theme-color">
-                <hr>
-                <span>{{ error_message }}</span>
-                <hr>
-            </div>
-        </div>
-    </div>
     <div class="card rounded-0 border-0 mx-3" v-if="loaded">
         <div class="card-body px-3">
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile img-thumbnail" :src="get_cover()" @error="placeholder" width="250"
+                        <img class="img-profile shadow rounded" :src="get_cover()" @error="placeholder" width="250"
                             height="250" />
                         <div class="position-absolute bottom-0 right-0">
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <h1 class="album-title theme-color">{{ user.username }}</h1>
+                    <h1 class="theme-color album-title mb-4">{{ user.username }}</h1>
                     <div v-show="!is_self" class="pt-2">
                         <button v-show="friend" type="button"
                             class="btn btn-dark theme-btn black-on-hover fw-bold text-nowrap" @click="remove_friend">
@@ -54,8 +45,6 @@ const is_self = ref(false);
 
 const user = ref({});
 const loaded = ref(false);
-const error = ref(false);
-const error_message = ref("");
 const friend = ref(false);
 
 const query_param = computed(() => {

@@ -49,19 +49,19 @@
                 <li class="list-group-item theme-list-item clickable rounded d-flex p-1"
                     @contextmenu.prevent="right_click({ item: track, event: $event })"
                     @click="openStation(station.guide_id, station.hover)">
-                    <div class="d-flex w-100 justify-content-between">
+                    <div class="d-flex w-100 foreground justify-content-between">
                         <div class="d-flex">
                             <div @mouseenter="station.hover = true" @mouseleave="station.hover = false"
                                 class="d-inline-flex align-items-center position-relative">
-                                <img :src="station.image" class="track-cover" @error="placeholder" />
+                                <img :src="station.image" class="track-cover theme-border rounded" @error="placeholder" />
                                 <div v-if="station.hover" class="position-absolute bottom-0 right-0">
                                     <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                         @click="play_station(station)">
                                     </button>
                                 </div>
                             </div>
-                            <div class="d-flex flex-column">
-                                <button class="btn btn-link search-link d-flex flex-column text-start"
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-link search-link d-flex flex-column text-start py-0"
                                     style="display:contents;">
                                     <span class="theme-color text-break">{{ station.text }}</span>
                                     <span class="text-muted">{{ station.subtext }}</span>

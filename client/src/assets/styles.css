@@ -171,6 +171,7 @@ img {
 .action-btn {
     aspect-ratio: 1 / 1;
     border-radius: 50% !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 
 .appear {
@@ -245,6 +246,10 @@ img {
     color: #6c757d !important;
 }
 
+.btn-link {
+    text-decoration: none !important;
+}
+
 /* 
 ------
 THEMES
@@ -253,18 +258,24 @@ THEMES
 
 /* Dark Theme */
 body.dark-theme {
-    --background-color: #191922;
+    /* --background-color: #191922; */
+    --foreground-color: #23232D;
+    --background-color: #121216;
     --text-color: #eee;
     --card-background: transparent;
     --shadow-color: rgb(255, 255, 255, 0.4);
+    --input-border-color: #495057;
 }
 
 /* Light Theme */
 body.light-theme {
-    --background-color: #fff;
+    /* --background-color: #fff; */
+    --foreground-color: #FFFFFF;
+    --background-color: #F8F8F9;
     --text-color: #000;
-    --card-background: #fff;
+    --card-background: transparent;
     --shadow-color: rgba(0, 0, 0, 0.4);
+    --input-border-color: #dee2e6;
 }
 
 .form-control:focus {
@@ -317,33 +328,29 @@ hr {
     color: #595AFF !important;
 }
 
-.action-btn {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
 .artist {
-    color: #fff !important;
-    background-color: RGBA(13, 110, 253, var(--bs-bg-opacity, 1)) !important;
+    color: #000 !important;
+    background-color: #FF595E !important;
 }
 
 .track {
-    color: #fff !important;
-    background-color: RGBA(33, 37, 41, var(--bs-bg-opacity, 1)) !important;
+    color: #000 !important;
+    background-color: #1982C4 !important;
 }
 
 .album {
-    color: #000 !important;
-    background-color: RGBA(255, 193, 7, var(--bs-bg-opacity, 1)) !important;
+    color: #fff !important;
+    background-color: #6A4C93 !important;
 }
 
 .playlist {
-    color: #fff !important;
-    background-color: RGBA(25, 135, 84, var(--bs-bg-opacity, 1)) !important;
+    color: #000 !important;
+    background-color: #FFCA3A !important;
 }
 
 .user {
-    color: #fff !important;
-    background-color: RGBA(89, 92, 95, var(--bs-bg-opacity, 1)) !important;
+    color: #000 !important;
+    background-color: #8AC926 !important;
 }
 
 .card {
@@ -355,8 +362,9 @@ hr {
 }
 
 .search-card-input {
-    background-color: var(--background-color) !important;
     color: var(--text-color) !important;
+    background-color: var(--foreground-color) !important;
+    border: 1px solid var(--input-border-color);
 }
 
 .side-bar-text {
@@ -409,4 +417,19 @@ hr {
 
 .server {
     color: var(--text-color)
+}
+
+.foreground {
+    background-color: var(--foreground-color) !important;
+    border-radius: var(--bs-border-radius) !important;
+}
+
+.foreground-content {
+    background-clip: content-box !important;
+    background-color: var(--foreground-color) !important;
+    border-radius: var(--bs-border-radius) !important;
+}
+
+.theme-border {
+    border: 1px solid var(--input-border-color);
 }

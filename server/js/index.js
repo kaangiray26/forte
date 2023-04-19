@@ -191,6 +191,7 @@ app.post("/api/friends/remove", isAuthenticated, db.remove_friend)
 
 // Playlist
 app.get("/api/playlist/:id", isAuthenticated, db.get_playlist)
+app.get("/api/playlist/:id/basic", isAuthenticated, db.get_playlist_basic)
 app.get("/api/playlist/:id/delete", isAuthenticated, db.delete_playlist)
 app.get("/api/playlist/:id/tracks", isAuthenticated, db.get_playlist_tracks)
 app.post("/api/playlist/:id/add_track", isAuthenticated, db.add_track_to_playlist)

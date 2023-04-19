@@ -39,8 +39,8 @@
         </li>
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             @click="showPlaylistCreate">
-            <div class="d-flex flex-fill align-items-center">
-                <img class="playlist-selection-img me-2" src="/images/add.svg" />
+            <div class="d-flex flex-fill foreground align-items-center">
+                <img class="track-cover theme-border rounded" src="/images/add.svg" />
                 <div class="d-flex">
                     <button class="btn btn-link search-link d-flex text-start" style="display:contents;">
                         <span class="theme-color text-break">Create a playlist</span>
@@ -51,10 +51,10 @@
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             v-for="playlist in playlists" @contextmenu.prevent="right_click({ item: playlist, event: $event })"
             @click="openPlaylist(playlist)">
-            <div class="d-flex flex-fill align-items-center">
-                <img :src="get_cover(playlist.cover)" class="playlist-selection-img me-2" @error="placeholder" />
-                <div class="d-flex">
-                    <button class="btn btn-link search-link d-flex text-start" :content_id="playlist.id"
+            <div class="d-flex flex-fill foreground align-items-center">
+                <img :src="get_cover(playlist.cover)" class="track-cover theme-border rounded" @error="placeholder" />
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link search-link d-flex text-start py-0" :content_id="playlist.id"
                         :content_type="playlist.type" style="display:contents;">
                         <span class="theme-color text-break" :class="{ 'text-decoration-underline': playlist.server }">{{
                             playlist.title }}</span>
@@ -64,7 +64,7 @@
         </li>
     </ul>
     <div class="d-flex justify-content-end mt-3">
-        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
+        <button v-show="searchFinished" type="button" class="btn theme-btn black-on-hover text-white fw-bold"
             @click="get_playlists">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

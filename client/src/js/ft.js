@@ -773,6 +773,7 @@ class Forte {
         // Federated
         if (domain) {
             this.fAPI(domain, `/track/${track_id}/basic`).then((response) => {
+                response.track.server = domain;
                 this.addToQueueNext([response.track]);
             })
             return;
@@ -789,9 +790,10 @@ class Forte {
             this.fAPI(domain, `/album/${album_id}/tracks`).then((response => {
                 store.queue_index = 0;
                 let tracks = response.tracks;
+                tracks.map(track => track.server = domain);
                 tracks.sort((a, b) => a.track_position - b.track_position);
                 tracks.sort((a, b) => a.disc_number - b.disc_number);
-                this.load_federated_track(tracks[0], domain);
+                this.load_federated_track(tracks[0]);
                 this.addToQueueStart(tracks);
             }))
             return;
@@ -812,6 +814,7 @@ class Forte {
         if (domain) {
             this.fAPI(domain, `/album/${album_id}/tracks`).then((response) => {
                 let tracks = response.tracks;
+                tracks.map(track => track.server = domain);
                 tracks.sort((a, b) => a.track_position - b.track_position);
                 tracks.sort((a, b) => a.disc_number - b.disc_number);
                 this.addToQueueNext(tracks);
@@ -833,7 +836,8 @@ class Forte {
             this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
                 if (!response.tracks.length) return;
                 store.queue_index = 0;
-                console.log(response.tracks);
+                let tracks = response.tracks;
+                tracks.map(track => track.server = domain);
                 this.load_track(response.tracks[0]);
                 this.addToQueueStart(response.tracks);
             })
@@ -866,6 +870,7 @@ class Forte {
         // Federated
         if (domain) {
             this.fAPI(domain, `/track/${track_id}/basic`).then((response) => {
+                response.track.server = domain;
                 this.addToQueue([response.track]);
             })
             return
@@ -881,6 +886,7 @@ class Forte {
         if (domain) {
             this.fAPI(domain, `/album/${album_id}/tracks`).then((response) => {
                 let tracks = response.tracks;
+                tracks.map(track => track.server = domain);
                 tracks.sort((a, b) => a.track_position - b.track_position);
                 tracks.sort((a, b) => a.disc_number - b.disc_number);
                 this.addToQueue(tracks);

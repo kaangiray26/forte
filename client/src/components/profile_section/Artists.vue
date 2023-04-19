@@ -48,10 +48,10 @@
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             v-for="artist in artists" @contextmenu.prevent="right_click({ item: artist, event: $event })"
             @click="openArtist(artist)">
-            <div class="d-flex flex-fill align-items-center">
-                <img :src="get_cover(artist.cover)" class="playlist-selection-img me-2" @error="placeholder" />
-                <div class="d-flex">
-                    <button class="btn btn-link search-link d-flex text-start" :content_id="artist.id"
+            <div class="d-flex flex-fill foreground align-items-center">
+                <img :src="get_cover(artist.cover)" class="track-cover theme-border rounded" @error="placeholder" />
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link search-link d-flex text-start py-0" :content_id="artist.id"
                         :content_type="artist.type" style="display:contents;">
                         <span class="theme-color text-break" :class="{ 'text-decoration-underline': artist.server }">{{
                             artist.title }}</span>
@@ -61,7 +61,7 @@
         </li>
     </ul>
     <div class="d-flex justify-content-end mt-2">
-        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
+        <button v-show="searchFinished" type="button" class="btn theme-btn black-on-hover text-white fw-bold"
             @click="get_artists">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

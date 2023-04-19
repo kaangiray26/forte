@@ -13,7 +13,6 @@ import mime from 'mime-types';
 import { exit } from 'process';
 import { fileURLToPath } from 'url';
 import * as openpgp from 'openpgp';
-import { response } from 'express';
 
 // Path to library
 const library_path = '/library';
@@ -3101,6 +3100,35 @@ async function _remove_friend(req, res, next) {
     })
 }
 
+async function _get_playlist_basic(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        try {
+            let playlist = await t.oneOrNone(`SELECT id, type, title, cover, author, uuid FROM playlists WHERE ${column} = $1`, [id]);
+            if (!playlist) {
+                res.status(400).json({ "error": "Playlist not found." })
+                return;
+            }
+
+            res.status(200).json({ "playlist": playlist })
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+            return
+        }
+    })
+}
+
 async function _get_playlist(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -3894,7 +3922,6 @@ async function _get_playlist_tracks(req, res, next) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
-
     db.task(async t => {
         try {
             let playlist = await t.oneOrNone("SELECT * from playlists WHERE id = $1", [id]);
@@ -3902,11 +3929,26 @@ async function _get_playlist_tracks(req, res, next) {
                 res.status(400).json({ "error": "Playlist not found." })
                 return;
             }
-            let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist.tracks]);
-            res.status(200)
-                .send(JSON.stringify({
-                    "tracks": tracks
-                }))
+
+            if (!playlist.tracks) {
+                res.status(200).json({ "playlist": playlist, "tracks": [], "federated": [], "order": [] })
+                return;
+            }
+
+            let federated = [];
+            let playlist_tracks = [];
+
+            // Filter federated tracks
+            for (let i = 0; i < playlist.tracks.length; i++) {
+                if (playlist.tracks[i].includes('@')) {
+                    federated.push(playlist.tracks[i]);
+                    continue
+                }
+                playlist_tracks.push(parseInt(playlist.tracks[i]));
+            }
+
+            let tracks = await t.manyOrNone("SELECT * FROM tracks WHERE id = ANY($1) ORDER BY array_position($1, id)", [playlist_tracks]);
+            res.status(200).json({ "playlist": playlist, "tracks": tracks, "federated": federated })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
             return;
@@ -4797,6 +4839,7 @@ const exports = {
     get_lyrics: _get_lyrics,
     get_pgp_keys: _get_pgp_keys,
     get_playlist: _get_playlist,
+    get_playlist_basic: _get_playlist_basic,
     get_playlist_loved: _get_playlist_loved,
     get_station: _get_station,
     get_station_url: _get_station_url,

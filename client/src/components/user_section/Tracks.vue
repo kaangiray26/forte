@@ -50,10 +50,10 @@
         <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
             v-for="track in tracks" @contextmenu.prevent="right_click({ item: track, event: $event })"
             @click="playTrack(track)">
-            <div class="d-flex flex-fill align-items-center">
-                <img :src="get_cover(track.cover)" class="playlist-selection-img me-2" @error="placeholder" />
-                <div class="d-flex flex-column">
-                    <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
+            <div class="d-flex flex-fill foreground align-items-center">
+                <img :src="get_cover(track.cover)" class="track-cover theme-border rounded" @error="placeholder" />
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link search-link d-flex text-start py-0" :content_id="track.id"
                         :content_type="track.type" @click="playTrack(track)" style="display:contents;">
                         <span class="theme-color text-break" :class="{ 'text-decoration-underline': track.server }">{{
                             track.title }}</span>
@@ -63,7 +63,7 @@
         </li>
     </ul>
     <div class="d-flex justify-content-end mt-2">
-        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
+        <button v-show="searchFinished" type="button" class="btn theme-btn black-on-hover text-white fw-bold"
             @click="setup">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

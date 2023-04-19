@@ -42,12 +42,12 @@
                             </div>
                         </li>
                         <li v-for="(track, index) in tracks"
-                            class="list-group-item theme-list-item clickable rounded d-flex p-1"
+                            class="list-group-item theme-list-item foreground-content clickable rounded d-flex p-1"
                             @contextmenu.prevent="right_click({ item: track, event: $event })">
                             <div class="d-flex w-100 justify-content-between" @click="play_track(track)">
                                 <div class="d-flex">
                                     <div class="d-flex align-items-start">
-                                        <img :src="get_track_cover(track.cover)" class="track-cover"
+                                        <img :src="get_track_cover(track.cover)" class="track-cover theme-border rounded"
                                             @error="track_placeholder" />
                                     </div>
                                     <div class="d-flex align-items-center">
@@ -87,7 +87,7 @@
             <h5 class="theme-color fw-bold">Comments</h5>
             <div class="row g-3">
                 <div class="input-group">
-                    <textarea class="form-control" aria-label="With textarea" rows="5" cols="33"
+                    <textarea class="form-control search-card-input" aria-label="With textarea" rows="5" cols="33"
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">

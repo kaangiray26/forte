@@ -3,7 +3,7 @@
         <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5 fw-bold">Lyrics</h1>
+                    <h1 class="modal-title fs-5 fw-bold">{{ store.playing.title }}</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -14,7 +14,6 @@
                             </div>
                         </div>
                     </div>
-                    <h3 v-show="loaded" class="fs-5 fw-bold">{{ store.playing.title }}</h3>
                     <div v-show="error">
                         <div class="d-flex justify-content-center text-dark p-2">
                             <h1 class="fs-5 fw-bold">Lyrics not found</h1>

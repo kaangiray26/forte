@@ -239,6 +239,10 @@ props.conn.on("data", async function (data) {
                 store.func_stack.push(async function op() {
                     let q = ft.getCurrentQueue();
                     store.queue_index = data.object;
+                    if (q[store.queue_index].server) {
+                        ft.load_federated_track(q[store.queue_index]);
+                        return
+                    }
                     ft.load_track(q[store.queue_index]);
                 })
                 break;

@@ -143,6 +143,10 @@ async function play_queue_track(index) {
         func: async function op() {
             let q = ft.getCurrentQueue();
             store.queue_index = index;
+            if (q[store.queue_index].server) {
+                ft.load_federated_track(q[store.queue_index]);
+                return
+            }
             ft.load_track(q[store.queue_index]);
         },
         object: index,

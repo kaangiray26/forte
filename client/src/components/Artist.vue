@@ -45,15 +45,17 @@
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item theme-list-item clickable rounded d-flex p-1" v-for="album in albums"
-                            @contextmenu.prevent="right_click({ item: album, event: $event })" @click="openAlbum(album)">
+                        <li class="list-group-item theme-list-item foreground-content clickable rounded d-flex p-1"
+                            v-for="album in albums" @contextmenu.prevent="right_click({ item: album, event: $event })"
+                            @click="openAlbum(album)">
                             <div class="d-flex w-100 justify-content-between">
                                 <div class="d-flex">
                                     <div class="d-flex align-items-center">
-                                        <img :src="get_album_cover(album.cover)" class="track-cover" @error="placeholder" />
+                                        <img :src="get_album_cover(album.cover)" class="track-cover theme-border rounded"
+                                            @error="placeholder" />
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <div class="btn btn-link search-link d-flex flex-row text-start"
+                                        <div class="btn btn-link search-link d-flex flex-row text-start py-0"
                                             style="display:contents;">
                                             <span class="theme-color me-2">{{ album.title }}</span>
                                             <span class="text-muted">{{ album.year }}</span>
@@ -80,7 +82,7 @@
             <h5 class="theme-color fw-bold">Comments</h5>
             <div class="row g-3">
                 <div class="input-group">
-                    <textarea class="form-control" aria-label="With textarea" rows="5" cols="33"
+                    <textarea class="form-control search-card-input" aria-label="With textarea" rows="5" cols="33"
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">
