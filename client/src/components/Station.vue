@@ -10,8 +10,7 @@
         <div class="card-body px-3">
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
-                    <div class="d-inline-flex position-relative"
-                        @contextmenu.prevent="right_click({ item: station, event: $event })">
+                    <div class="d-inline-flex position-relative">
                         <img class="playlist-img shadow rounded" :src="station.logo" @error="placeholder" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
@@ -28,7 +27,7 @@
                     <div class="pt-2">
                         <div class="d-flex flex-wrap">
                             <div class="m-1">
-                                <button ref="wiki_btn" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
+                                <button ref="wiki_btn" type="button" class="btn theme-btn black-on-hover text-white fw-bold"
                                     @click="get_website">Website</button>
                             </div>
                         </div>

@@ -1,31 +1,33 @@
 <template>
-    <div id="playlistCreate" class="modal fade p-2" tabindex="-1">
+    <div id="playlistCreate" class="modal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="d-flex justify-content-end p-4 pb-2">
-                    <button type="button" class="btn-close" @click="_hide" aria-label="Close"></button>
+            <div class="modal-content theme-bg theme-border">
+                <div class="d-flex justify-content-end p-3 pb-2">
+                    <button type="button" class="btn-close theme-filter" @click="_hide" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-0">
                     <div class="d-flex justify-content-center pb-2">
-                        <h3 class="fw-bold">Create playlist</h3>
+                        <h3 class="theme-color fw-bold">Create playlist</h3>
                     </div>
                     <div class="container">
                         <div class="d-inline-flex position-relative">
                             <img ref="playlist_cover" src="/images/cassette.svg" class="playlist-img shadow rounded">
                             <input ref="cover_upload" type="file" class="visually-hidden" @change="handle_cover" />
                             <div class="position-absolute bottom-0 right-0">
-                                <button class="btn btn-light bi bi-pencil-square shadow m-2" type="button"
-                                    style="opacity: 0.90;" @click="add_cover">
+                                <button class="btn btn-light action-btn bi bi-pencil-square m-2" type="button"
+                                    @click="add_cover">
                                 </button>
                             </div>
                         </div>
                         <div class="d-flex flex-column justify-content-between">
                             <div class="form-floating mb-2">
-                                <input ref="playlist_name" type="text" class="form-control" id="floatingInput">
-                                <label for="floatingInput">Playlist name</label>
+                                <input ref="playlist_name" type="text" class="form-control search-card-input"
+                                    id="floatingInput">
+                                <label for="floatingInput" class="theme-label theme-color">Playlist name</label>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <button class="btn btn-dark" @click="create_playlist">Create</button>
+                                <button class="btn theme-btn black-on-hover text-white fw-bold"
+                                    @click="create_playlist">Create</button>
                             </div>
                         </div>
                     </div>

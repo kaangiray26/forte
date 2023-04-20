@@ -1,30 +1,37 @@
 <template>
     <div v-show="store.peer_status == 'connected'">
         <div class="input-group mb-2">
-            <span class="input-group-text bg-success text-white">Connected to:</span>
-            <input type="text" class="form-control" :value="contacts.recipient.username" readonly>
+            <span class="input-group-text bg-success theme-border text-white">Connected to:</span>
+            <input type="text" class="form-control search-card-input" :value="contacts.recipient.username" readonly>
         </div>
         <div class="d-flex flex-column">
             <button class="btn btn-danger fw-bold" @click="disconnect">Disconnect</button>
         </div>
         <hr />
         <div class="d-flex flex-column mb-2">
-            <h5 class="fw-bold">Reactions</h5>
+            <h5 class="theme-color fw-bold">Reactions</h5>
             <div class="input-group">
-                <button class="btn btn-outline-light border" type="button" @click="send_reaction('love')">❤️</button>
-                <button class="btn btn-outline-light border" type="button" @click="send_reaction('hand')">🤘</button>
-                <button class="btn btn-outline-light border" type="button" @click="send_reaction('eyes')">👀</button>
-                <button class="btn btn-outline-light border" type="button" @click="send_reaction('ship')">🚀</button>
-                <button class="btn btn-outline-light border" type="button" @click="send_reaction('bomb')">💣</button>
-                <button class="btn btn-outline-light border" type="button" @click="send_reaction('puke')">🤮</button>
-                <button class="btn btn-outline-light border" type="button" @click="send_reaction('shit')">💩</button>
+                <button class="btn theme-btn clickable-opacity theme-border" type="button"
+                    @click="send_reaction('love')">❤️</button>
+                <button class="btn theme-btn clickable-opacity theme-border" type="button"
+                    @click="send_reaction('hand')">🤘</button>
+                <button class="btn theme-btn clickable-opacity theme-border" type="button"
+                    @click="send_reaction('eyes')">👀</button>
+                <button class="btn theme-btn clickable-opacity theme-border" type="button"
+                    @click="send_reaction('ship')">🚀</button>
+                <button class="btn theme-btn clickable-opacity theme-border" type="button"
+                    @click="send_reaction('bomb')">💣</button>
+                <button class="btn theme-btn clickable-opacity theme-border" type="button"
+                    @click="send_reaction('puke')">🤮</button>
+                <button class="btn theme-btn clickable-opacity theme-border" type="button"
+                    @click="send_reaction('shit')">💩</button>
             </div>
         </div>
         <hr />
         <div class="input-group mb-2">
-            <input ref="message" type="text" class="form-control" placeholder="Send a message..."
+            <input ref="message" type="text" class="form-control search-card-input" placeholder="Send a message..."
                 @keyup.enter="sendMessage">
-            <button class="btn btn-dark" @click="sendMessage">Send</button>
+            <button class="btn theme-btn black-on-hover text-white fw-bold" @click="sendMessage">Send</button>
         </div>
     </div>
     <div v-show="alert.show">
@@ -41,16 +48,16 @@
         </div>
     </div>
     <div v-show="store.peer_status == 'requesting'">
-        <div class="d-flex flex-column card bg-dark p-4 rounded text-white">
+        <div class="d-flex flex-column card foreground p-3 rounded text-white">
             <div class="d-flex mb-2 ">
-                <p>
+                <p class="theme-color">
                     <a class="text-danger fw-bold" :href="recipient_profile">{{ contacts.requester.username }}</a>
                     wants to start a group session with you.
                 </p>
             </div>
             <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-danger" @click="rejectRequest">Reject</button>
-                <button type="button" class="btn btn-success" @click="acceptRequest">Accept</button>
+                <button type="button" class="btn btn-danger fw-bold" @click="rejectRequest">Reject</button>
+                <button type="button" class="btn btn-success fw-bold" @click="acceptRequest">Accept</button>
             </div>
         </div>
     </div>
@@ -279,8 +286,9 @@ props.conn.on("data", async function (data) {
 
             case 'removeQueueTrack':
                 store.func_stack.push(async function op() {
-                    ft.removeQueueTrack(data.object);
+                    ft.removeQueueTrack(...data.object);
                 })
+                break;
 
             // Play operations
             case 'playTrack':

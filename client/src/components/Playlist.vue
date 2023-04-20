@@ -377,6 +377,9 @@ async function get_federated_playlist(id) {
         return;
     }
 
+    playlist.value = data.playlist;
+    playlist.value.server = domain.value;
+
     // Push track placeholders
     for (let i = 0; i < data.playlist.tracks.length; i++) {
         tracks.value.push({});
@@ -386,6 +389,7 @@ async function get_federated_playlist(id) {
     get_federated_tracks(data.federated, data.playlist.tracks);
 
     // Get local tracks
+    data.tracks.map(track => track.server = domain.value);
     for (let i = 0; i < data.playlist.tracks.length; i++) {
         let track_id = data.playlist.tracks[i];
         let tracks_found = data.tracks.filter(t => t.id == track_id);
@@ -393,8 +397,6 @@ async function get_federated_playlist(id) {
             tracks.value[i] = tracks_found[0];
         }
     }
-
-    playlist.value = data.playlist;
 
     loaded.value = true;
 }

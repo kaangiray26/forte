@@ -95,7 +95,7 @@ async function play_album(id) {
         func: async function op() {
             ft.playAlbum(id)
         },
-        object: id,
+        object: [id],
         operation: "playAlbum"
     })
 }

@@ -110,7 +110,7 @@ async function play_playlist(id) {
         func: async function op() {
             ft.playPlaylist(id)
         },
-        object: id,
+        object: [id],
         operation: "playPlaylist"
     })
 }

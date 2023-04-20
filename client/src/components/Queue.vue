@@ -64,10 +64,9 @@ async function remove_track(index) {
         func: async function op() {
             ft.removeQueueTrack(index);
         },
-        object: index,
+        object: [index],
         operation: "removeQueueTrack"
     })
-
 }
 
 function get_track_cover(cover) {
@@ -133,7 +132,7 @@ async function clear_queue() {
             ft.setCurrentQueue(q);
             refresh_queue();
         },
-        object: null,
+        object: [null],
         operation: "clearQueue"
     })
 }
@@ -150,7 +149,7 @@ async function play_queue_track(index) {
             }
             ft.load_track(q[store.queue_index]);
         },
-        object: index,
+        object: [index],
         operation: "playQueueTrack"
     })
 }

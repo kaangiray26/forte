@@ -3,8 +3,8 @@
         <div class="p-3">
             <div class="position-relative clickable-shadow rounded">
                 <div @click="openAlbum">
-                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.album.cover)" @error="placeholder"
-                        height="250" width="250" />
+                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.album.cover)"
+                        @error="placeholder" />
                 </div>
                 <div class="position-absolute bottom-0 right-0 m-2">
                     <button class="btn btn-light action-btn bi bi-play-fill" type="button" @click="play(props.album.id)">
@@ -23,7 +23,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { right_click } from '/js/events.js';
+import { action, right_click } from '/js/events.js';
 
 const router = useRouter();
 
@@ -53,7 +53,7 @@ async function play(id) {
         func: async function op() {
             ft.playAlbum(id);
         },
-        object: id,
+        object: [id],
         operation: "playAlbum",
     })
 }

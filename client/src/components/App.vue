@@ -43,7 +43,7 @@ async function keyPress(event) {
             func: async function op() {
                 ft.play();
             },
-            object: null,
+            object: [null],
             operation: "play"
         });
         return;
@@ -56,7 +56,7 @@ async function keyPress(event) {
             func: async function op() {
                 ft.play_previous();
             },
-            object: null,
+            object: [null],
             operation: "playPrevious"
         });
         return;
@@ -69,7 +69,7 @@ async function keyPress(event) {
             func: async function op() {
                 ft.play_next();
             },
-            object: null,
+            object: [null],
             operation: "playNext"
         });
         return;

@@ -5,7 +5,7 @@
                 <div v-show="store.playing.loaded">
                     <div class="d-flex flex-row justify-content-between align-items-center p-2 pb-0 rounded m-0">
                         <div class="d-flex flex-row align-items-center">
-                            <div class="clickable-shadow" @click="openAlbum"
+                            <div class="clickable-opacity" @click="openAlbum"
                                 @contextmenu.prevent="right_click({ item: store.playing, event: $event })">
                                 <img class="img-fluid rounded me-2" :src="get_cover(store.playing.cover)"
                                     @error="placeholder" width="56" height="56" />
@@ -192,10 +192,10 @@ const repeat_icon = computed(() => {
         return 'bi-repeat text-muted';
     }
     if (store.playing.repeat == 1) {
-        return 'bi-repeat text-white';
+        return 'bi-repeat';
     }
     if (store.playing.repeat == 2) {
-        return 'bi-repeat-1 text-white';
+        return 'bi-repeat-1';
     }
 });
 
@@ -224,7 +224,7 @@ async function seekProgress(ev) {
         func: async function op() {
             ft.seek(point);
         },
-        object: point,
+        object: [point],
         operation: "seek"
     })
 }
@@ -282,7 +282,7 @@ async function play() {
         func: async function op() {
             ft.play();
         },
-        object: null,
+        object: [null],
         operation: "play"
     });
 }
@@ -293,7 +293,7 @@ async function play_previous() {
         func: async function op() {
             ft.play_previous();
         },
-        object: null,
+        object: [null],
         operation: "playPrevious"
     });
 }
@@ -304,7 +304,7 @@ async function play_next() {
         func: async function op() {
             ft.play_next();
         },
-        object: null,
+        object: [null],
         operation: "playNext"
     });
 }
@@ -328,7 +328,7 @@ async function repeat() {
         func: async function op() {
             ft.repeat();
         },
-        object: null,
+        object: [null],
         operation: "repeat"
     });
 }

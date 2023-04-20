@@ -46,10 +46,10 @@
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
             <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: friend, event: $event })">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative clickable-shadow rounded"
-                        @click="openProfile(friend.username)">
-                        <img class="img-fluid theme-border rounded" :src="get_cover(friend.cover)" @error="placeholder"
-                            width="250" height="250" />
+                    <div class="d-inline-flex position-relative">
+                        <div class="d-inline-flex clickable-shadow rounded" @click="openProfile(friend.username)">
+                            <img class="playlist-img rounded" :src="get_cover(friend.cover)" @error="placeholder" />
+                        </div>
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
@@ -73,17 +73,19 @@ const friend_name = ref(null);
 const searchFinished = ref(true);
 
 async function placeholder(obj) {
-    obj.target.src = "/images/default_profile.svg";
+    obj.target.src = "/images/friend.svg";
 }
 
 function get_cover(cover) {
-    if (cover) {
-        if (cover.startsWith('http')) {
-            return cover;
-        }
-        return ft.server + '/' + cover;
+    if (!cover) {
+        return "/images/friend.svg"
     }
-    return "/images/default_profile.svg"
+
+    if (cover.startsWith('http')) {
+        return cover;
+    }
+
+    return ft.server + '/' + cover;
 }
 
 async function openProfile(id) {

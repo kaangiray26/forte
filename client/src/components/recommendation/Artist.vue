@@ -3,8 +3,8 @@
         <div class="p-3">
             <div class="position-relative clickable-shadow rounded">
                 <div @click="openArtist">
-                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.artist.cover)" @error="placeholder"
-                        height="250" width="250" />
+                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.artist.cover)"
+                        @error="placeholder" />
                 </div>
             </div>
             <div class="d-flex flex-fill">

@@ -47,7 +47,6 @@
         <ul class="list-group p-0">
             <div v-for="station in stations">
                 <li class="list-group-item theme-list-item clickable rounded d-flex p-1"
-                    @contextmenu.prevent="right_click({ item: track, event: $event })"
                     @click="openStation(station.guide_id, station.hover)">
                     <div class="d-flex w-100 foreground justify-content-between">
                         <div class="d-flex">

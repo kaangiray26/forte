@@ -1,12 +1,14 @@
 <template>
-    <div id="lyricsModal" class="modal p-2" tabindex="-1">
+    <div id="lyricsModal" class="modal" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 fw-bold">{{ store.playing.title }}</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content theme-bg theme-border">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h1 class="modal-title fs-5 theme-color fw-bold">{{ store.playing.title }}</h1>
+                    <button type="button" class="btn-close theme-filter" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body pt-0">
+                    <hr>
                     <div v-show="!loaded">
                         <div class="d-flex justify-content-center text-dark p-2">
                             <div class="spinner-border" role="status">
@@ -19,11 +21,10 @@
                             <h1 class="fs-5 fw-bold">Lyrics not found</h1>
                         </div>
                     </div>
-                    <div v-show="loaded" class="lyrics">
-                    </div>
+                    <div v-show="loaded" class="lyrics theme-color" />
                     <hr>
                     <div v-show="loaded">
-                        <a class="fw-bold" :href=url target="_blank">Source</a>
+                        <a class="theme-color fw-bold" :href=url target="_blank">Source</a>
                     </div>
                 </div>
             </div>
@@ -57,6 +58,8 @@ async function _get_lyrics(preload = false) {
         _show();
         return
     }
+
+    error.value = false;
 
     if (store.playing.id == track_id.value) {
         loaded.value = true;
@@ -99,7 +102,7 @@ async function _get_lyrics(preload = false) {
         div.querySelector(".rg_embed_footer").remove();
         div.querySelector(`#rg_embed_analytics_${lyrics_id.value}`).remove();
     } catch (e) {
-        console.log(e);
+        console.info(e);
     }
 
     document.querySelector(".lyrics").innerHTML = div.innerHTML;

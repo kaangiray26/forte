@@ -562,6 +562,7 @@ class Forte {
 
         let queue = this.getCurrentQueue();
         let track = queue[store.queue_index];
+        if (!track) return;
 
         // With federation
         if (track.server) {
@@ -588,6 +589,13 @@ class Forte {
                 return;
             }
             // Radio
+            if (this.inGroupSession()) {
+                store.queue_index = 0;
+                this.player._sounds[0]._node.pause();
+                store.playing.is_playing = false;
+                navigator.mediaSession.playbackState = "paused";
+                return
+            }
             this.API('/random/track').then((response) => {
                 this.load_track(response.track);
                 this.addToQueue([response.track]);
@@ -844,7 +852,7 @@ class Forte {
                 let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
 
                 store.queue_index = 0;
-                this.load_track(tracks[0]);
+                this.load_federated_track(tracks[0]);
                 this.addToQueueStart(tracks);
             })
             return
@@ -857,7 +865,13 @@ class Forte {
             let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
 
             store.queue_index = 0;
-            this.load_track(tracks[0]);
+
+            if (!tracks[0].server) {
+                this.load_federated_track(tracks[0]);
+            } else {
+                this.load_track(tracks[0]);
+            }
+
             this.addToQueueStart(tracks);
         })
     }
@@ -910,14 +924,25 @@ class Forte {
     async playPlaylistNext(playlist_id, domain = null) {
         // Federated
         if (domain) {
-            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
-                this.addToQueueNext(response.tracks);
+            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then(async (response) => {
+                if (!response.playlist.tracks.length) return;
+                response.tracks.map(track => track.server = domain);
+
+                // Get all tracks from playlist
+                let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
+
+                this.addToQueueNext(tracks);
             })
             return
         }
 
-        this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
-            this.addToQueueNext(response.tracks);
+        this.API(`/playlist/${playlist_id}/tracks`).then(async (response) => {
+            if (!response.playlist.tracks.length) return;
+
+            // Get all tracks from playlist
+            let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
+
+            this.addToQueueNext(tracks);
         })
     }
 
@@ -960,14 +985,25 @@ class Forte {
     async queuePlaylist(playlist_id, domain = null) {
         // Federated
         if (domain) {
-            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
-                this.addToQueue(response.tracks);
+            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then(async (response) => {
+                if (!response.playlist.tracks.length) return;
+                response.tracks.map(track => track.server = domain);
+
+                // Get all tracks from playlist
+                let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
+
+                this.addToQueue(tracks);
             })
             return
         }
 
-        this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
-            this.addToQueue(response.tracks);
+        this.API(`/playlist/${playlist_id}/tracks`).then(async (response) => {
+            if (!response.playlist.tracks.length) return;
+
+            // Get all tracks from playlist
+            let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
+
+            this.addToQueue(tracks);
         })
     }
 

@@ -4,8 +4,7 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile theme-border rounded" :src="get_cover()" @error="placeholder" width="250"
-                            height="250" />
+                        <img class="playlist-img rounded" :src="get_cover()" @error="placeholder" />
                         <div class="position-absolute bottom-0 right-0">
                         </div>
                     </div>
@@ -52,14 +51,14 @@ const query_param = computed(() => {
 })
 
 async function placeholder(obj) {
-    obj.target.src = "/images/default_profile.svg";
+    obj.target.src = "/images/friend.svg";
 }
 
 function get_cover() {
     if (user.value.cover) {
         return ft.server + '/' + user.value.cover;
     }
-    return "/images/default_profile.svg";
+    return "/images/friend.svg";
 }
 
 async function get_user(id) {

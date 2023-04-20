@@ -40,7 +40,7 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router'
-import { right_click } from '/js/events.js';
+import { action, right_click } from '/js/events.js';
 
 const router = useRouter();
 const results = ref([]);
@@ -52,7 +52,7 @@ const query_param = computed(() => {
 async function placeholder(obj) {
     switch (obj.target.attributes["type"].value) {
         case 'user':
-            obj.target.src = "/images/default_profile.svg";
+            obj.target.src = "/images/friend.svg";
             break;
         case 'track':
             obj.target.src = "/images/track.svg";
@@ -79,7 +79,7 @@ function get_cover(type, cover) {
 
     switch (type) {
         case 'user':
-            return "/images/default_profile.svg";
+            return "/images/friend.svg";
         case 'track':
             return "/images/track.svg";
         case 'album':
@@ -143,7 +143,13 @@ async function openResult(result) {
     }
 
     if (result.type == 'track') {
-        ft.playTrack(id, server);
+        action({
+            func: async function op() {
+                ft.playTrack(id, server);
+            },
+            object: [id, server],
+            operation: "playTrack",
+        })
         return;
     }
 

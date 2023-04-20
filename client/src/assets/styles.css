@@ -113,10 +113,6 @@ img {
     cursor: default;
 }
 
-.clickable-shadow:hover {
-    cursor: pointer;
-}
-
 .clickable-shadow:hover img {
     opacity: 0.75 !important;
 }
@@ -165,6 +161,11 @@ img {
     width: 100%;
     height: auto;
     max-width: 56px;
+    aspect-ratio: 1 / 1;
+}
+
+.square {
+    object-fit: cover;
     aspect-ratio: 1 / 1;
 }
 
@@ -263,24 +264,24 @@ THEMES
 
 /* Dark Theme */
 body.dark-theme {
-    /* --background-color: #191922; */
     --foreground-color: #23232D;
     --background-color: #121216;
     --text-color: #eee;
     --card-background: transparent;
     --shadow-color: rgb(255, 255, 255, 0.4);
     --input-border-color: #495057;
+    --btn-close: invert(1) grayscale(100%) brightness(200%);
 }
 
 /* Light Theme */
 body.light-theme {
-    /* --background-color: #fff; */
     --foreground-color: #FFFFFF;
     --background-color: #F8F8F9;
     --text-color: #000;
     --card-background: transparent;
     --shadow-color: rgba(0, 0, 0, 0.4);
     --input-border-color: #dee2e6;
+    --btn-close: none;
 }
 
 .form-control:focus {
@@ -314,7 +315,16 @@ hr {
 }
 
 .clickable-shadow:hover {
+    cursor: pointer;
     box-shadow: 0 0 1rem var(--shadow-color) !important;
+}
+
+.clickable-opacity {
+    cursor: pointer;
+}
+
+.clickable-opacity:hover {
+    opacity: 0.75 !important;
 }
 
 .red-on-hover:hover {
@@ -363,7 +373,6 @@ hr {
 }
 
 .player-card {
-    /* background-color: var(--bs-dark) !important; */
     background-color: #23232D !important;
 }
 
@@ -446,4 +455,12 @@ hr {
 
 .theme-shadow {
     box-shadow: 0 0 1rem var(--shadow-color) !important;
+}
+
+.theme-filter {
+    filter: var(--btn-close);
+}
+
+.theme-label::after {
+    background-color: transparent !important;
 }

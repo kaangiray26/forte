@@ -1,13 +1,13 @@
 <template>
-    <div id="playlistSelection" class="modal p-2" tabindex="-1">
+    <div id="playlistSelection" class="modal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content theme-bg">
-                <div class="d-flex justify-content-end p-4 pb-2">
-                    <button type="button" class="btn-close" @click="_hide" aria-label="Close"></button>
+            <div class="modal-content theme-bg theme-border">
+                <div class="d-flex justify-content-end p-3 pb-2">
+                    <button type="button" class="btn-close theme-filter" @click="_hide" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-0">
                     <div class="d-flex justify-content-center pb-2">
-                        <h3 class="fw-bold">Add to playlist</h3>
+                        <h3 class="theme-color fw-bold">Add to playlist</h3>
                     </div>
                     <ul class="list-group">
                         <li v-for="playlist in playlists"
@@ -17,7 +17,7 @@
                                 <img :src="get_cover(playlist.cover)" class="playlist-selection-img me-2"
                                     @error="placeholder">
                                 <div class="d-flex flex-column">
-                                    <span class="fw-bold">{{ playlist.title }}</span>
+                                    <span class="theme-color fw-bold">{{ playlist.title }}</span>
                                     <span class="fst-italic text-muted">{{ playlist.author }}</span>
                                 </div>
                             </div>

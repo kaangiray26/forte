@@ -24,7 +24,8 @@
                                         </button>
                                     </div>
                                 </li>
-                                <li class="list-group-item theme-list-item rounded" v-for="server in servers">
+                                <li class="list-group-item theme-list-item foreground rounded p-3"
+                                    v-for="server in servers">
                                     <div class="d-flex justify-content-between theme-color">
                                         <div class="d-flex flex-column flex-fill text-break">
                                             <div class="d-flex align-items-center justify-content-between">

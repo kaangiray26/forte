@@ -22,7 +22,7 @@ window.ft.init().then(() => {
             func: async function op() {
                 window.ft.play();
             },
-            object: null,
+            object: [null],
             operation: "play"
         });
     });
@@ -33,7 +33,7 @@ window.ft.init().then(() => {
             func: async function op() {
                 window.ft.play();
             },
-            object: null,
+            object: [null],
             operation: "play"
         });
     });
@@ -44,7 +44,7 @@ window.ft.init().then(() => {
             func: async function op() {
                 window.ft.play_next();
             },
-            object: null,
+            object: [null],
             operation: "playNext"
         });
     });
@@ -55,7 +55,7 @@ window.ft.init().then(() => {
             func: async function op() {
                 window.ft.play_previous();
             },
-            object: null,
+            object: [null],
             operation: "playPrevious"
         });
     });
