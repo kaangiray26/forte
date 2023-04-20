@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:3.1
+        image: kaangiray26/forte:4.0
         restart: on-failure
         ports:
             - "3000:3000"
@@ -10,15 +10,15 @@ services:
                 condition: service_healthy
         environment:
             port: 3000               # Set Port
-            version: "3.1"           # Set Version
+            version: "4.0"           # Set Version
             hostname: localhost      # Set Hostname
-            custom_about: false      # Set True if you want to use your own about page
             NODE_ENV: production     # Set Node Environment
+            custom_about: false      # For your own about page
             POSTGRES_HOST: postgres  # Postgres Host/IP
-            POSTGRES_PORT: 5432      # Postgres Database Port
-            POSTGRES_DB: forte       # Set Postgres Database Name
             POSTGRES_USER: forte     # Set Postgres Username
             POSTGRES_PASSWORD: forte # Set Postgres Password
+            POSTGRES_PORT: 5432      # Postgres Database Port
+            POSTGRES_DB: forte       # Set Postgres Database Name
         volumes:
             - <library>:/library
             - <about>:/about
@@ -26,9 +26,9 @@ services:
         image: kaangiray26/postgres:2.0
         restart: always
         environment:
-            POSTGRES_DB: forte       # Set Postgres Database Name
             POSTGRES_USER: forte     # Set Postgres Username
             POSTGRES_PASSWORD: forte # Set Postgres Password
+            POSTGRES_DB: forte       # Set Postgres Database Name
         volumes:
             - db-data:/var/lib/postgresql/data
         healthcheck:
