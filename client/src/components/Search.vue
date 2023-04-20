@@ -117,14 +117,12 @@ async function get_federated_search_results() {
         let response = await ft.fAPI(server, '/search/' + query);
         if (!response) return;
 
-
         // Add federated server results to results
         response.data.forEach(result => {
             result.server = server;
-            results.value.push(result);
-            // if (!results.value.filter(r => r.uuid == result.uuid).length) {
-            //     results.value.push(result);
-            // }
+            if (!results.value.filter(r => r.uuid == result.uuid).length) {
+                results.value.push(result);
+            }
         });
     }
 }
