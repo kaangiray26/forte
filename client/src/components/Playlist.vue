@@ -137,7 +137,6 @@ const federated = ref(false);
 const tracks = ref([]);
 const playlist = ref({})
 const comments = ref([]);
-
 const offset = ref(0);
 
 const loaded = ref(false);
@@ -162,7 +161,7 @@ function get_cover(cover) {
 function get_track_cover(cover) {
     if (cover) {
         if (cover.startsWith('http')) {
-            return cover;
+            return over;
         }
         return ft.server + '/' + cover;
     }
@@ -170,7 +169,7 @@ function get_track_cover(cover) {
 }
 
 async function placeholder(obj) {
-    obj.target.src = "/images/playlist.svg";
+    obj.target.src = "/images/cassette.svg";
 }
 
 async function track_placeholder(obj) {
@@ -292,7 +291,7 @@ async function play_track(track) {
     })
 }
 
-async function get_federated_tracks(track_ids, order, _offset) {
+async function get_federated_tracks(track_ids, order) {
     // Categorize ids by domain
     let domains = {};
     for (let track_id of track_ids) {
@@ -313,7 +312,7 @@ async function get_federated_tracks(track_ids, order, _offset) {
             let track_id = order[i];
             let found_tracks = data.tracks.filter(t => `${t.id}@${t.server}` == track_id);
             if (found_tracks.length) {
-                tracks.value[i + _offset] = found_tracks[0];
+                tracks.value[i] = found_tracks[0];
             }
         }
     }
@@ -325,24 +324,24 @@ async function get_playlist(id) {
 
     console.log(data);
 
+    playlist.value = data.playlist;
+
     // Push track placeholders
     for (let i = 0; i < data.playlist.tracks.length; i++) {
         tracks.value.push({});
     }
 
     // Get federated tracks
-    get_federated_tracks(data.federated, data.playlist.tracks, offset.value);
+    get_federated_tracks(data.federated, data.playlist.tracks);
 
     // Get local tracks
     for (let i = 0; i < data.playlist.tracks.length; i++) {
         let track_id = data.playlist.tracks[i];
         let tracks_found = data.tracks.filter(t => t.id == track_id);
         if (tracks_found.length) {
-            tracks.value[i + offset.value] = tracks_found[0];
+            tracks.value[i] = tracks_found[0];
         }
     }
-
-    playlist.value = data.playlist;
 
     if (JSON.parse(localStorage.getItem('username')) == playlist.value.author) {
         isAuthor.value = true;
@@ -386,14 +385,14 @@ async function get_federated_playlist(id) {
     }
 
     // Get federated tracks
-    get_federated_tracks(data.federated, data.playlist.tracks, offset.value);
+    get_federated_tracks(data.federated, data.playlist.tracks);
 
     // Get local tracks
     for (let i = 0; i < data.playlist.tracks.length; i++) {
         let track_id = data.playlist.tracks[i];
         let tracks_found = data.tracks.filter(t => t.id == track_id);
         if (tracks_found.length) {
-            tracks.value[i + offset.value] = tracks_found[0];
+            tracks.value[i] = tracks_found[0];
         }
     }
 

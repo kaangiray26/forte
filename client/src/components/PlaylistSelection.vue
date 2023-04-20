@@ -13,7 +13,8 @@
                         <li v-for="playlist in playlists" class="list-group-item list-group-item-action clickable"
                             @click="add_to_playlist(playlist.id)">
                             <div class="d-flex flex-fill align-items-center">
-                                <img :src="get_cover(playlist.cover)" class="playlist-selection-img me-2">
+                                <img :src="get_cover(playlist.cover)" class="playlist-selection-img me-2"
+                                    @error="placeholder">
                                 <div class="d-flex flex-column">
                                     <span class="fw-bold">{{ playlist.title }}</span>
                                     <span class="fst-italic text-muted">{{ playlist.author }}</span>
@@ -31,7 +32,6 @@
 import { ref, onMounted } from 'vue';
 import { Modal } from 'bootstrap';
 import { notify } from "/js/events.js";
-import { track } from '@vue/reactivity';
 
 const modal = ref(null);
 const track_id = ref(null);
@@ -42,6 +42,10 @@ function get_cover(cover) {
         return ft.server + '/' + cover;
     }
     return "/images/cassette.svg"
+}
+
+async function placeholder(obj) {
+    obj.target.src = "/images/cassette.svg";
 }
 
 async function add_to_playlist(playlist_id) {

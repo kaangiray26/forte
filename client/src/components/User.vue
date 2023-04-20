@@ -13,13 +13,13 @@
                 <div class="col">
                     <h1 class="theme-color album-title mb-4">{{ user.username }}</h1>
                     <div v-show="!is_self" class="pt-2">
-                        <button v-show="friend" type="button"
-                            class="btn btn-dark theme-btn black-on-hover fw-bold text-nowrap" @click="remove_friend">
+                        <button v-show="friend" type="button" class="btn theme-btn black-on-hover text-white fw-bold"
+                            @click="remove_friend">
                             <span class="bi bi-emoji-smile-fill me-2"></span>
                             <span>Friends</span>
                         </button>
-                        <button v-show="!friend" type="button"
-                            class="btn btn-dark theme-btn black-on-hover fw-bold text-nowrap" @click="add_friend">
+                        <button v-show="!friend" type="button" class="btn theme-btn black-on-hover text-white fw-bold"
+                            @click="add_friend">
                             <span class="bi bi-emoji-frown-fill me-2"></span>
                             <span>Add Friend</span>
                         </button>
