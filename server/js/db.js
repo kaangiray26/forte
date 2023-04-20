@@ -3391,7 +3391,7 @@ async function _get_user_tracks(req, res, next) {
             return;
         }
         if (!user.fav_tracks) {
-            res.status(200).json({ "tracks": [], "federated": [], "total": 0 })
+            res.status(200).json({ "tracks": [], "federated": [], "total": 0, "order": [] })
             return;
         }
 

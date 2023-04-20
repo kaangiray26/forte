@@ -254,7 +254,7 @@ async function get_federated_comments(id) {
     }
     searchFinished.value = false;
 
-    let data = await ft.fAPI(domain.value, `/comments/album/${id}/${offset.value}`);
+    let data = await ft.fAPI(domain.value, `/comments/playlist/${id}/${offset.value}`);
     if (!data || data.error) {
         return;
     }
@@ -380,8 +380,24 @@ async function get_federated_playlist(id) {
         return;
     }
 
+    // Push track placeholders
+    for (let i = 0; i < data.playlist.tracks.length; i++) {
+        tracks.value.push({});
+    }
+
+    // Get federated tracks
+    get_federated_tracks(data.federated, data.playlist.tracks, offset.value);
+
+    // Get local tracks
+    for (let i = 0; i < data.playlist.tracks.length; i++) {
+        let track_id = data.playlist.tracks[i];
+        let tracks_found = data.tracks.filter(t => t.id == track_id);
+        if (tracks_found.length) {
+            tracks.value[i + offset.value] = tracks_found[0];
+        }
+    }
+
     playlist.value = data.playlist;
-    tracks.value = data.tracks;
 
     loaded.value = true;
 }
