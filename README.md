@@ -88,6 +88,7 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 * [x] User profiles
 * [x] Last.fm Scrobbling
 * [x] Dark mode
+* [x] Federation 
 
 ---
 
@@ -106,7 +107,7 @@ forte is a self-hosted music platform. You can either **connect to a forte serve
 ---
 
 ## Documentation
-* Click [here](https://raw.githubusercontent.com/kaangiray26/forte/main/docs/api_documentation.md) for the API documentation.
+* Click [here](https://github.com/kaangiray26/forte/blob/main/docs/api_documentation.md) for the API documentation.
 
 ---
 
