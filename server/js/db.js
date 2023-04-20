@@ -3214,7 +3214,7 @@ async function _get_author_playlists(req, res, next) {
             res.status(400).json({ "error": "User not found." })
             return;
         }
-        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1", [author]);
+        let playlists = await t.manyOrNone("SELECT * FROM playlists WHERE author = $1 ORDER BY id", [author]);
         if (!playlists) {
             res.status(200).json({ "playlists": [] })
             return
@@ -4614,7 +4614,7 @@ async function _get_lyrics(req, res, next) {
                 return
             }
 
-            res.status(200).json({ "id": data.response.hits[0].result.id })
+            res.status(200).json({ "id": data.response.hits[0].result.id, "url": data.response.hits[0].result.url })
             return
         }
 
@@ -4644,7 +4644,7 @@ async function _get_lyrics(req, res, next) {
             return
         }
 
-        res.status(200).json({ "id": data.response.hits[0].result.id })
+        res.status(200).json({ "id": data.response.hits[0].result.id, "url": data.response.hits[0].result.url })
         return
     })
 }

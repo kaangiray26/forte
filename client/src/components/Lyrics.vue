@@ -21,6 +21,10 @@
                     </div>
                     <div v-show="loaded" class="lyrics">
                     </div>
+                    <hr>
+                    <div v-show="loaded">
+                        <a class="fw-bold" :href=url target="_blank">Source</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -33,6 +37,7 @@ import { Modal } from 'bootstrap';
 import { store } from '/js/store.js';
 import { notify } from '/js/events.js';
 
+const url = ref(null);
 const modal = ref(null);
 const track_id = ref(null);
 const lyrics_id = ref(null);
@@ -80,6 +85,7 @@ async function _get_lyrics(preload = false) {
         return
     }
 
+    url.value = response.url;
     lyrics_id.value = response.id;
 
     let lyrics = await fetch(`https://genius.com/songs/${lyrics_id.value}/embed.js`)
@@ -88,13 +94,16 @@ async function _get_lyrics(preload = false) {
     let div = document.createElement('div');
     div.innerHTML = eval(lyrics.match(/JSON\.parse\('(.*)'\)/)[0]);
 
-    div.querySelector(".rg_embed_header").remove();
-    div.querySelector(".rg_embed_footer").remove();
-    div.querySelector(`#rg_embed_analytics_${lyrics_id.value}`).remove();
+    try {
+        div.querySelector(".rg_embed_header").remove();
+        div.querySelector(".rg_embed_footer").remove();
+        div.querySelector(`#rg_embed_analytics_${lyrics_id.value}`).remove();
+    } catch (e) {
+        console.log(e);
+    }
 
     document.querySelector(".lyrics").innerHTML = div.innerHTML;
     loaded.value = true;
-    return
 }
 
 function _show() {
