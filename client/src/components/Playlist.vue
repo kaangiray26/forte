@@ -67,7 +67,7 @@
                                         <ul class="dropdown-menu shadow-lg context-menu">
                                             <li>
                                                 <button class="dropdown-item" type="button"
-                                                    @click="delete_track_from_playlist(track.id)">
+                                                    @click="delete_track_from_playlist(index)">
                                                     <span class="bi bi-trash-fill me-1"></span>Delete
                                                     track</button>
                                             </li>
@@ -263,9 +263,9 @@ async function get_federated_comments(id) {
     searchFinished.value = true;
 }
 
-async function delete_track_from_playlist(id) {
-    await ft.deleteTrackFromPlaylist(playlist.value.id, id);
-    get_playlist(router.currentRoute.value.params.id);
+async function delete_track_from_playlist(index) {
+    await ft.deleteTrackFromPlaylist(playlist.value.id, index);
+    setup();
 }
 
 // Must be synchronized in groupSession: ok
@@ -322,11 +322,10 @@ async function get_playlist(id) {
     let data = await ft.API(`/playlist/${id}`);
     if (!data || data.error) return;
 
-    console.log(data);
-
     playlist.value = data.playlist;
 
     // Push track placeholders
+    tracks.value = [];
     for (let i = 0; i < data.playlist.tracks.length; i++) {
         tracks.value.push({});
     }

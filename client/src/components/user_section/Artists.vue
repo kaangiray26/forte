@@ -39,10 +39,11 @@
                 </div>
             </div>
         </li>
-        <li v-if="artists.length == 0" class="list-group-item list-group-item-action d-flex justify-content-between">
+        <li v-if="artists.length == 0"
+            class="list-group-item theme-list-item-no-hover foreground d-flex justify-content-between">
             <div class="d-flex flex-fill align-items-center">
                 <div class="d-flex flex-column">
-                    <span class="fw-bold">No artists found</span>
+                    <span class="theme-color fw-bold">No artists found</span>
                 </div>
             </div>
         </li>

@@ -4,7 +4,7 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-auto">
                     <div class="d-inline-flex position-relative">
-                        <img class="img-profile shadow rounded" :src="get_cover()" @error="placeholder" width="250"
+                        <img class="img-profile theme-border rounded" :src="get_cover()" @error="placeholder" width="250"
                             height="250" />
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-pencil-square m-2" type="button"

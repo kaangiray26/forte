@@ -39,14 +39,11 @@
                 </div>
             </div>
         </li>
-        <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
-            @click="showPlaylistCreate">
-            <div class="d-flex flex-fill foreground align-items-center">
-                <img class="track-cover theme-border rounded" src="/images/add.svg" />
-                <div class="d-flex">
-                    <button class="btn btn-link search-link d-flex text-start" style="display:contents;">
-                        <span class="theme-color text-break">Create a playlist</span>
-                    </button>
+        <li v-if="playlists.length == 0"
+            class="list-group-item theme-list-item-no-hover foreground d-flex justify-content-between">
+            <div class="d-flex flex-fill align-items-center">
+                <div class="d-flex flex-column">
+                    <span class="theme-color fw-bold">No playlists found</span>
                 </div>
             </div>
         </li>

@@ -5,20 +5,19 @@
                 <div v-show="store.playing.loaded">
                     <div class="d-flex flex-row justify-content-between align-items-center p-2 pb-0 rounded m-0">
                         <div class="d-flex flex-row align-items-center">
-                            <div class="clickable-shadow" @click="openAlbum">
-                                <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" @error="placeholder"
-                                    width="56" height="56" />
+                            <div class="clickable-shadow" @click="openAlbum"
+                                @contextmenu.prevent="right_click({ item: store.playing, event: $event })">
+                                <img class="img-fluid rounded me-2" :src="get_cover(store.playing.cover)"
+                                    @error="placeholder" width="56" height="56" />
                             </div>
                             <div class="d-flex flex-column">
-                                <div class="d-flex">
-                                    <div class="d-flex text-start ps-0 py-0" style="display:contents;" @click="openAlbum">
+                                <div class="d-flex mb-1">
+                                    <div class="d-flex clickable text-start p-0" style="display:contents;"
+                                        @click="openAlbum">
                                         <span class="purple-on-hover text-white text-break fw-bold">{{
                                             store.playing.title }}</span>
                                     </div>
-                                    <!-- <span class="fw-bold text-wrap clickable purple-on-hover" @click="openAlbum">
-                                        {{ store.playing.title }}
-                                    </span> -->
-                                    <span v-if="store.playing.server" class="theme-color">📻</span>
+                                    <span v-if="store.playing.server" class="ms-2 theme-color">📻</span>
                                 </div>
                                 <div>
                                     <button class="btn btn-sm btn-light fw-bold" @click="openQuality">{{
@@ -133,7 +132,7 @@ import Hammer from "hammerjs";
 import Queue from './Queue.vue';
 import Lyrics from './Lyrics.vue';
 import MobileView from './MobileView.vue';
-import { action } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 import QualityDisplay from './QualityDisplay.vue';
 
 const router = useRouter();

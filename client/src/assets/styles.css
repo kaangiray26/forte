@@ -442,3 +442,7 @@ hr {
 .theme-border {
     border: 1px solid var(--input-border-color);
 }
+
+.theme-shadow {
+    box-shadow: 0 0 1rem var(--shadow-color) !important;
+}

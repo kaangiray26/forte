@@ -3908,30 +3908,32 @@ async function _add_track_to_playlist(req, res, next) {
     })
 }
 
-async function _delete_track_to_playlist(req, res, next) {
+async function _delete_track_from_playlist(req, res, next) {
     let id = req.params.id;
     if (!id) {
         res.status(400).json({ "error": "ID parameter not given." });
         return;
     }
 
-    if (!['track'].every(key => req.body.hasOwnProperty(key))) {
+    // Check for uuid
+    let column = "id";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    if (!['index'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .send(JSON.stringify({
-                "error": "Track not given."
+                "error": "Track index not given."
             }));
         return;
     }
+    let index = parseInt(req.body.index) + 1;
+    let lower_bound = index - 1;
+    let upper_bound = index + 1;
 
     db.task(async t => {
         try {
-            // Checking if the track exists
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1", [req.body.track]);
-            if (!track) {
-                res.status(400).json({ "error": "Track not found." })
-                return;
-            }
-
             // Get user
             let user = await t.oneOrNone("SELECT username FROM users WHERE session = $1", [req.query.session]);
             if (!user) {
@@ -3939,8 +3941,8 @@ async function _delete_track_to_playlist(req, res, next) {
                 return;
             }
 
-            // Add to playlist
-            await t.none("UPDATE playlists SET tracks = array_remove(tracks, $1) WHERE id = $2 AND author = $3", [req.body.track, id, user.username]);
+            // Remove from playlist
+            await t.none(`UPDATE playlists SET tracks = tracks[:$1] || tracks[$2:] WHERE ${column} = $3 AND author = $4`, [lower_bound, upper_bound, id, user.username]);
             res.status(200).json({ "success": "Track removed." })
         } catch (e) {
             res.status(500).json({ "error": "Internal server error." });
@@ -4928,7 +4930,7 @@ const exports = {
     check_friends: _check_friends,
     create_playlist: _create_playlist,
     delete_playlist: _delete_playlist,
-    delete_track_to_playlist: _delete_track_to_playlist,
+    delete_track_from_playlist: _delete_track_from_playlist,
     federated_api: _federated_api,
     federated_stream: _federated_stream,
     get_album: _get_album,

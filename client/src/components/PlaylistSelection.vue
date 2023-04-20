@@ -1,7 +1,7 @@
 <template>
     <div id="playlistSelection" class="modal p-2" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content theme-bg">
                 <div class="d-flex justify-content-end p-4 pb-2">
                     <button type="button" class="btn-close" @click="_hide" aria-label="Close"></button>
                 </div>
@@ -10,7 +10,8 @@
                         <h3 class="fw-bold">Add to playlist</h3>
                     </div>
                     <ul class="list-group">
-                        <li v-for="playlist in playlists" class="list-group-item list-group-item-action clickable"
+                        <li v-for="playlist in playlists"
+                            class="list-group-item theme-list-item foreground-content clickable rounded d-flex p-1"
                             @click="add_to_playlist(playlist.id)">
                             <div class="d-flex flex-fill align-items-center">
                                 <img :src="get_cover(playlist.cover)" class="playlist-selection-img me-2"

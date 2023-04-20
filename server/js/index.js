@@ -195,7 +195,7 @@ app.get("/api/playlist/:id/basic", isAuthenticated, db.get_playlist_basic)
 app.get("/api/playlist/:id/delete", isAuthenticated, db.delete_playlist)
 app.get("/api/playlist/:id/tracks", isAuthenticated, db.get_playlist_tracks)
 app.post("/api/playlist/:id/add_track", isAuthenticated, db.add_track_to_playlist)
-app.post("/api/playlist/:id/delete_track", isAuthenticated, db.delete_track_to_playlist)
+app.post("/api/playlist/:id/delete_track", isAuthenticated, db.delete_track_from_playlist)
 app.get("/api/playlist/:id/loved", isAuthenticated, db.get_playlist_loved)
 
 // Station

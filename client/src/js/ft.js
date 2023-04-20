@@ -974,14 +974,14 @@ class Forte {
         return response;
     }
 
-    async deleteTrackFromPlaylist(playlist_id, track_id) {
+    async deleteTrackFromPlaylist(playlist_id, index) {
         let response = await fetch(this.server + `/api/playlist/${playlist_id}/delete_track` + `?session=${this.session}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "track": track_id
+                "index": index
             }),
             credentials: "include"
         }).then((response) => {

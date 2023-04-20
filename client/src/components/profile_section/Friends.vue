@@ -48,7 +48,7 @@
                 <div class="p-3">
                     <div class="d-inline-flex position-relative clickable-shadow rounded"
                         @click="openProfile(friend.username)">
-                        <img class="img-fluid bg-light rounded" :src="get_cover(friend.cover)" @error="placeholder"
+                        <img class="img-fluid theme-border rounded" :src="get_cover(friend.cover)" @error="placeholder"
                             width="250" height="250" />
                     </div>
                     <div class="d-flex flex-fill">

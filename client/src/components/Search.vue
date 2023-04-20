@@ -1,9 +1,10 @@
 <template>
     <ul class="list-group rounded-0 mx-3 px-3 pb-3 theme-background">
-        <li v-if="results.length == 0" class="list-group-item theme-btn text-light d-flex">
+        <li v-if="results.length == 0"
+            class="list-group-item theme-list-item-no-hover foreground theme-border d-flex justify-content-between">
             <div class="d-flex w-100 justify-content-between">
                 <div>
-                    <span class="fw-bold">No results</span>
+                    <span class="theme-color fw-bold">No results</span>
                 </div>
             </div>
         </li>
