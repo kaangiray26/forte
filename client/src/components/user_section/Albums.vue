@@ -31,42 +31,40 @@
         </li>
     </ul>
     <hr />
-    <div class="row g-2">
-        <div v-show="!total" class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2">
-            <div class="card h-100 w-100 border-0">
-                <div class="p-3">
-                    <div class="d-inline-flex position-relative">
-                        <img class="playlist-img" src="/images/empty.svg" />
-                    </div>
-                    <div class="d-flex flex-fill">
-                        <h6 class="theme-color fw-bold text-break text-wrap p-2 ps-0">No albums added yet</h6>
-                    </div>
+    <ul class="list-group">
+        <li class="list-group-item rounded mb-1 theme-btn text-light d-flex">
+            <div class="d-flex w-100 justify-content-between">
+                <div>
+                    <span class="fw-bold">{{ total }} liked albums</span>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="album in albums">
-            <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: album, event: $event })">
-                <div class="p-3">
-                    <div class="d-inline-flex position-relative clickable-shadow">
-                        <img class="playlist-img pe-auto" :src="get_cover(album.cover)" @click="openAlbum(album.id)" />
-                        <div class="d-flex position-absolute bottom-0 right-0 flex-nowrap">
-                            <button class="btn btn-light action-btn bi bi-play-fill m-2 me-2" type="button"
-                                @click="play_album(album.id)">
-                            </button>
-                        </div>
-                    </div>
-                    <div class="d-flex flex-fill">
-                        <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
-                            @click="openAlbum(album.id)">{{
-                                album.title }}</h6>
-                    </div>
+        </li>
+        <li v-if="albums.length == 0"
+            class="list-group-item theme-list-item-no-hover foreground d-flex justify-content-between">
+            <div class="d-flex flex-fill align-items-center">
+                <div class="d-flex flex-column">
+                    <span class="theme-color fw-bold">No albums found</span>
                 </div>
             </div>
-        </div>
-    </div>
+        </li>
+        <li class="list-group-item theme-list-item clickable rounded d-flex justify-content-between p-1"
+            v-for="album in albums" @contextmenu.prevent="right_click({ item: album, event: $event })"
+            @click="openAlbum(album)">
+            <div class="d-flex flex-fill foreground align-items-center">
+                <img :src="get_cover(album.cover)" class="track-cover theme-border rounded" @error="placeholder" />
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link search-link d-flex text-start py-0" :content_id="album.id"
+                        :content_type="album.type" style="display:contents;">
+                        <span class="theme-color text-break">{{
+                            album.title }}</span>
+                    </button>
+                </div>
+            </div>
+        </li>
+    </ul>
     <div class="d-flex justify-content-end mt-2">
-        <button v-show="searchFinished" type="button" class="btn btn-dark theme-btn black-on-hover fw-bold"
-            @click="get_albums">Load more</button>
+        <button v-show="searchFinished" type="button" class="btn theme-btn black-on-hover text-white fw-bold"
+            @click="setup">Load more</button>
         <button v-show="!searchFinished" class="btn btn-dark" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Loading...
@@ -80,6 +78,10 @@ import { useRouter } from 'vue-router';
 import { right_click } from '/js/events.js';
 
 const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const username = ref(router.currentRoute.value.params.id);
 
 const albums = ref([]);
@@ -93,7 +95,7 @@ async function play_album(id) {
         func: async function op() {
             ft.playAlbum(id)
         },
-        object: id,
+        object: [id],
         operation: "playAlbum"
     })
 }
@@ -108,32 +110,120 @@ function get_cover(cover) {
     return "/images/album.svg"
 }
 
-async function openAlbum(id) {
-    router.push("/album/" + id);
+async function placeholder(obj) {
+    obj.target.src = "/images/album.svg";
 }
 
-async function get_albums() {
+async function openAlbum(album) {
+    if (album.server) {
+        router.push("/album/" + album.id + "@" + album.server);
+        return
+    }
+    router.push("/album/" + album.id);
+}
+
+async function get_albums_from_domain(id) {
     if (!searchFinished.value) {
         return
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/user/${username.value}/albums/${offset.value}`);
+    let data = await ft.fAPI(domain.value, `/user/${id}/albums/${offset.value}/${total.value}`);
     if (!data) return;
 
-    total.value = data.total;
-    for (let i = 0; i < data.albums.length; i++) {
-        let album = data.albums[i];
-        if (albums.value.includes(album)) {
-            continue;
-        }
-        albums.value.push(album);
-        offset.value += 1;
+    // Push album placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        albums.value.push({});
     }
+
+    // Get federated albums
+    get_federated_albums(data.federated, data.order, offset.value);
+
+    // Get local albums
+    for (let i = 0; i < data.order.length; i++) {
+        let album_id = data.order[i];
+        let albums_found = data.albums.filter(t => t.id == album_id);
+        if (albums_found.length) {
+            albums.value[i + offset.value] = albums_found[0];
+        }
+    }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
     searchFinished.value = true;
 }
 
+async function get_albums(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.API(`/user/${id}/albums/${offset.value}/${total.value}`);
+    if (!data) return;
+
+    // Push album placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        albums.value.push({});
+    }
+
+    // Get federated albums
+    get_federated_albums(data.federated, data.order, offset.value);
+
+    // Get local albums
+    for (let i = 0; i < data.order.length; i++) {
+        let album_id = data.order[i];
+        let albums_found = data.albums.filter(t => t.id == album_id);
+        if (albums_found.length) {
+            albums.value[i + offset.value] = albums_found[0];
+        }
+    }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
+    searchFinished.value = true;
+}
+
+async function get_federated_albums(album_ids, order, _offset) {
+    // Categorize ids by domain
+    let domains = {};
+    for (let album_id of album_ids) {
+        let [id, domain] = album_id.split('@');
+        if (!domains[domain]) {
+            domains[domain] = [];
+        }
+        domains[domain].push(parseInt(id));
+    }
+
+    // Get federated albums from each domain
+    for (let domain in domains) {
+        let data = await ft.get_federated_albums(domain, domains[domain]);
+        if (!data) return;
+
+        data.albums.map(album => album.server = domain);
+        for (let i = 0; i < order.length; i++) {
+            let album_id = order[i];
+            let found_albums = data.albums.filter(t => `${t.id}@${t.server}` == album_id);
+            if (found_albums.length) {
+                albums.value[i + _offset] = found_albums[0];
+            }
+        }
+    }
+}
+
+async function setup() {
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        get_albums_from_domain(id);
+        return
+    }
+    get_albums(id);
+}
+
 onMounted(() => {
-    get_albums();
+    setup();
 })
 </script>

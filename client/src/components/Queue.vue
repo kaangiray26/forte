@@ -5,7 +5,7 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-            <ul class="list-group shadow-lg">
+            <ul class="list-group">
                 <li class="list-group-item bg-dark text-light d-flex pe-1">
                     <div class="d-flex justify-content-between w-100">
                         <div class="d-flex align-items-center">
@@ -17,15 +17,16 @@
                         </div>
                     </div>
                 </li>
-                <li class="list-group-item theme-list-item clickable d-flex p-1"
+                <li class="list-group-item theme-list-item foreground-content clickable d-flex p-1"
                     :class="{ 'now-playing': index === store.queue_index }" v-for="(track, index) in queue">
                     <div class="d-flex w-100 justify-content-between" @click="play_queue_track(index)">
                         <div class="d-flex">
-                            <div class="d-flex align-items-start">
-                                <img :src="get_track_cover(track.cover)" class="track-cover" @error="placeholder" />
+                            <div class="d-flex align-items-center">
+                                <img :src="get_track_cover(track.cover)" class="track-cover theme-border rounded"
+                                    @error="placeholder" />
                             </div>
                             <div class="d-flex align-items-center">
-                                <button class="btn btn-link search-link d-flex text-start" :content_id="track.id"
+                                <button class="btn btn-link search-link d-flex text-start py-0" :content_id="track.id"
                                     style="display:contents;">
                                     <span class="text-muted me-2">{{ index + 1 }}.</span>
                                     <span class="theme-color text-break">{{ track.title }}</span>
@@ -34,8 +35,8 @@
                         </div>
                     </div>
                     <div class="d-flex h-100 align-items-center">
-                        <button class="btn btn-dark theme-btn black-on-hover action-btn bi bi-x ms-0 m-2" type="button"
-                            @click="remove_track(index)"></button>
+                        <button class="btn theme-btn black-on-hover text-white fw-bold action-btn bi bi-x ms-0 m-2"
+                            type="button" @click="remove_track(index)"></button>
                     </div>
                 </li>
             </ul>
@@ -63,10 +64,9 @@ async function remove_track(index) {
         func: async function op() {
             ft.removeQueueTrack(index);
         },
-        object: index,
+        object: [index],
         operation: "removeQueueTrack"
     })
-
 }
 
 function get_track_cover(cover) {
@@ -132,7 +132,7 @@ async function clear_queue() {
             ft.setCurrentQueue(q);
             refresh_queue();
         },
-        object: null,
+        object: [null],
         operation: "clearQueue"
     })
 }
@@ -143,9 +143,13 @@ async function play_queue_track(index) {
         func: async function op() {
             let q = ft.getCurrentQueue();
             store.queue_index = index;
+            if (q[store.queue_index].server) {
+                ft.load_federated_track(q[store.queue_index]);
+                return
+            }
             ft.load_track(q[store.queue_index]);
         },
-        object: index,
+        object: [index],
         operation: "playQueueTrack"
     })
 }

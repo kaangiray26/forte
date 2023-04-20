@@ -54,7 +54,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { store } from '/js/store.js';
 import { Modal } from "bootstrap"
 
 let loginModal = null;
@@ -78,12 +77,26 @@ async function connect() {
     }
 
     fail.value = true;
+    let address = server.value.value;
+    // Check for federated host
+    if (!address.startsWith("http://") && !address.startsWith("https://")) {
+        // Check servers branch
+        let location = await ft.get_address(address);
+
+        if (!location) {
+            fail.value = false;
+            return
+        }
+
+        // Replace address with the one in the file
+        address = location
+    }
 
     ft.connect(
-        server.value.value, username.value.value, token.value.value
+        address, username.value.value, token.value.value
     ).then((logged) => {
         if (logged) {
-            console.log("Logged in");
+            loginModal.hide();
             window.location.replace("/");
             return;
         };

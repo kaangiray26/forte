@@ -5,6 +5,7 @@ import Search from "/components/Search.vue";
 
 import AllArtists from "/components/Artists.vue";
 import AllAlbums from "/components/Albums.vue";
+import AllPlaylists from "/components/Playlists.vue";
 
 import Artist from "/components/Artist.vue";
 import Album from "/components/Album.vue";
@@ -36,6 +37,7 @@ import LastfmAuth from "/components/LastfmAuth.vue"
 import TrackRedirect from "/components/TrackRedirect.vue"
 
 import NotFound from "/components/NotFound.vue"
+import Servers from "/components/Servers.vue"
 
 const routes = [
     { path: '/:pathMatch(.*)*', component: NotFound },
@@ -51,6 +53,10 @@ const routes = [
     {
         path: "/albums",
         component: AllAlbums
+    },
+    {
+        path: "/playlists",
+        component: AllPlaylists
     },
     {
         path: "/search/:query",
@@ -83,6 +89,10 @@ const routes = [
     {
         path: "/auth/lastfm",
         component: LastfmAuth
+    },
+    {
+        path: "/servers",
+        component: Servers
     },
     {
         path: '/profile',

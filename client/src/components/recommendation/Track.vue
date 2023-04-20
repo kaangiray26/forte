@@ -1,14 +1,13 @@
 <template>
     <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.track, event: $event })">
         <div class="p-3">
-            <div class="position-relative clickable-shadow">
+            <div class="position-relative clickable-shadow rounded">
                 <div @click="openTrack">
-                    <img class="img-fluid placeholder-img" :src="get_cover(props.track.cover)" @error="placeholder"
-                        height="250" width="250" />
+                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.track.cover)"
+                        @error="placeholder" />
                 </div>
-                <div class="position-absolute bottom-0 right-0">
-                    <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
-                        @click="play(props.track.id)">
+                <div class="position-absolute bottom-0 right-0 m-2">
+                    <button class="btn btn-light action-btn bi bi-play-fill" type="button" @click="play(props.track.id)">
                     </button>
                 </div>
             </div>
@@ -56,7 +55,7 @@ async function play(id) {
         func: async function op() {
             ft.playTrack(id);
         },
-        object: id,
+        object: [id],
         operation: "playTrack",
     })
 }

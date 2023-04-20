@@ -35,6 +35,13 @@
                     <span class="fs-5">Albums</span>
                 </router-link>
             </li>
+            <li class="nav-item mb-2">
+                <router-link to="/playlists" class="nav-link side-bar-text fw-bold" aria-current="page">
+                    <span class="fs-5 bi me-1"
+                        :class="{ 'bi-cassette-fill': path == '/playlists', 'bi-cassette': path != '/playlists' }"></span>
+                    <span class="fs-5">Playlists</span>
+                </router-link>
+            </li>
             <li class="nav-item">
                 <router-link to="/profile" class="nav-link side-bar-text fw-bold" aria-current="page">
                     <span class="fs-5 bi bi-person-circle me-1"></span>

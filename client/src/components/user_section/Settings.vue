@@ -78,14 +78,29 @@ import { ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+
+// Federated
+const domain = ref(null);
+
 const username = ref(router.currentRoute.value.params.id);
 
 const lastfm_profile = ref(null);
 const lastfm_api_key = ref(null);
 const top_tracks = ref([]);
 
-async function check_lastfm_profile() {
-    let response = await ft.API(`/lastfm/profile/${username.value}`);
+async function check_lastfm_profile(id) {
+    let response = await ft.API('/lastfm/profile/' + id);
+    if (!response.lastfm) {
+        return
+    }
+
+    get_lastfm_profile(response.lastfm);
+    get_top_tracks(response.lastfm);
+}
+
+async function check_federated_lastfm_profile(id) {
+    let response = await ft.fAPI(domain.value, '/lastfm/profile/' + id);
+
     if (!response.lastfm) {
         return
     }
@@ -110,13 +125,23 @@ function formatNumber(num) {
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
-onBeforeMount(async () => {
+async function setup() {
     let response = await ft.API('/lastfm/auth');
     if (response.hasOwnProperty('error')) {
         return
     }
     lastfm_api_key.value = response.api_key;
 
-    check_lastfm_profile();
+    let id = router.currentRoute.value.params.id;
+    if (id.includes('@')) {
+        [id, domain.value] = id.split('@');
+        check_federated_lastfm_profile(id);
+        return
+    }
+    check_lastfm_profile(id);
+}
+
+onBeforeMount(() => {
+    setup();
 })
 </script>

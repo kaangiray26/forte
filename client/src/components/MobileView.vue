@@ -137,7 +137,7 @@ async function repeat() {
         func: async function op() {
             ft.repeat();
         },
-        object: null,
+        object: [null],
         operation: "repeat"
     });
 }

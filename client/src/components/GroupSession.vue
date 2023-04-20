@@ -1,32 +1,31 @@
 <template>
-    <div id="groupSessionModal" class="modal fade p-2" role="dialog" tabindex="-1" aria-hidden="true">
+    <div id="groupSessionModal" class="modal" role="dialog" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header d-flex flex-column">
-                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="mb-2">
-                        <h2 class="modal-title fw-bolder">Group Session</h2>
-                    </div>
-                    <div>
-                        <span>Connect to another user to start a group session.</span>
-                    </div>
+            <div class="modal-content theme-bg theme-border">
+                <div class="modal-header d-flex flex-column border-bottom-0 pb-0">
+                    <button class="btn-close theme-filter" type="button" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                    <h2 class="modal-title theme-color fw-bold">Group Session</h2>
+                    <span class="text-muted">Connect to another user to start a group session.</span>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body pt-0">
+                    <hr>
                     <div v-show="store.peer_status != 'connected'" class="input-group mb-2">
                         <form class="form-floating">
-                            <input type="text" class="form-control" id="floatingInputValue" :value="peer_id" readonly>
-                            <label for="floatingInputValue">My PeerID</label>
+                            <input type="text" class="form-control search-card-input" id="floatingInputValue"
+                                :value="peer_id" readonly>
+                            <label for="floatingInputValue" class="theme-label theme-color">My PeerID</label>
                         </form>
-                        <button class="btn btn-dark" @click="copyPeerID">Copy</button>
+                        <button class="btn theme-btn black-on-hover text-white fw-bold" @click="copyPeerID">Copy</button>
                     </div>
                     <div class="input-group mb-2" v-show="store.peer_status.startsWith('disconnected')">
-                        <span class="input-group-text" id="basic-addon1">@</span>
-                        <input ref="recipient_id" type="text" class="form-control" placeholder="PeerID"
+                        <input ref="recipient_id" type="text" class="form-control search-card-input" placeholder="PeerID"
                             aria-label="Username" aria-describedby="basic-addon1">
-                        <button v-show="store.peer_status == 'disconnected'" class="btn btn-dark"
+                        <button v-show="store.peer_status == 'disconnected'"
+                            class="btn theme-btn black-on-hover text-white fw-bold"
                             @click="createConnection">Connect</button>
-                        <button v-show="store.peer_status == 'disconnected.connecting'" class="btn btn-dark"
-                            @click="stopConnection">Stop</button>
+                        <button v-show="store.peer_status == 'disconnected.connecting'"
+                            class="btn theme-btn black-on-hover text-white fw-bold" @click="stopConnection">Stop</button>
                     </div>
                     <PeerJS ref="thisPeerJS" v-if="peerInit" :key="peer_key" :peer="peer" :conn="conn" :peer_id="peer_id"
                         @show="_show" @disconnected="disconnect" @reaction="showReaction" @message="showMessage">

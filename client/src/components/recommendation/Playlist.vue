@@ -1,20 +1,21 @@
 <template>
-    <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.album, event: $event })">
+    <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.playlist, event: $event })">
         <div class="p-3">
             <div class="position-relative clickable-shadow rounded">
-                <div @click="openAlbum">
-                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.album.cover)"
+                <div @click="openPlaylist">
+                    <img class="square img-fluid placeholder-img rounded" :src="get_cover(props.playlist.cover)"
                         @error="placeholder" />
                 </div>
                 <div class="position-absolute bottom-0 right-0 m-2">
-                    <button class="btn btn-light action-btn bi bi-play-fill" type="button" @click="play(props.album.id)">
+                    <button class="btn btn-light action-btn bi bi-play-fill" type="button" @click="play(props.playlist.id)">
                     </button>
                 </div>
             </div>
             <div class="d-flex flex-fill">
-                <h6 class="theme-color purple-on-hover fw-bold text-break text-wrap clickable p-2 ps-0" @click="openAlbum">
+                <h6 class="theme-color purple-on-hover fw-bold text-break text-wrap clickable p-2 ps-0"
+                    @click="openPlaylist">
                     {{
-                        props.album.title
+                        props.playlist.title
                     }}</h6>
             </div>
         </div>
@@ -23,17 +24,17 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { action, right_click } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 
 async function placeholder(obj) {
-    obj.target.src = "/images/album.svg";
+    obj.target.src = "/images/cassette.svg";
 }
 
 function get_cover(cover) {
     if (!cover) {
-        return "/images/album.svg"
+        return "/images/cassette.svg"
     }
 
     if (cover.startsWith("http")) {
@@ -43,23 +44,23 @@ function get_cover(cover) {
     return ft.server + '/' + cover;
 }
 
-async function openAlbum() {
-    router.push("/album/" + props.album.id);
+async function openPlaylist() {
+    router.push("/playlist/" + props.playlist.id);
 }
 
 // Must be synchronized in groupSession: ok
 async function play(id) {
     action({
         func: async function op() {
-            ft.playAlbum(id);
+            ft.playPlaylist(id);
         },
         object: [id],
-        operation: "playAlbum",
+        operation: "playPlaylist",
     })
 }
 
 const props = defineProps({
-    album: {
+    playlist: {
         type: Object,
     }
 });

@@ -1,16 +1,17 @@
 <template>
     <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.artist, event: $event })">
         <div class="p-3">
-            <div class="position-relative clickable-shadow">
+            <div class="position-relative clickable-shadow rounded">
                 <div @click="openArtist">
-                    <img class="img-fluid placeholder-img" :src="get_cover(props.artist.cover)" @error="placeholder"
-                        height="250" width="250" />
+                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.artist.cover)"
+                        @error="placeholder" />
                 </div>
             </div>
             <div class="d-flex flex-fill">
-                <h6 class="theme-color red-on-hover fw-bold text-break text-wrap clickable p-2 ps-0" @click="openArtist">{{
-                    props.artist.title
-                }}</h6>
+                <h6 class="theme-color purple-on-hover fw-bold text-break text-wrap clickable p-2 ps-0" @click="openArtist">
+                    {{
+                        props.artist.title
+                    }}</h6>
             </div>
         </div>
     </div>

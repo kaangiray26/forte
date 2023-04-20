@@ -1,14 +1,11 @@
 <template>
     <div aria-live="polite" aria-atomic="true">
-        <div ref="toast_container" class="toast-container bottom-0 start-50 translate-middle-x pb-4">
-            <div :id="'message_' + index" class="toast mb-2" role="alert" aria-live="assertive" aria-atomic="true"
-                v-for="(toast, index) in toasts">
+        <div ref="toast_container" class="toast-container bottom-0 start-50 translate-middle-x px-2">
+            <div :id="'message_' + index" class="toast mb-2" data-bs-dismiss="toast" role="alert" aria-live="assertive"
+                aria-atomic="true" v-for="(toast, index) in toasts">
                 <div class="d-flex flex-column">
-                    <div class="d-flex justify-content-end mt-2 me-2">
-                        <button type="button" class="btn-close pt-2 pe-2" data-bs-dismiss="toast" aria-label="Close" />
-                    </div>
                     <div class="d-flex justify-content-center">
-                        <div class="toast-body d-flex flex-fill flex-column pt-0">
+                        <div class="toast-body d-flex flex-fill flex-column">
                             <div class="d-flex justify-content-center">
                                 <h3 class="fw-bold text-break m-0">{{ toast.message }}</h3>
                             </div>

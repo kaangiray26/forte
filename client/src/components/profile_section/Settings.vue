@@ -46,10 +46,10 @@
                     </div>
                 </div>
                 <div class="input-group flex-nowrap mb-2">
-                    <span class="input-group-text" id="basic-addon1">Scrobbling</span>
-                    <button v-show="!lastfm_config.scrobbling" type="button" class="btn btn-danger flex-fill"
+                    <span class="input-group-text foreground theme-color theme-border" id="basic-addon1">Scrobbling</span>
+                    <button v-show="!lastfm_config.scrobbling" type="button" class="btn btn-danger flex-fill rounded-end"
                         @click="toggle_scrobbling">Off</button>
-                    <button v-show="lastfm_config.scrobbling" type="button" class="btn btn-success flex-fill"
+                    <button v-show="lastfm_config.scrobbling" type="button" class="btn btn-success flex-fill rounded-end"
                         @click="toggle_scrobbling">On</button>
                 </div>
                 <button v-if="lastfm_profile" class="btn btn-dark mb-2" @click="remove_account">Remove account</button>
@@ -81,20 +81,30 @@
         <div class="card-body">
             <div class="d-inline-flex">
                 <div class="d-flex flex-column">
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold flex-nowrap m-1" @click="change_theme">
-                        <span class="me-2">Theme</span>
-                        <span class="bi"
+                    <router-link to="/servers">
+                        <button class="btn theme-btn black-on-hover text-white fw-bold flex-nowrap text-start m-1">
+                            <span class="bi bi-globe me-2"></span>
+                            <span>Servers</span>
+                        </button>
+                    </router-link>
+                    <button class="btn theme-btn black-on-hover text-white fw-bold flex-nowrap text-start m-1"
+                        @click="change_theme">
+                        <span class="bi me-2"
                             :class="{ 'bi-sun-fill': store.theme == 'light', 'bi-moon-fill': store.theme == 'dark' }"></span>
+                        <span>Theme</span>
                     </button>
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold m-1" @click="reset_menu">Reset
-                        menu</button>
+                    <button class="btn theme-btn black-on-hover text-white fw-bold flex-nowrap text-start m-1"
+                        @click="reset_menu">
+                        <span class="bi bi-box-arrow-right me-2"></span>
+                        <span>Log out</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
     <hr />
     <div>
-        <a class="purple-on-hover fw-bold text-muted" href="https://github.com/kaangiray26/forte/tree/gh-pages"
+        <a class="purple-on-hover fw-bold theme-color" href="https://github.com/kaangiray26/forte/tree/gh-pages"
             target="_blank">
             <span>Forte Mar 16 Version.</span>
         </a>
@@ -176,7 +186,7 @@ function formatNumber(num) {
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
-onBeforeMount(async () => {
+async function setup() {
     ['lastfm_key', 'scrobbling'].forEach((key) => {
         let value = JSON.parse(localStorage.getItem(key));
         if (value) {
@@ -194,5 +204,9 @@ onBeforeMount(async () => {
 
     get_lastfm_profile();
     get_top_tracks();
+}
+
+onBeforeMount(() => {
+    setup()
 })
 </script>

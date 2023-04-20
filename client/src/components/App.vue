@@ -37,69 +37,69 @@ const thisPlayer = ref(null);
 
 async function keyPress(event) {
     // Must be synchronized in groupSession: ok
-    if (event.target.tagName != 'INPUT' && event.code == 'Space') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.code == 'Space') {
         event.preventDefault();
         action({
             func: async function op() {
                 ft.play();
             },
-            object: null,
+            object: [null],
             operation: "play"
         });
         return;
     }
 
     // Must be synchronized in groupSession: ok
-    if (event.target.tagName != 'INPUT' && event.key == 'ArrowLeft') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.key == 'ArrowLeft') {
         event.preventDefault();
         action({
             func: async function op() {
                 ft.play_previous();
             },
-            object: null,
+            object: [null],
             operation: "playPrevious"
         });
         return;
     }
 
     // Must be synchronized in groupSession: ok
-    if (event.target.tagName != 'INPUT' && event.key == 'ArrowRight') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.key == 'ArrowRight') {
         event.preventDefault();
         action({
             func: async function op() {
                 ft.play_next();
             },
-            object: null,
+            object: [null],
             operation: "playNext"
         });
         return;
     }
 
-    if (event.target.tagName != 'INPUT' && event.key == 'm') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.key == 'm') {
         event.preventDefault();
         ft.mute();
         return;
     }
 
-    if (event.target.tagName != 'INPUT' && event.key == 'q') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.key == 'q') {
         event.preventDefault();
         thisPlayer.value.show_queue();
         return;
     }
 
-    if (event.target.tagName != 'INPUT' && event.key == 'l') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.key == 'l') {
         event.preventDefault();
         thisPlayer.value.show_lyrics();
         return;
     }
 
-    if (event.target.tagName != 'INPUT' && event.key == 'g') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.key == 'g') {
         event.preventDefault();
         thisPlayer.value.group_session();
         return;
     }
 
-    if (event.target.tagName != 'INPUT' && event.ctrlKey && event.key == 'k') {
+    if (event.target.tagName != 'INPUT' && event.target.tagName != 'TEXTAREA' && event.ctrlKey && event.key == 'k') {
         event.preventDefault();
         thisNavBar.value.focus_search();
         return;

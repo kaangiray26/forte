@@ -5,7 +5,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Offline</h1>
+                        <h5 class="modal-title fw-bold" id="staticBackdropLabel"><mark>{{ get_server_name()
+                        }}</mark></h5>
                         <span class="fw-bold">The server is down at the moment.</span>
                     </div>
                 </div>
@@ -22,9 +23,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Modal } from "bootstrap"
+import { store } from "/js/store.js";
 
 let modal = null;
 const modalEl = ref(null);
+
+function get_server_name() {
+    return JSON.parse(localStorage.getItem('server'));
+}
 
 async function reload() {
     console.log("Reloading...");

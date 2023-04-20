@@ -35,7 +35,7 @@
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative">
-                        <img class="playlist-img" src="/images/empty.svg" />
+                        <img class="img-fluid bg-light rounded" src="/images/empty.svg" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="theme-color fw-bold text-break text-wrap p-2 ps-0">No friends added yet</h6>
@@ -44,11 +44,12 @@
             </div>
         </div>
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 col-xxl-2" v-for="friend in friends">
-            <div class="card h-100 w-100 border-0">
+            <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: friend, event: $event })">
                 <div class="p-3">
-                    <div class="d-inline-flex position-relative clickable-shadow" @click="openProfile(friend.username)">
-                        <img class="img-fluid" :src="get_cover(friend.cover)" @error="placeholder" width="250"
-                            height="250" />
+                    <div class="d-inline-flex position-relative">
+                        <div class="d-inline-flex clickable-shadow rounded" @click="openProfile(friend.username)">
+                            <img class="playlist-img rounded" :src="get_cover(friend.cover)" @error="placeholder" />
+                        </div>
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="fw-bold text-break text-wrap clickable theme-color purple-on-hover p-2 ps-0"
@@ -63,6 +64,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { right_click } from '/js/events.js';
 
 const router = useRouter();
 
@@ -71,14 +73,19 @@ const friend_name = ref(null);
 const searchFinished = ref(true);
 
 async function placeholder(obj) {
-    obj.target.src = "/images/default_profile.svg";
+    obj.target.src = "/images/friend.svg";
 }
 
 function get_cover(cover) {
-    if (cover) {
-        return ft.server + '/' + cover;
+    if (!cover) {
+        return "/images/friend.svg"
     }
-    return "/images/default_profile.svg"
+
+    if (cover.startsWith('http')) {
+        return cover;
+    }
+
+    return ft.server + '/' + cover;
 }
 
 async function openProfile(id) {
@@ -94,6 +101,24 @@ async function add_friend() {
     get_friends();
 }
 
+async function get_friend(username) {
+    // Check for federated
+    if (username.includes('@')) {
+        let domain = null;
+        [username, domain] = username.split('@');
+
+        let data = await ft.fAPI(domain, `/user/${username}/basic`);
+        data.user.server = domain;
+        data.user.username = data.user.title + '@' + domain;
+        friends.value.push(data.user);
+        return
+    }
+
+    let data = await ft.API(`/user/${username}/basic`);
+    data.user.username = data.user.title;
+    friends.value.push(data.user);
+}
+
 async function get_friends() {
     if (!searchFinished.value) {
         return
@@ -101,8 +126,9 @@ async function get_friends() {
     searchFinished.value = false;
 
     let data = await ft.API('/friends');
-    friends.value = data.friends;
+    if (!data || !data.friends) return;
 
+    data.friends.map(username => get_friend(username));
     searchFinished.value = true;
 }
 

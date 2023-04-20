@@ -5,14 +5,19 @@
                 <div v-show="store.playing.loaded">
                     <div class="d-flex flex-row justify-content-between align-items-center p-2 pb-0 rounded m-0">
                         <div class="d-flex flex-row align-items-center">
-                            <div class="clickable-shadow" @click="openAlbum">
-                                <img class="img-fluid me-2" :src="get_cover(store.playing.cover)" @error="placeholder"
-                                    width="56" height="56" />
+                            <div class="clickable-opacity" @click="openAlbum"
+                                @contextmenu.prevent="right_click({ item: store.playing, event: $event })">
+                                <img class="img-fluid rounded me-2" :src="get_cover(store.playing.cover)"
+                                    @error="placeholder" width="56" height="56" />
                             </div>
                             <div class="d-flex flex-column">
-                                <span class="fw-bold text-wrap clickable purple-on-hover mb-1" @click="openAlbum">
-                                    {{ store.playing.title }}
-                                </span>
+                                <div class="d-flex mb-1">
+                                    <div class="d-flex clickable text-start p-0" style="display:contents;"
+                                        @click="openAlbum">
+                                        <span class="purple-on-hover text-white text-break fw-bold">{{
+                                            store.playing.title }}</span>
+                                    </div>
+                                </div>
                                 <div>
                                     <button class="btn btn-sm btn-light fw-bold" @click="openQuality">{{
                                         store.playing.quality }}</button>
@@ -126,7 +131,7 @@ import Hammer from "hammerjs";
 import Queue from './Queue.vue';
 import Lyrics from './Lyrics.vue';
 import MobileView from './MobileView.vue';
-import { action } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 import QualityDisplay from './QualityDisplay.vue';
 
 const router = useRouter();
@@ -187,10 +192,10 @@ const repeat_icon = computed(() => {
         return 'bi-repeat text-muted';
     }
     if (store.playing.repeat == 1) {
-        return 'bi-repeat text-white';
+        return 'bi-repeat';
     }
     if (store.playing.repeat == 2) {
-        return 'bi-repeat-1 text-white';
+        return 'bi-repeat-1';
     }
 });
 
@@ -219,7 +224,7 @@ async function seekProgress(ev) {
         func: async function op() {
             ft.seek(point);
         },
-        object: point,
+        object: [point],
         operation: "seek"
     })
 }
@@ -277,7 +282,7 @@ async function play() {
         func: async function op() {
             ft.play();
         },
-        object: null,
+        object: [null],
         operation: "play"
     });
 }
@@ -288,7 +293,7 @@ async function play_previous() {
         func: async function op() {
             ft.play_previous();
         },
-        object: null,
+        object: [null],
         operation: "playPrevious"
     });
 }
@@ -299,7 +304,7 @@ async function play_next() {
         func: async function op() {
             ft.play_next();
         },
-        object: null,
+        object: [null],
         operation: "playNext"
     });
 }
@@ -323,7 +328,7 @@ async function repeat() {
         func: async function op() {
             ft.repeat();
         },
-        object: null,
+        object: [null],
         operation: "repeat"
     });
 }
