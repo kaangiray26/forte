@@ -56,7 +56,6 @@
                                             <span class="text-muted me-2">{{ index + 1 }}.</span>
                                             <span class="theme-color text-break">{{ track.title }}</span>
                                         </button>
-                                        <span v-if="track.server" class="theme-color">📻</span>
                                     </div>
                                 </div>
                             </div>

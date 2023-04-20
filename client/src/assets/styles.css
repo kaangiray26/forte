@@ -363,7 +363,8 @@ hr {
 }
 
 .player-card {
-    background-color: var(--bs-dark) !important;
+    /* background-color: var(--bs-dark) !important; */
+    background-color: #23232D !important;
 }
 
 .search-card-input {

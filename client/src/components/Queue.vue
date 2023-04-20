@@ -35,8 +35,8 @@
                         </div>
                     </div>
                     <div class="d-flex h-100 align-items-center">
-                        <button class="btn btn-dark theme-btn black-on-hover action-btn bi bi-x ms-0 m-2" type="button"
-                            @click="remove_track(index)"></button>
+                        <button class="btn theme-btn black-on-hover text-white fw-bold action-btn bi bi-x ms-0 m-2"
+                            type="button" @click="remove_track(index)"></button>
                     </div>
                 </li>
             </ul>

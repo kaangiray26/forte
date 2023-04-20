@@ -58,7 +58,6 @@
                         <span class="theme-color text-break">{{
                             album.title }}</span>
                     </button>
-                    <span v-if="album.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>

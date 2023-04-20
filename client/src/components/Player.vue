@@ -17,7 +17,6 @@
                                         <span class="purple-on-hover text-white text-break fw-bold">{{
                                             store.playing.title }}</span>
                                     </div>
-                                    <span v-if="store.playing.server" class="ms-2 theme-color">📻</span>
                                 </div>
                                 <div>
                                     <button class="btn btn-sm btn-light fw-bold" @click="openQuality">{{

@@ -1,10 +1,10 @@
 <template>
     <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.playlist, event: $event })">
         <div class="p-3">
-            <div class="position-relative clickable-shadow rounded">
-                <div @click="openPlaylist">
-                    <img class="img-fluid placeholder-img rounded" :src="get_cover(props.playlist.cover)"
-                        @error="placeholder" height="250" width="250" />
+            <div class="d-inline-flex position-relative">
+                <div class="d-inline-flex clickable-shadow rounded" @click="openPlaylist">
+                    <img class="img-profile rounded" :src="get_cover(props.playlist.cover)" @error="placeholder"
+                        height="250" width="250" />
                 </div>
                 <div class="position-absolute bottom-0 right-0 m-2">
                     <button class="btn btn-light action-btn bi bi-play-fill" type="button" @click="play(props.playlist.id)">
@@ -24,7 +24,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { right_click } from '/js/events.js';
+import { right_click, action } from '/js/events.js';
 
 const router = useRouter();
 
@@ -54,7 +54,7 @@ async function play(id) {
         func: async function op() {
             ft.playPlaylist(id);
         },
-        object: id,
+        object: [id],
         operation: "playPlaylist",
     })
 }

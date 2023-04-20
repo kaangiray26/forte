@@ -836,23 +836,75 @@ class Forte {
     async playPlaylist(playlist_id, domain = null) {
         // Federated
         if (domain) {
-            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then((response) => {
-                if (!response.tracks.length) return;
+            this.fAPI(domain, `/playlist/${playlist_id}/tracks`).then(async (response) => {
+                if (!response.playlist.tracks.length) return;
+                response.tracks.map(track => track.server = domain);
+
+                // Get all tracks from playlist
+                let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
+
                 store.queue_index = 0;
-                let tracks = response.tracks;
-                tracks.map(track => track.server = domain);
-                this.load_track(response.tracks[0]);
-                this.addToQueueStart(response.tracks);
+                this.load_track(tracks[0]);
+                this.addToQueueStart(tracks);
             })
             return
         }
 
-        this.API(`/playlist/${playlist_id}/tracks`).then((response) => {
-            if (!response.tracks.length) return;
+        this.API(`/playlist/${playlist_id}/tracks`).then(async (response) => {
+            if (!response.playlist.tracks.length) return;
+
+            // Get all tracks from playlist
+            let tracks = await this.get_playlist_tracks(response.playlist.tracks, response.tracks, response.federated);
+
             store.queue_index = 0;
-            this.load_track(response.tracks[0]);
-            this.addToQueueStart(response.tracks);
+            this.load_track(tracks[0]);
+            this.addToQueueStart(tracks);
         })
+    }
+
+    async get_playlist_tracks(order, tracks, federated) {
+        let arr = [];
+        let domains = {};
+
+        // Push track placeholders
+        for (let i = 0; i < order.length; i++) {
+            arr.push({});
+        }
+
+        // Get federated tracks
+        for (let track_id of federated) {
+            let [id, domain] = track_id.split('@');
+            if (!domains[domain]) {
+                domains[domain] = [];
+            }
+            domains[domain].push(parseInt(id));
+        }
+
+        // Get federated tracks from each domain
+        for (let domain in domains) {
+            let data = await this.get_federated_tracks(domain, domains[domain]);
+            if (!data) return;
+
+            data.tracks.map(track => track.server = domain);
+            for (let i = 0; i < order.length; i++) {
+                let track_id = order[i];
+                let tracks_found = data.tracks.filter(t => `${t.id}@${t.server}` == track_id);
+                if (tracks_found.length) {
+                    arr[i] = tracks_found[0];
+                }
+            }
+        }
+
+        // Get tracks
+        for (let i = 0; i < order.length; i++) {
+            let id = order[i];
+            let tracks_found = tracks.filter(t => t.id == id);
+            if (tracks_found.length) {
+                arr[i] = tracks_found[0];
+            }
+        }
+
+        return arr;
     }
 
     async playPlaylistNext(playlist_id, domain = null) {

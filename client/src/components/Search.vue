@@ -25,7 +25,6 @@
                                     <span class="theme-color text-break fw-bold">{{
                                         result.title }}</span>
                                 </button>
-                                <span v-if="result.server" class="theme-color">📻</span>
                             </div>
                             <div class="btn btn-link d-flex text-start align-items-center py-0">
                                 <span class="badge" :class="result.type">{{ result.type }}</span>

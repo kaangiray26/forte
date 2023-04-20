@@ -58,7 +58,6 @@
                         <span class="theme-color text-break">{{
                             playlist.title }}</span>
                     </button>
-                    <span v-if="playlist.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>
