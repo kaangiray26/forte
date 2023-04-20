@@ -58,9 +58,10 @@
                 <div class="d-flex">
                     <button class="btn btn-link search-link d-flex text-start py-0" :content_id="playlist.id"
                         :content_type="playlist.type" style="display:contents;">
-                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': playlist.server }">{{
+                        <span class="theme-color text-break">{{
                             playlist.title }}</span>
                     </button>
+                    <span v-if="playlist.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>
@@ -99,8 +100,12 @@ function get_cover(cover) {
     return "/images/cassette.svg"
 }
 
-async function openPlaylist(id) {
-    router.push("/playlist/" + id);
+async function openPlaylist(playlist) {
+    if (playlist.server) {
+        router.push(`/playlist/${playlist.id}@${playlist.server}`)
+        return;
+    }
+    router.push("/playlist/" + playlist.id);
 }
 
 // Must be synchronized in groupSession: ok
@@ -141,6 +146,39 @@ async function get_federated_playlists(playlist_ids, order, _offset) {
     }
 }
 
+async function get_playlists_from_domain(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+
+    let data = await ft.fAPI(domain.value, `/user/${id}/playlists/${offset.value}/${total.value}`);
+    if (!data) return;
+
+    // Push playlist placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        playlists.value.push({});
+    }
+
+    // Get federated playlists
+    get_federated_playlists(data.federated, data.order, offset.value);
+
+    // Get local playlists
+    for (let i = 0; i < data.order.length; i++) {
+        let playlist_id = data.order[i];
+        let playlists_found = data.playlists.filter(t => t.id == playlist_id);
+        if (playlists_found.length) {
+            playlists.value[i + offset.value] = playlists_found[0];
+        }
+    }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
+    searchFinished.value = true;
+}
+
 async function get_playlists(id) {
     if (!searchFinished.value) {
         return
@@ -178,7 +216,7 @@ async function setup() {
     let id = router.currentRoute.value.params.id;
     if (id.includes('@')) {
         [id, domain.value] = id.split('@');
-        get_federated_playlists(id);
+        get_playlists_from_domain(id);
         return
     }
     get_playlists(id);

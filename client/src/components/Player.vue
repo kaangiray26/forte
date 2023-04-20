@@ -10,9 +10,16 @@
                                     width="56" height="56" />
                             </div>
                             <div class="d-flex flex-column">
-                                <span class="fw-bold text-wrap clickable purple-on-hover mb-1" @click="openAlbum">
-                                    {{ store.playing.title }}
-                                </span>
+                                <div class="d-flex">
+                                    <div class="d-flex text-start ps-0 py-0" style="display:contents;" @click="openAlbum">
+                                        <span class="purple-on-hover text-white text-break fw-bold">{{
+                                            store.playing.title }}</span>
+                                    </div>
+                                    <!-- <span class="fw-bold text-wrap clickable purple-on-hover" @click="openAlbum">
+                                        {{ store.playing.title }}
+                                    </span> -->
+                                    <span v-if="store.playing.server" class="theme-color">📻</span>
+                                </div>
                                 <div>
                                     <button class="btn btn-sm btn-light fw-bold" @click="openQuality">{{
                                         store.playing.quality }}</button>

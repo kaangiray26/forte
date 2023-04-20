@@ -38,10 +38,11 @@
                 </div>
             </div>
         </li>
-        <li v-if="albums.length == 0" class="list-group-item list-group-item-action d-flex justify-content-between">
+        <li v-if="albums.length == 0"
+            class="list-group-item theme-list-item-no-hover foreground d-flex justify-content-between">
             <div class="d-flex flex-fill align-items-center">
                 <div class="d-flex flex-column">
-                    <span class="fw-bold">No albums found</span>
+                    <span class="theme-color fw-bold">No albums found</span>
                 </div>
             </div>
         </li>
@@ -53,9 +54,10 @@
                 <div class="d-flex align-items-center">
                     <button class="btn btn-link search-link d-flex text-start py-0" :content_id="album.id"
                         :content_type="album.type" style="display:contents;">
-                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': album.server }">{{
+                        <span class="theme-color text-break">{{
                             album.title }}</span>
                     </button>
+                    <span v-if="album.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>
@@ -121,7 +123,7 @@ function get_cover(cover) {
 
 async function openAlbum(album) {
     if (album.server) {
-        router.push("/album/" + album.uuid + "@" + album.server);
+        router.push("/album/" + album.id + "@" + album.server);
         return
     }
     router.push("/album/" + album.id);

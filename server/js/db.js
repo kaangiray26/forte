@@ -1643,6 +1643,38 @@ async function _get_album_comments(req, res, next) {
     })
 }
 
+async function _get_playlist_comments(req, res, next) {
+    let id = req.params.id;
+    if (!id) {
+        res.status(400).json({ "error": "ID parameter not given." });
+        return;
+    }
+
+    let offset = req.params.offset;
+    if (!offset) {
+        res.status(400).json({ "error": "Offset parameter not given." });
+        return;
+    }
+
+    // Check for uuid
+    let column = "oid";
+    if (id.length == 36) {
+        column = "uuid";
+    }
+
+    db.task(async t => {
+        try {
+            let comments = await t.manyOrNone(`SELECT * FROM comments WHERE type='playlist' AND ${column} = $1 ORDER BY created_at DESC LIMIT 5 OFFSET $2`, [id, offset]);
+            res.status(200)
+                .send(JSON.stringify({
+                    "comments": comments
+                }))
+        } catch (e) {
+            res.status(500).json({ "error": "Internal server error." });
+        }
+    })
+}
+
 async function _get_artist_comments(req, res, next) {
     let id = req.params.id;
     if (!id) {
@@ -3144,7 +3176,8 @@ async function _get_playlist(req, res, next) {
             }
 
             if (!playlist.tracks) {
-                res.status(200).json({ "playlist": playlist, "tracks": [], "federated": [], "order": [] })
+                playlist.tracks = [];
+                res.status(200).json({ "playlist": playlist, "tracks": [], "federated": [] })
                 return;
             }
 
@@ -4693,7 +4726,7 @@ async function _get_lastfm_artist(req, res, next) {
 }
 
 async function _lastfm_scrobble(req, res, next) {
-    if (!['track', 'sk'].every(key => req.body.hasOwnProperty(key))) {
+    if (!['track', 'sk', 'challenge'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
             .send(JSON.stringify({
                 "error": "Parameters not given correctly."
@@ -4703,18 +4736,99 @@ async function _lastfm_scrobble(req, res, next) {
 
     db.task(async t => {
         try {
-            let track = await t.oneOrNone("SELECT * FROM tracks WHERE id = $1 LIMIT 1", [req.body.track])
+            // With federation
+            if (req.body.challenge) {
+                let obj = await get_address(req.body.track);
+                if (!obj.address) {
+                    res.status(400).json({ "error": "Server not found." })
+                    return;
+                }
+
+                // Get track
+                let track = await fetch(obj.address + `/api/track/${obj.id}/basic?challenge=${req.body.challenge}`, {
+                    method: 'GET',
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.track)
+                    .catch(() => null);
+
+                if (!track) {
+                    res.status(400).json({ "error": "Track not found." })
+                    return;
+                }
+
+                // Get artist
+                let artist = await fetch(obj.address + `/api/artist/${track.artist}/basic?challenge=${req.body.challenge}`, {
+                    method: 'GET',
+                    headers: {
+                        'federated': 'true',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => response.artist)
+                    .catch(() => null);
+
+                if (!artist) {
+                    res.status(400).json({ "error": "Artist not found." })
+                    return;
+                }
+
+                // Scrobble
+                let lastfm_api = await t.many("SELECT value FROM config WHERE name = 'lastfm_api_key' OR name = 'lastfm_api_secret'");
+                let params = {
+                    method: 'track.scrobble',
+                    artist: artist.title,
+                    track: track.title,
+                    timestamp: Math.floor(Date.now() / 1000),
+                    api_key: lastfm_api[0].value,
+                    sk: req.body.sk,
+                }
+
+                let sig = get_api_sig(params, lastfm_api[1].value);
+                params['api_sig'] = sig;
+                params['format'] = 'json';
+
+                let response = await fetch("https://ws.audioscrobbler.com/2.0/", {
+                    method: 'POST',
+                    body: new URLSearchParams(params)
+                }).then((res) => {
+                    return res.json()
+                });
+
+                if (response.scrobbles['@attr'].accepted) {
+                    res.status(200).json({ "success": "Scrobbled" });
+                    return
+                }
+
+                res.status(400).json({ "error": "Scrobble failed." });
+                return
+            }
+
+            // Without federation
+            // Check for uuid
+            let column = "id";
+            if (req.body.track.length == 36) {
+                column = "uuid";
+            }
+
+            // Get track
+            let track = await t.oneOrNone(`SELECT * FROM tracks WHERE ${column} = $1 LIMIT 1`, [req.body.track])
             if (!track) {
                 res.status(400).json({ "error": "Track not found." })
                 return;
             }
 
+            // Get artist
             let artist = await t.oneOrNone("SELECT title FROM artists WHERE id = $1", [track.artist]);
             if (!artist) {
                 res.status(400).json({ "error": "Artist not found." })
                 return;
             }
 
+            // Scrobble
             let lastfm_api = await t.many("SELECT value FROM config WHERE name = 'lastfm_api_key' OR name = 'lastfm_api_secret'");
             let params = {
                 method: 'track.scrobble',
@@ -4819,6 +4933,7 @@ const exports = {
     federated_stream: _federated_stream,
     get_album: _get_album,
     get_album_comments: _get_album_comments,
+    get_playlist_comments: _get_playlist_comments,
     get_album_loved: _get_album_loved,
     get_album_tracks: _get_album_tracks,
     get_albums: _get_albums,

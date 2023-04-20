@@ -22,12 +22,12 @@
                             <div class="d-flex flex-wrap">
                                 <div class="m-1">
                                     <button ref="wiki_btn" type="button"
-                                        class="btn btn-dark theme-btn black-on-hover fw-bold"
+                                        class="btn theme-btn black-on-hover text-white fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_wiki_page">Wikipedia</button>
                                 </div>
                                 <div class="m-1">
                                     <button ref="lastfm_btn" type="button"
-                                        class="btn btn-dark theme-btn black-on-hover fw-bold"
+                                        class="btn theme-btn black-on-hover text-white fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_lastfm_page">Last.fm</button>
                                 </div>
                             </div>
@@ -54,10 +54,13 @@
                                         <img :src="get_album_cover(album.cover)" class="track-cover theme-border rounded"
                                             @error="placeholder" />
                                     </div>
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex flex-column justify-content-center">
                                         <div class="btn btn-link search-link d-flex flex-row text-start py-0"
                                             style="display:contents;">
-                                            <span class="theme-color me-2">{{ album.title }}</span>
+                                            <span class="theme-color">{{ album.title }}</span>
+                                        </div>
+                                        <div class="btn btn-link search-link d-flex flex-row text-start py-0"
+                                            style="display:contents;">
                                             <span class="text-muted">{{ album.year }}</span>
                                         </div>
                                     </div>
@@ -86,7 +89,7 @@
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="add_comment">Post</button>
+                    <button class="btn theme-btn black-on-hover text-white fw-bold" @click="post_comment">Post</button>
                 </div>
                 <div>
                     <ul class="list-group list-group-flush">
@@ -106,7 +109,7 @@
                     </ul>
                     <div class="d-flex justify-content-end">
                         <button v-show="searchFinished && comments.length" type="button"
-                            class="btn btn-dark theme-btn black-on-hover fw-bold" @click="get_comments">Load more</button>
+                            class="btn theme-btn black-on-hover text-white fw-bold" @click="get_comments">Load more</button>
                         <button v-show="!searchFinished && comments.length" class="btn btn-dark" type="button" disabled>
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             Loading...
@@ -127,6 +130,8 @@ const router = useRouter();
 
 // Federated
 const domain = ref(null);
+const artist_id = ref(null);
+const federated = ref(false);
 
 const artist = ref({});
 const albums = ref([]);
@@ -165,13 +170,34 @@ function format_date(dt) {
 
 }
 
+async function post_comment() {
+    if (federated.value) {
+        add_federated_comment();
+        return;
+    }
+    add_comment();
+}
+
 async function add_comment() {
     let comment = document.querySelector("textarea").value;
     if (!comment.length) {
         return;
     }
 
+    document.querySelector("textarea").value = "";
+
     let response = await ft.add_comment(ft.username, "artist", artist.value.id, artist.value.uuid, comment);
+}
+
+async function add_federated_comment() {
+    let comment = document.querySelector("textarea").value;
+    if (!comment.length) {
+        return;
+    }
+
+    document.querySelector("textarea").value = "";
+
+    let response = await ft.add_federated_comment(domain.value, ft.username, "artist", artist.value.id, artist.value.uuid, comment);
 }
 
 async function get_wiki_page() {
@@ -248,15 +274,31 @@ async function get_federated_artist(id) {
     }
 
     artist.value = data.artist;
-    albums.value = data.albums;
+    artist.value.server = domain.value;
 
+    albums.value = data.albums;
     albums.value.map(album => album.server = domain.value);
     albums.value.sort(year_sort);
     loaded.value = true;
 }
 
-async function get_comments() {
-    let id = router.currentRoute.value.params.id;
+async function get_federated_comments(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.fAPI(domain.value, `/comments/artist/${id}/${offset.value}`);
+    if (!data || data.error) {
+        return;
+    }
+
+    offset.value += data.comments.length;
+    comments.value = comments.value.concat(data.comments);
+    searchFinished.value = true;
+}
+
+async function get_comments(id) {
     if (!searchFinished.value) {
         return
     }
@@ -274,22 +316,24 @@ async function get_comments() {
 
 async function openAlbum(album) {
     if (album.server) {
-        router.push(`/album/${album.uuid}@${album.server}`)
+        router.push(`/album/${album.id}@${album.server}`)
         return;
     }
     router.push("/album/" + album.id);
 }
 
 async function setup() {
-    let id = router.currentRoute.value.params.id;
-    if (id.includes('@')) {
-        [id, domain.value] = id.split('@');
-        get_federated_artist(id);
+    artist_id.value = router.currentRoute.value.params.id;
+    if (artist_id.value.includes('@')) {
+        [artist_id.value, domain.value] = artist_id.value.split('@');
+        federated.value = true;
+        get_federated_artist(artist_id.value);
+        get_federated_comments(artist_id.value);
         return
     }
 
-    get_artist(id);
-    get_comments();
+    get_artist(artist_id.value);
+    get_comments(artist_id.value);
 }
 
 onBeforeMount(() => {

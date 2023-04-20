@@ -236,6 +236,7 @@ app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)
 app.post("/api/comments", isAuthenticated, db.add_comment)
 app.get("/api/comments/artist/:id/:offset", isAuthenticated, db.get_artist_comments)
 app.get("/api/comments/album/:id/:offset", isAuthenticated, db.get_album_comments)
+app.get("/api/comments/playlist/:id/:offset", isAuthenticated, db.get_playlist_comments)
 
 // Federated API
 app.post("/f/api", isAuthenticated, db.federated_api)

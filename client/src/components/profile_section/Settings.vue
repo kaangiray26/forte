@@ -46,7 +46,7 @@
                     </div>
                 </div>
                 <div class="input-group flex-nowrap mb-2">
-                    <span class="input-group-text" id="basic-addon1">Scrobbling</span>
+                    <span class="input-group-text foreground theme-color theme-border" id="basic-addon1">Scrobbling</span>
                     <button v-show="!lastfm_config.scrobbling" type="button" class="btn btn-danger flex-fill rounded-end"
                         @click="toggle_scrobbling">Off</button>
                     <button v-show="lastfm_config.scrobbling" type="button" class="btn btn-success flex-fill rounded-end"
@@ -95,8 +95,8 @@
                     </button>
                     <button class="btn theme-btn black-on-hover text-white fw-bold flex-nowrap text-start m-1"
                         @click="reset_menu">
-                        <span class="bi bi-list me-2"></span>
-                        <span>Reset</span>
+                        <span class="bi bi-box-arrow-right me-2"></span>
+                        <span>Log out</span>
                     </button>
                 </div>
             </div>

@@ -23,7 +23,11 @@
                 <div class="col theme-color">
                     <div class="d-flex flex-column">
                         <h1 class="album-title">{{ album.title }}</h1>
-                        <small class="text-muted">{{ tracks.length }} tracks</small>
+                        <div class="d-flex">
+                            <small class="text-muted">{{ album.year }}</small>
+                            <small class="album-info text-muted">{{ get_genre(album.genre) }}</small>
+                            <small class="album-info text-muted">{{ tracks.length }} tracks</small>
+                        </div>
                     </div>
                     <div class="pt-2">
                         <a class="search-link clickable" @click="openArtist(artist)">
@@ -80,7 +84,7 @@
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="post_comment">Post</button>
+                    <button class="btn theme-btn black-on-hover text-white fw-bold" @click="post_comment">Post</button>
                 </div>
                 <div>
                     <ul class="list-group list-group-flush">
@@ -100,7 +104,7 @@
                     </ul>
                     <div class="d-flex justify-content-end">
                         <button v-show="searchFinished && comments.length" type="button"
-                            class="btn btn-dark theme-btn black-on-hover fw-bold" @click="load_more">Load more</button>
+                            class="btn theme-btn black-on-hover text-white fw-bold" @click="load_more">Load more</button>
                         <button v-show="!searchFinished && comments.length" class="btn btn-dark" type="button" disabled>
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             Loading...
@@ -148,10 +152,17 @@ async function track_placeholder(obj) {
     obj.target.src = "/images/track.svg";
 }
 
+function get_genre(genre) {
+    if (!genre) {
+        return "Unknown";
+    }
+    return genre.toString()
+}
+
 async function openArtist(artist) {
     // Federated
     if (domain.value) {
-        router.push(`/artist/${artist.uuid}@${domain.value}`)
+        router.push(`/artist/${artist.id}@${domain.value}`)
         return
     }
     router.push(`/artist/${artist.id}`)
@@ -174,9 +185,9 @@ async function add_comment() {
     document.querySelector("textarea").value = "";
 
     let response = await ft.add_comment(ft.username, "album", album.value.id, album.value.uuid, comment);
-    if (response.hasOwnProperty('success')) {
-        comments.value.unshift(response.comment);
-    }
+    // if (response.hasOwnProperty('success')) {
+    //     comments.value.unshift(response.comment);
+    // }
 }
 
 async function add_federated_comment() {
@@ -188,9 +199,9 @@ async function add_federated_comment() {
     document.querySelector("textarea").value = "";
 
     let response = await ft.add_federated_comment(domain.value, ft.username, "album", album.value.id, album.value.uuid, comment);
-    if (response.hasOwnProperty('success')) {
-        comments.value.unshift(response.comment);
-    }
+    // if (response.hasOwnProperty('success')) {
+    //     comments.value.unshift(response.comment);
+    // }
 }
 
 function format_date(dt) {
@@ -284,7 +295,7 @@ async function get_federated_album(id) {
     }
 
     artist.value = data.artist;
-    artist.server = domain.value;
+    artist.value.server = domain.value;
 
     album.value = data.album;
     album.value.server = domain.value;

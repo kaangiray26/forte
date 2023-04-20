@@ -35,7 +35,7 @@
             <div class="card h-100 w-100 border-0">
                 <div class="p-3">
                     <div class="d-inline-flex position-relative">
-                        <img class="playlist-img" src="/images/empty.svg" />
+                        <img class="img-fluid bg-light rounded" src="/images/empty.svg" />
                     </div>
                     <div class="d-flex flex-fill">
                         <h6 class="theme-color fw-bold text-break text-wrap p-2 ps-0">No friends added yet</h6>
@@ -125,6 +125,7 @@ async function get_friends() {
 
     let data = await ft.API('/friends');
     if (!data || !data.friends) return;
+
     data.friends.map(username => get_friend(username));
     searchFinished.value = true;
 }

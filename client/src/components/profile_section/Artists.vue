@@ -38,10 +38,11 @@
                 </div>
             </div>
         </li>
-        <li v-if="artists.length == 0" class="list-group-item list-group-item-action d-flex justify-content-between">
+        <li v-if="artists.length == 0"
+            class="list-group-item theme-list-item-no-hover foreground d-flex justify-content-between">
             <div class="d-flex flex-fill align-items-center">
                 <div class="d-flex flex-column">
-                    <span class="fw-bold">No artists found</span>
+                    <span class="theme-color fw-bold">No artists found</span>
                 </div>
             </div>
         </li>
@@ -53,9 +54,10 @@
                 <div class="d-flex align-items-center">
                     <button class="btn btn-link search-link d-flex text-start py-0" :content_id="artist.id"
                         :content_type="artist.type" style="display:contents;">
-                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': artist.server }">{{
+                        <span class="theme-color text-break">{{
                             artist.title }}</span>
                     </button>
+                    <span v-if="artist.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>
@@ -97,7 +99,7 @@ function get_cover(cover) {
 
 async function openArtist(artist) {
     if (artist.server) {
-        router.push("/artist/" + artist.uuid + "@" + artist.server);
+        router.push("/artist/" + artist.id + "@" + artist.server);
         return
     }
     router.push("/artist/" + artist.id);

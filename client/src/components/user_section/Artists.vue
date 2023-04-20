@@ -54,9 +54,10 @@
                 <div class="d-flex align-items-center">
                     <button class="btn btn-link search-link d-flex text-start py-0" :content_id="artist.id"
                         :content_type="artist.type" style="display:contents;">
-                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': artist.server }">{{
+                        <span class="theme-color text-break">{{
                             artist.title }}</span>
                     </button>
+                    <span v-if="artist.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>
@@ -98,8 +99,44 @@ function get_cover(cover) {
     return "/images/artist.svg"
 }
 
-async function openArtist(id) {
-    router.push("/artist/" + id);
+async function openArtist(artist) {
+    if (artist.server) {
+        router.push("/artist/" + artist.id + "@" + artist.server);
+        return
+    }
+    router.push("/artist/" + artist.id);
+}
+
+async function get_artists_from_domain(id) {
+    if (!searchFinished.value) {
+        return
+    }
+    searchFinished.value = false;
+
+    let data = await ft.fAPI(domain.value, `/user/${id}/artists/${offset.value}/${total.value}`);
+    if (!data) return;
+
+    // Push artist placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        artists.value.push({});
+    }
+
+    // Get federated artists
+    get_federated_artists(data.federated, data.order, offset.value);
+
+    // Get local artists
+    for (let i = 0; i < data.order.length; i++) {
+        let artist_id = data.order[i];
+        let artists_found = data.artists.filter(t => t.id == artist_id);
+        if (artists_found.length) {
+            artists.value[i + offset.value] = artists_found[0];
+        }
+    }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
+    searchFinished.value = true;
 }
 
 async function get_artists(id) {
@@ -165,7 +202,7 @@ async function setup() {
     let id = router.currentRoute.value.params.id;
     if (id.includes('@')) {
         [id, domain.value] = id.split('@');
-        get_federated_artists(id);
+        get_artists_from_domain(id);
         return
     }
     get_artists(id);

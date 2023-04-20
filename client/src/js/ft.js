@@ -718,7 +718,7 @@ class Forte {
         return response;
     }
 
-    async scrobble(track) {
+    async scrobble(track, domain = null) {
         if (!store.scrobbling) {
             return;
         }
@@ -728,6 +728,8 @@ class Forte {
             return;
         }
 
+        // Check for saved challenge
+        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
         let response = await fetch(this.server + '/api/lastfm/scrobble' + `?session=${this.session}`, {
             method: "POST",
             headers: {
@@ -735,7 +737,8 @@ class Forte {
             },
             body: JSON.stringify({
                 "track": track,
-                "sk": JSON.parse(sk)
+                "sk": JSON.parse(sk),
+                "challenge": challenge
             }),
             credentials: "include"
         }).then((response) => {

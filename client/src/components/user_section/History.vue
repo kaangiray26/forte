@@ -54,9 +54,10 @@
                 <div class="d-flex align-items-center">
                     <button class="btn btn-link search-link d-flex text-start py-0" :content_id="track.id"
                         :content_type="track.type" @click="playTrack(track.id)" style="display:contents;">
-                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': track.server }">{{
+                        <span class="theme-color text-break">{{
                             track.title }}</span>
                     </button>
+                    <span v-if="track.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>
@@ -194,7 +195,26 @@ async function get_federated_history(id) {
     let data = await ft.fAPI(domain.value, `/user/${id}/history`);
     if (!data) return;
 
-    tracks.value = data.tracks;
+    // Push tracks placeholders
+    tracks.value = [];
+    for (let i = 0; i < data.order.length; i++) {
+        tracks.value.push({});
+    }
+
+    order.value = data.order;
+
+    // Get federated tracks
+    get_federated_tracks(data.federated);
+
+    // Get local tracks
+    for (let i = 0; i < order.value.length; i++) {
+        let track_id = order.value[i];
+        let tracks_found = data.tracks.filter(t => t.id == track_id);
+        if (tracks_found.length) {
+            tracks.value[i] = tracks_found[0];
+        }
+    }
+
     searchFinished.value = true;
 }
 

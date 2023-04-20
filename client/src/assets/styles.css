@@ -250,6 +250,11 @@ img {
     text-decoration: none !important;
 }
 
+.album-info:before {
+    content: "-";
+    margin: 0 5px
+}
+
 /* 
 ------
 THEMES
@@ -384,6 +389,10 @@ hr {
 }
 
 .theme-list-item {
+    background-color: transparent !important;
+}
+
+.theme-list-item-no-hover {
     background-color: transparent !important;
 }
 

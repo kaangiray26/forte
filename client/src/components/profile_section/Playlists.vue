@@ -56,9 +56,10 @@
                 <div class="d-flex align-items-center">
                     <button class="btn btn-link search-link d-flex text-start py-0" :content_id="playlist.id"
                         :content_type="playlist.type" style="display:contents;">
-                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': playlist.server }">{{
+                        <span class="theme-color text-break">{{
                             playlist.title }}</span>
                     </button>
+                    <span v-if="playlist.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>

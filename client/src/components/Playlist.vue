@@ -51,13 +51,12 @@
                                             @error="track_placeholder" />
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <button class="btn btn-link search-link d-flex text-start"
+                                        <button class="btn btn-link search-link d-flex text-start py-0"
                                             style="display:contents;">
                                             <span class="text-muted me-2">{{ index + 1 }}.</span>
-                                            <span class="theme-color text-break"
-                                                :class="{ 'text-decoration-underline': track.server }">{{ track.title
-                                                }}</span>
+                                            <span class="theme-color text-break">{{ track.title }}</span>
                                         </button>
+                                        <span v-if="track.server" class="theme-color">📻</span>
                                     </div>
                                 </div>
                             </div>
@@ -91,27 +90,27 @@
                         placeholder="Remember, be nice!"></textarea>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-dark theme-btn black-on-hover fw-bold" @click="post_comment">Post</button>
+                    <button class="btn theme-btn black-on-hover text-white fw-bold" @click="post_comment">Post</button>
                 </div>
                 <div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item theme-comment-item p-1" v-for="comment in comments">
-                            <div>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item foreground-content theme-comment-item p-1" v-for="comment in comments">
+                            <div class="d-flex flex-column mx-2 py-1">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <router-link :to="'/user/' + comment.author"
-                                        class="theme-color purple-on-hover fw-bold me-2">{{
+                                        class="theme-color purple-on-hover fw-bold">{{
                                             comment.author
                                         }}</router-link>
                                     <span class="text-muted timestamp">{{ format_date(comment.created_at)
                                     }}</span>
                                 </div>
-                                <p class="theme-color">{{ comment.content }}</p>
+                                <p class="theme-color mb-0">{{ comment.content }}</p>
                             </div>
                         </li>
                     </ul>
                     <div class="d-flex justify-content-end">
                         <button v-show="searchFinished && comments.length" type="button"
-                            class="btn btn-dark theme-btn black-on-hover fw-bold" @click="load_more">Load more</button>
+                            class="btn theme-btn black-on-hover text-white fw-bold" @click="load_more">Load more</button>
                         <button v-show="!searchFinished && comments.length" class="btn btn-dark" type="button" disabled>
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             Loading...
@@ -194,10 +193,10 @@ async function add_comment() {
 
     document.querySelector("textarea").value = "";
 
-    let response = await ft.add_comment(ft.username, "album", album.value.id, album.value.uuid, comment);
-    if (response.hasOwnProperty('success')) {
-        comments.value.unshift(response.comment);
-    }
+    let response = await ft.add_comment(ft.username, "playlist", playlist.value.id, playlist.value.uuid, comment);
+    // if (response.hasOwnProperty('success')) {
+    //     comments.value.unshift(response.comment);
+    // }
 }
 
 async function add_federated_comment() {
@@ -208,10 +207,10 @@ async function add_federated_comment() {
 
     document.querySelector("textarea").value = "";
 
-    let response = await ft.add_federated_comment(domain.value, ft.username, "album", album.value.id, album.value.uuid, comment);
-    if (response.hasOwnProperty('success')) {
-        comments.value.unshift(response.comment);
-    }
+    let response = await ft.add_federated_comment(domain.value, ft.username, "playlist", playlist.value.id, playlist.value.uuid, comment);
+    // if (response.hasOwnProperty('success')) {
+    //     comments.value.unshift(response.comment);
+    // }
 }
 
 function format_date(dt) {
@@ -239,7 +238,7 @@ async function get_comments(id) {
     }
     searchFinished.value = false;
 
-    let data = await ft.API(`/comments/album/${id}/${offset.value}`);
+    let data = await ft.API(`/comments/playlist/${id}/${offset.value}`);
     if (!data || data.error) {
         return;
     }
@@ -323,6 +322,8 @@ async function get_federated_tracks(track_ids, order, _offset) {
 async function get_playlist(id) {
     let data = await ft.API(`/playlist/${id}`);
     if (!data || data.error) return;
+
+    console.log(data);
 
     // Push track placeholders
     for (let i = 0; i < data.playlist.tracks.length; i++) {

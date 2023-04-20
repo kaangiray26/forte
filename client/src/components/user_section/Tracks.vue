@@ -55,9 +55,10 @@
                 <div class="d-flex align-items-center">
                     <button class="btn btn-link search-link d-flex text-start py-0" :content_id="track.id"
                         :content_type="track.type" @click="playTrack(track)" style="display:contents;">
-                        <span class="theme-color text-break" :class="{ 'text-decoration-underline': track.server }">{{
+                        <span class="theme-color text-break">{{
                             track.title }}</span>
                     </button>
+                    <span v-if="track.server" class="theme-color">📻</span>
                 </div>
             </div>
         </li>
@@ -193,17 +194,29 @@ async function get_tracks_from_domain(id) {
     }
     searchFinished.value = false;
 
-    let data = await ft.fAPI(domain.value, `/user/${id}/tracks/${offset.value}`);
+    let data = await ft.fAPI(domain.value, `/user/${id}/tracks/${offset.value}/${total.value}`);
     if (!data) return;
 
-    total.value = data.total;
+    // Push track placeholders
+    for (let i = 0; i < data.order.length; i++) {
+        tracks.value.push({});
+    }
 
     // Get federated tracks
-    get_federated_tracks(data.federated);
+    get_federated_tracks(data.federated, data.order, offset.value);
 
     // Get local tracks
-    tracks.value = tracks.value.concat(data.tracks);
-    offset.value += data.tracks.length;
+    for (let i = 0; i < data.order.length; i++) {
+        let track_id = data.order[i];
+        let tracks_found = data.tracks.filter(t => t.id == track_id);
+        if (tracks_found.length) {
+            tracks.value[i + offset.value] = tracks_found[0];
+        }
+    }
+
+    total.value = data.total;
+    offset.value += data.order.length;
+
     searchFinished.value = true;
 }
 

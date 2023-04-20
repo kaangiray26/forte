@@ -18,12 +18,14 @@
                     </div>
                     <div class="d-flex align-items-center">
                         <div class="d-flex flex-column">
-                            <button class="btn btn-link search-link d-flex text-start py-0" :content_id="result.id"
-                                :content_type="result.type" style="display:contents;">
-                                <span class="theme-color text-break fw-bold"
-                                    :class="{ 'text-decoration-underline': result.server }">{{
+                            <div class="d-flex">
+                                <button class="btn btn-link search-link d-flex text-start py-0" :content_id="result.id"
+                                    :content_type="result.type" style="display:contents;">
+                                    <span class="theme-color text-break fw-bold">{{
                                         result.title }}</span>
-                            </button>
+                                </button>
+                                <span v-if="result.server" class="theme-color">📻</span>
+                            </div>
                             <div class="btn btn-link d-flex text-start align-items-center py-0">
                                 <span class="badge" :class="result.type">{{ result.type }}</span>
                             </div>
