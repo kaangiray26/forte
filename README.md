@@ -1,10 +1,6 @@
 # Servers
 This is a list of public servers that are running the latest version of forte.
 
-```
-Work on progress. You can't submit a server yet. Please check back later.
-```
-
 ## Registering your server
 If you would like to submit a server to this list, please open a pull request with a new file in the `hostnames` directory. The file should be named `<hostname>` and should contain the following fields:
 
