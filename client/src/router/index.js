@@ -63,6 +63,10 @@ const routes = [
         component: Search
     },
     {
+        path: "/search",
+        component: Search
+    },
+    {
         path: "/artist/:id",
         component: Artist
     },

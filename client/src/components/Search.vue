@@ -1,5 +1,13 @@
 <template>
     <ul class="list-group rounded-0 mx-3 px-3 pb-3 theme-background">
+        <div class="hide-on-desktop card-body py-3">
+            <div class="d-flex flex-column">
+                <div class="d-inline-flex input-group flex-nowrap">
+                    <input ref="search_field" type="text" class="form-control search-card-input" placeholder="Search"
+                        aria-label="Search" @input="search" @keyup.enter="search_now">
+                </div>
+            </div>
+        </div>
         <li v-if="results.length == 0"
             class="list-group-item theme-list-item-no-hover foreground theme-border d-flex justify-content-between">
             <div class="d-flex w-100 justify-content-between">
@@ -44,6 +52,7 @@ import { action, right_click } from '/js/events.js';
 
 const router = useRouter();
 const results = ref([]);
+const search_field = ref(null);
 
 const query_param = computed(() => {
     return router.currentRoute.value.params.query;
@@ -91,11 +100,37 @@ function get_cover(type, cover) {
     }
 }
 
+function debounce(func, timeout = 200) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
+async function search_now() {
+    let query = search_field.value.value;
+    if (!query.length) {
+        search_field.value.focus();
+        return;
+    }
+    router.push('/search/' + query);
+}
+
+const search = debounce(async (event) => {
+    event.preventDefault();
+    let query = search_field.value.value;
+    if (!query.length) {
+        search_field.value.focus();
+        return;
+    }
+    router.push('/search/' + query);
+});
+
 async function get_search_results() {
     let query = router.currentRoute.value.params.query;
-    if (!query) {
-        router.push('/');
-    }
+    if (!query) return;
+
     let response = await ft.API('/search/' + query);
     if (!response) return;
 
@@ -104,9 +139,7 @@ async function get_search_results() {
 
 async function get_federated_search_results() {
     let query = router.currentRoute.value.params.query;
-    if (!query) {
-        router.push('/');
-    }
+    if (!query) return;
 
     // Get federated servers
     let federated_servers = JSON.parse(localStorage.getItem('federated_servers'));
@@ -115,7 +148,7 @@ async function get_federated_search_results() {
     for (let i = 0; i < federated_servers.length; i++) {
         let server = federated_servers[i];
         let response = await ft.fAPI(server, '/search/' + query);
-        if (!response) return;
+        if (!response || !response.data) return;
 
         // Add federated server results to results
         response.data.forEach(result => {

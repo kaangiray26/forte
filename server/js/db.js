@@ -2796,7 +2796,6 @@ async function _add_friend(req, res, next) {
             await t.none("UPDATE users SET friends = array_append(friends, $1) WHERE session = $2", [req.body.id, req.query.session]);
             res.status(200).json({ "success": "Friend added." });
         } catch (e) {
-            console.log(e);
             res.status(500).json({ "error": "Internal server error." });
             return;
         }

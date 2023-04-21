@@ -1242,15 +1242,16 @@ class Forte {
             .then(data => data.filter(server => server.path == 'hostnames'))
             .then(data => data[0].url)
             .catch(() => null);
-        if (!url) return null;
+        if (!url) {
+            localStorage.setItem('federated_servers', JSON.stringify([]));
+            return;
+        };
 
         let servers = await fetch(url)
             .then(res => res.json())
             .then(data => data.tree)
             .then(data => data.map(server => server.path))
-            .catch(() => null);
-        if (!servers) return null;
-
+            .catch(() => []);
         localStorage.setItem('federated_servers', JSON.stringify(servers));
     }
 }

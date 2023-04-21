@@ -1,5 +1,5 @@
 <template>
-    <div class="player-card card text-bg-dark rounded-0 hide-on-mobile">
+    <div class="player-card card rounded-0 hide-on-mobile">
         <div class="card-body p-0">
             <div class="d-flex flex-column">
                 <div v-show="store.playing.loaded">
@@ -31,8 +31,8 @@
                     <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
                         <button type="button" class="btn btn-light bi bi-skip-start-fill" @click="play_previous"></button>
                         <button type="button" class="btn btn-light bi" :class="{
-                            'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
-                        }" @click="play"></button>
+                                'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
+                            }" @click="play"></button>
                         <button type="button" class="btn btn-light bi bi-skip-end-fill" @click="play_next"></button>
                     </div>
                     <!-- Progress bar -->
@@ -99,19 +99,20 @@
                     <div class="btn-group btn-group-sm me-2" role="group" aria-label="Basic example">
                         <button type="button" class="btn btn-light bi bi-skip-start-fill" @click="play_previous"></button>
                         <button type="button" class="btn btn-light bi" :class="{
-                            'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
-                        }" @click="play"></button>
+                                    'bi-play-fill': !store.playing.is_playing, 'bi-pause-fill': store.playing.is_playing
+                                }" @click="play"></button>
                         <button type="button" class="btn btn-light bi bi-skip-end-fill" @click="play_next"></button>
                     </div>
                 </div>
             </div>
-            <div class="progress flex-fill m-2" @click="seekProgress($event)">
+            <div class="progress progress-minified flex-fill" @click="seekProgress($event)">
                 <div class="progress-bar theme-btn progress-bar-animated" aria-valuenow="0" aria-valuemin="0"
                     aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
                 </div>
             </div>
         </div>
     </div>
+    <NavBarMobile />
     <Lyrics ref="lyricsEl" />
     <Queue ref="queueEl" />
     <MobileView ref="mobileViewEl" :seekProgress="seekProgress" :play="play" :play_next="play_next"
@@ -133,6 +134,7 @@ import Lyrics from './Lyrics.vue';
 import MobileView from './MobileView.vue';
 import { right_click, action } from '/js/events.js';
 import QualityDisplay from './QualityDisplay.vue';
+import NavBarMobile from './NavBarMobile.vue';
 
 const router = useRouter();
 
