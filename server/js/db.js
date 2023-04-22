@@ -147,7 +147,8 @@ async function _init(args) {
                     .catch(() => null);
 
                 if (!key) {
-                    log("==> Public Key is not present in the GitHub repo, you won't be able to communicate with federated servers. Please check https://github.com/kaangiray26/forte/tree/servers");
+                    console.log("\x1b[31m%s\x1b[0m", "==> Public Key is not present in the GitHub repo, you won't be able to communicate with federated servers. Please check https://github.com/kaangiray26/forte/tree/servers");
+                    // refresh_library();
                     return;
                 }
 
@@ -155,12 +156,16 @@ async function _init(args) {
                 let publicKey = await db.oneOrNone("SELECT value FROM pgp WHERE type = 'public'");
 
                 // Check if the public keys match
-                if (key == publicKey.value) {
-                    log("==> Public Key confirmed.");
-                } else {
+                if (key != publicKey.value) {
                     console.log("\x1b[31m%s\x1b[0m", "==> Public Key mismatch!", "\nPlease Update your key in the GitHub repo: https://github.com/kaangiray26/forte/tree/servers/hostnames");
+                    // refresh_library();
+                    return;
                 }
 
+                console.log("\x1b[31m%s\x1b[0m", "==> Public Key mismatch!", "\nPlease Update your key in the GitHub repo: https://github.com/kaangiray26/forte/tree/servers/hostnames");
+                // refresh_library()
+            })
+            .then(() => {
                 refresh_library()
             })
     }).catch(error => {

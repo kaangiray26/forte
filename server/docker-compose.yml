@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:4.0
+        image: kaangiray26/forte:4.1
         restart: on-failure
         ports:
             - "3000:3000"
@@ -10,7 +10,7 @@ services:
                 condition: service_healthy
         environment:
             port: 3000               # Set Port
-            version: "4.0"           # Set Version
+            version: "4.1"           # Set Version
             hostname: localhost      # Set Hostname
             NODE_ENV: production     # Set Node Environment
             custom_about: false      # For your own about page

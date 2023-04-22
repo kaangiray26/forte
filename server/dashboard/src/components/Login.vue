@@ -22,7 +22,7 @@
                             autocomplete="off">
                     </div>
                     <div class="d-flex flex-fill justify-content-center">
-                        <button class="btn btn-dark" onclick="log_in()">Log in</button>
+                        <button class="btn btn-dark" @click="log_in">Log in</button>
                     </div>
                 </div>
             </div>

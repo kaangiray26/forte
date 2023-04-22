@@ -37,7 +37,7 @@
                     </div>
                     <!-- Progress bar -->
                     <div class="d-flex flex-fill align-items-center mx-2">
-                        <div class="d-flex align-items-center font-monospace">
+                        <div class="d-flex align-items-center font-monospace text-white">
                             <small>{{ formatTime(store.playing.seek) }}</small>
                         </div>
                         <div class="progress flex-fill mx-2" @click="seekProgress($event)">
@@ -45,7 +45,7 @@
                                 aria-valuemax="100" :style="{ 'width': store.playing.progress + '%' }">
                             </div>
                         </div>
-                        <div class="d-flex align-items-center font-monospace">
+                        <div class="d-flex align-items-center font-monospace text-white">
                             <small>{{ formatTime(store.playing.duration) }}</small>
                         </div>
                     </div>
