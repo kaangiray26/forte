@@ -11,9 +11,10 @@ services:
         environment:
             port: 3000               # Set Port
             version: "4.1"           # Set Version
+            verbose: false           # Verbose Logging
+            custom_about: false      # For your own about page
             hostname: localhost      # Set Hostname
             NODE_ENV: production     # Set Node Environment
-            custom_about: false      # For your own about page
             POSTGRES_HOST: postgres  # Postgres Host/IP
             POSTGRES_USER: forte     # Set Postgres Username
             POSTGRES_PASSWORD: forte # Set Postgres Password

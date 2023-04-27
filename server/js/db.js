@@ -18,6 +18,9 @@ import * as openpgp from 'openpgp';
 const library_path = '/library';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Verbose logging
+const verbose = process.env.verbose;
+
 // Supported file extensions
 const audio_extensions = ["mp3", "m4a", "ogg", "flac", "wav", "aac"];
 const image_extensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "svg"];
@@ -42,6 +45,11 @@ const cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'ar
 function log(message) {
     const timestamp = new Date().toISOString();
     const logLine = `${timestamp}: ${message}\n`;
+
+    if (verbose) {
+        console.log("\x1b[31m%s\x1b[0m", logLine);
+        return
+    }
 
     fs.appendFile(path.join(__dirname, "../forte.log"), logLine, (err) => {
         if (err) {
