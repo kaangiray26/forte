@@ -24,7 +24,7 @@ services:
             - <about>:/about
     postgres:
         image: kaangiray26/postgres:2.0
-        restart: always
+        restart: on-failure
         environment:
             POSTGRES_USER: forte     # Set Postgres Username
             POSTGRES_PASSWORD: forte # Set Postgres Password

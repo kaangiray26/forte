@@ -208,10 +208,13 @@ app.get("/api/author/:author/playlists", isAuthenticated, db.get_author_playlist
 // Love
 app.post("/api/track/love", isAuthenticated, db.love_track)
 app.post("/api/track/unlove", isAuthenticated, db.unlove_track)
+
 app.post("/api/album/love", isAuthenticated, db.love_album)
 app.post("/api/album/unlove", isAuthenticated, db.unlove_album)
+
 app.post("/api/artist/love", isAuthenticated, db.love_artist)
 app.post("/api/artist/unlove", isAuthenticated, db.unlove_artist)
+
 app.post("/api/playlist/love", isAuthenticated, db.love_playlist)
 app.post("/api/playlist/unlove", isAuthenticated, db.unlove_playlist)
 
