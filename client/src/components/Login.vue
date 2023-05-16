@@ -184,6 +184,7 @@ async function login_account(account) {
             return;
         };
         fail.value = false;
+        logging.value = false;
     });
 }
 
@@ -242,6 +243,7 @@ async function connect() {
             return;
         };
         fail.value = false;
+        logging.value = false;
     });
 }
 
