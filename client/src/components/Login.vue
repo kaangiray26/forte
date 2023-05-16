@@ -131,7 +131,13 @@ const token = ref(null);
 const saved_accounts = ref([]);
 
 async function reload_accounts() {
-    saved_accounts.value = JSON.parse(localStorage.getItem('accounts'));
+    let accounts = JSON.parse(localStorage.getItem('accounts'));
+    if (!accounts) {
+        localStorage.setItem('accounts', JSON.stringify([]));
+        saved_accounts.value = [];
+        return
+    }
+    saved_accounts.value = accounts;
 }
 
 async function edit_account(account) {
