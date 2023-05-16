@@ -261,6 +261,14 @@ img {
     margin: 0 5px
 }
 
+.accordion-header {
+    --bs-accordion-active-bg: transparent !important;
+}
+
+.account-edit-modal {
+    background-color: rgb(33, 37, 41, 0.75);
+}
+
 /* 
 ------
 THEMES

@@ -7,7 +7,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>This will clear all settings and saved data on your browser. Are you sure you really want to log out?
+                    <p>Are you sure you really want to log out?
                     </p>
                     <div class="d-flex justify-content-end">
                         <button type="button" class="btn btn-success fw-bold" @click="reset">Confirm</button>
@@ -26,8 +26,11 @@ let modal = null;
 const modalEl = ref(null);
 
 async function reset() {
-    console.log("Resetting...");
-    localStorage.clear();
+    // Clear localStorage
+    ["init", "offline", "session", "server", "username", "token", "volume", "groupSession", "groupSessionID"].map(key => {
+        localStorage.removeItem(key);
+    });
+
     sessionStorage.clear();
     window.location.replace("/");
 }

@@ -44,7 +44,7 @@ const cs_tracks = new pgp.helpers.ColumnSet(['title', 'cover', 'cover_path', 'ar
 // Logger
 function log(message) {
     const timestamp = new Date().toISOString();
-    const logLine = `${timestamp}: ${message}\n`;
+    const logLine = `\n${timestamp}: ${message}`;
 
     if (verbose) {
         console.log("\x1b[31m%s\x1b[0m", logLine);

@@ -379,7 +379,6 @@ class Forte {
             localStorage.setItem('volume', JSON.stringify('1'));
             localStorage.setItem('groupSession', JSON.stringify([]));
             localStorage.setItem('groupSessionID', JSON.stringify(''));
-            localStorage.setItem('followed', JSON.stringify([]));
             return true
         }
 
