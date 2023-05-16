@@ -106,7 +106,7 @@
     <div>
         <a class="purple-on-hover fw-bold theme-color" href="https://github.com/kaangiray26/forte/tree/gh-pages"
             target="_blank">
-            <span>Forte Mar 16 Version.</span>
+            <span>Forte May 16 Version.</span>
         </a>
     </div>
     <Reset ref="resetModal" />
