@@ -32,7 +32,7 @@
     </ul>
     <hr />
     <!-- Last.fm Section -->
-    <div v-if="lastfm_profile" class="card">
+    <div v-if="lastfm_profile" class="card border-0">
         <div class="card-body">
             <h3>Last.fm</h3>
             <div class="d-inline-flex flex-column">
