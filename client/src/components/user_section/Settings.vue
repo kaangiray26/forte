@@ -111,13 +111,13 @@ async function check_federated_lastfm_profile(id) {
 
 async function get_lastfm_profile(username) {
     let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=${lastfm_api_key.value}&format=json`)
-        .then((response) => response.json());
+        .then(res => res.json());
     lastfm_profile.value = response.user;
 }
 
 async function get_top_tracks(username) {
     let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${username}&api_key=${lastfm_api_key.value}&format=json`)
-        .then((response) => response.json());
+        .then(res => res.json());
     top_tracks.value = response.toptracks.track;
 }
 
