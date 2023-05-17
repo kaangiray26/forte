@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "forte.buzl.uk",
+            "sha256_cert_fingerprints": [
+                "D5:55:7A:9D:A5:3C:E6:7E:E7:F9:4D:69:88:B2:D3:1D:E2:AD:04:BE:63:70:33:60:37:3E:38:1B:28:2D:4C:73"
+            ]
+        }
+    }
+]
