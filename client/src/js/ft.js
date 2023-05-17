@@ -736,7 +736,7 @@ class Forte {
         }
 
         // Check for saved challenge
-        let challenge = localStorage.getItem(`@${domain}`) ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
+        let challenge = domain ? JSON.parse(localStorage.getItem(`@${domain}`)) : null;
         let response = await fetch(this.server + '/api/lastfm/scrobble' + `?session=${this.session}`, {
             method: "POST",
             headers: {
@@ -744,14 +744,11 @@ class Forte {
             },
             body: JSON.stringify({
                 "track": track,
-                "sk": JSON.parse(sk),
+                "sk": sk,
                 "challenge": challenge
             }),
             credentials: "include"
-        }).then((response) => {
-            return response.json();
-        }
-        );
+        }).then(res => res.json());
         return response;
     }
 
