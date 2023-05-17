@@ -1,8 +1,8 @@
 <template>
     <div class="card h-100 w-100 border-0" @contextmenu.prevent="right_click({ item: props.album, event: $event })">
-        <div class="p-3">
+        <div class="p-0">
             <div class="position-relative clickable-shadow rounded">
-                <div @click="openAlbum">
+                <div class="ph rounded" @click="openAlbum">
                     <img class="img-fluid placeholder-img rounded" :src="get_cover(props.album.cover)"
                         @error="placeholder" />
                 </div>

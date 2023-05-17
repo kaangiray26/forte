@@ -7,6 +7,7 @@ import { action } from '/js/events.js'
 // Import our custom CSS
 import '/scss/styles.scss'
 import '/assets/styles.css'
+import '/assets/bootstrap-icons.css'
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register("/serviceworker.js");

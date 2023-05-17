@@ -6,26 +6,26 @@
             </div>
         </div>
     </div>
-    <div class="card rounded-0 border-0 mx-3" v-show="loaded">
+    <div class="card rounded-0 border-0 m-3" v-show="loaded">
         <div class="card-body px-3">
             <div class="row g-3">
-                <div class="col-12 col-sm-auto">
-                    <div @contextmenu.prevent="right_click({ item: artist, event: $event })">
+                <div class="col-md-3">
+                    <div class="ph rounded" @contextmenu.prevent="right_click({ item: artist, event: $event })">
                         <img class="playlist-img shadow rounded" :src="get_artist_cover(artist.cover)" />
                     </div>
                 </div>
-                <div class="col d-flex flex-column justify-content-between">
+                <div class="col d-flex flex-column">
                     <div class="theme-color d-flex flex-column">
                         <h1 class="artist-title">{{ artist.title }}</h1>
                         <small class="text-muted">{{ albums.length }} albums</small>
                         <div class="pt-2">
                             <div class="d-flex flex-wrap">
-                                <div class="m-1">
+                                <div class="me-2">
                                     <button ref="wiki_btn" type="button"
                                         class="btn theme-btn black-on-hover text-white fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_wiki_page">Wikipedia</button>
                                 </div>
-                                <div class="m-1">
+                                <div>
                                     <button ref="lastfm_btn" type="button"
                                         class="btn theme-btn black-on-hover text-white fw-bold"
                                         :class="{ 'disabled': about_disabled }" @click="get_lastfm_page">Last.fm</button>
@@ -80,7 +80,7 @@
             </div>
         </div>
     </div>
-    <div class="card rounded-0 border-0 mx-3 mt-3">
+    <div class="card rounded-0 border-0 mx-3 mt-3" v-show="loaded">
         <div class="card-body px-3">
             <h5 class="theme-color fw-bold">Comments</h5>
             <div class="row g-3">

@@ -6,12 +6,14 @@
             </div>
         </div>
     </div>
-    <div class="card rounded-0 border-0 mx-3" v-show="loaded">
+    <div class="card rounded-0 border-0 m-3" v-show="loaded">
         <div class="card-body px-3">
             <div class="row g-3">
-                <div class="col-12 col-sm-auto">
-                    <div class="d-inline-flex position-relative">
-                        <img class="playlist-img shadow rounded" :src="station.logo" @error="placeholder" />
+                <div class="col-md-3">
+                    <div class="d-flex position-relative">
+                        <div class="ph rounded">
+                            <img class="playlist-img shadow rounded" :src="station.logo" @error="placeholder" />
+                        </div>
                         <div class="position-absolute bottom-0 right-0">
                             <button class="btn btn-light action-btn bi bi-play-fill m-2" type="button"
                                 @click="play_station()">
