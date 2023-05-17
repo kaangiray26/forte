@@ -157,8 +157,8 @@ async function get_lastfm_profile() {
         return
     }
 
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${JSON.parse(username)}&api_key=${lastfm_api_key.value}&format=json`)
-        .then((response) => response.json());
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${username}&api_key=${lastfm_api_key.value}&format=json`)
+        .then(res => res.json());
     lastfm_profile.value = response.user;
 }
 
@@ -168,9 +168,8 @@ async function get_top_tracks() {
         return
     }
 
-    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${JSON.parse(username)}&api_key=${lastfm_api_key.value}&format=json`)
-        .then((response) => response.json());
-
+    let response = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&limit=24&period=7day&user=${username}&api_key=${lastfm_api_key.value}&format=json`)
+        .then(res => res.json());
     top_tracks.value = response.toptracks.track;
 }
 
@@ -190,7 +189,7 @@ async function setup() {
     ['lastfm_key', 'scrobbling'].forEach((key) => {
         let value = JSON.parse(localStorage.getItem(key));
         if (value) {
-            lastfm_config.value[key] = JSON.parse(value);
+            lastfm_config.value[key] = value;
         } else {
             lastfm_config.value[key] = null
         }
