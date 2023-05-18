@@ -1,3 +1,3 @@
 module.exports = {
-    publicPath: ['/', '.well-known/']
+    publicPath: '/'
 }
