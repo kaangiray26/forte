@@ -231,6 +231,7 @@ app.post("/api/lyrics", isAuthenticated, db.get_lyrics)
 // Last.fm
 app.get("/api/lastfm/auth", isAuthenticated, db.get_lastfm_auth)
 app.post("/api/lastfm/auth", isAuthenticated, db.lastfm_auth)
+app.post("/api/lastfm/mobile_auth", isAuthenticated, db.get_lastfm_mobile_auth)
 app.post("/api/lastfm/artist", isAuthenticated, db.get_lastfm_artist)
 app.post("/api/lastfm/scrobble", isAuthenticated, db.lastfm_scrobble)
 app.get("/api/lastfm/profile/:username", isAuthenticated, db.get_lastfm_profile)

@@ -4711,6 +4711,47 @@ async function _get_lastfm_auth(req, res, next) {
     })
 }
 
+async function _get_lastfm_mobile_auth(req, res, next) {
+    if (!['username', 'password'].every(key => req.body.hasOwnProperty(key))) {
+        res.status(400)
+            .send(JSON.stringify({
+                "error": "Parameters not given correctly."
+            }));
+        return;
+    }
+
+    db.task(async t => {
+        let lastfm_api = await t.many("SELECT value FROM config WHERE name = 'lastfm_api_key' OR name = 'lastfm_api_secret'");
+        let signature = crypto.createHash('md5').update(
+            "api_key" + lastfm_api[0].value + "methodauth.getMobileSession" + "password" + req.body.password + "username" + req.body.username + lastfm_api[1].value,
+        ).digest("hex");
+
+        let response = await fetch("https://ws.audioscrobbler.com/2.0/?" + new URLSearchParams({
+            method: 'auth.getMobileSession',
+            format: 'json',
+            username: req.body.username,
+            password: req.body.password,
+            api_key: lastfm_api[0].value,
+            api_sig: signature
+        }), {
+            method: 'POST',
+        }).then(res => res.json())
+
+        if (response.hasOwnProperty('session')) {
+            await t.none("UPDATE users SET lastfm = $1 WHERE session = $2", [response.session.name, req.query.session]);
+            res.status(200).json({
+                "key": response.session.key,
+                "username": response.session.name
+            });
+            return
+        }
+
+        res.status(200).json({
+            "error": "Unauthorized"
+        });
+    })
+}
+
 async function _get_lastfm_artist(req, res, next) {
     if (!['artist'].every(key => req.body.hasOwnProperty(key))) {
         res.status(400)
@@ -4964,6 +5005,7 @@ const exports = {
     get_history: _get_history,
     get_lastfm_artist: _get_lastfm_artist,
     get_lastfm_auth: _get_lastfm_auth,
+    get_lastfm_mobile_auth: _get_lastfm_mobile_auth,
     get_lastfm_profile: _get_lastfm_profile,
     get_lyrics: _get_lyrics,
     get_pgp_keys: _get_pgp_keys,
