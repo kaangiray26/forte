@@ -174,7 +174,7 @@ const routes = [
     {
         path: "/privacy",
         component: Privacy
-    }
+    },
 ];
 
 const router = createRouter({
