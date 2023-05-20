@@ -38,7 +38,6 @@ import TrackRedirect from "/components/TrackRedirect.vue"
 
 import NotFound from "/components/NotFound.vue"
 import Servers from "/components/Servers.vue"
-import Privacy from "/components/Privacy.vue"
 
 const routes = [
     { path: '/:pathMatch(.*)*', component: NotFound },
@@ -170,10 +169,6 @@ const routes = [
                 component: User_Tracks
             },
         ]
-    },
-    {
-        path: "/privacy",
-        component: Privacy
     },
 ];
 
