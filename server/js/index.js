@@ -73,10 +73,16 @@ function isAuthenticated(req, res, next) {
     })
 }
 
+// Ping
+app.head("/ping", (req, res) => {
+    res.status(200).send();
+})
+
 // Server alive check
 app.get("/alive", (req, res) => {
     res.status(200).json({ "status": "alive", "version": process.env.version })
 })
+
 
 // Dashboard
 app.get("/auth", (req, res) => {

@@ -1,7 +1,7 @@
 version: '3'
 services:
     app:
-        image: kaangiray26/forte:4.2
+        image: kaangiray26/forte:4.3
         restart: on-failure
         ports:
             - "3000:3000"
@@ -10,7 +10,7 @@ services:
                 condition: service_healthy
         environment:
             port: 3000               # Set Port
-            version: "4.2"           # Set Version
+            version: "4.3"           # Set Version
             verbose: false           # Verbose Logging
             custom_about: false      # For your own about page
             hostname: localhost      # Set Hostname

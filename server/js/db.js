@@ -1137,8 +1137,6 @@ async function _station_search(req, res, next) {
     }
 
     res.status(200).json({ "stations": stations });
-
-
 }
 
 async function _search_artist(req, res, next) {
