@@ -83,7 +83,6 @@ app.get("/alive", (req, res) => {
     res.status(200).json({ "status": "alive", "version": process.env.version })
 })
 
-
 // Dashboard
 app.get("/auth", (req, res) => {
     let status = (req.session.user && req.session.user == 'forte');
