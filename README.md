@@ -1,13 +1,3 @@
-<!-- TOP -->
-<div align="center">
-    <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/kaangiray26/forte?style=flat-square">
-    <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/kaangiray26/forte?style=flat-square">
-    <img alt="GitHub issues" src="https://img.shields.io/github/issues/kaangiray26/forte?style=flat-square">
-    <img alt="License" src="https://img.shields.io/github/license/kaangiray26/forte.svg?style=flat-square">
-    <img alt="Website" src="https://img.shields.io/website?down_color=red&down_message=offline&style=flat-square&up_color=success&up_message=online&url=https%3A%2F%2Fforte.buzl.uk">
-</div>
-
-<br>
 <div align="center">
     <a href="https://github.com/kaangiray26/forte">
         <img src="https://raw.githubusercontent.com/kaangiray26/forte/main/client/src/public/images/favicon.svg" alt="Forte Logo" width="80" height="80">
@@ -19,7 +9,13 @@
         <br />
         <a href="https://forte.buzl.uk/"><strong>Open the Web Player »</strong></a>
         <br />
-        <br />
+        <div align="center">
+            <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/kaangiray26/forte?style=flat-square">
+            <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/kaangiray26/forte?style=flat-square">
+            <img alt="GitHub issues" src="https://img.shields.io/github/issues/kaangiray26/forte?style=flat-square">
+            <img alt="License" src="https://img.shields.io/github/license/kaangiray26/forte.svg?style=flat-square">
+            <img alt="Website" src="https://img.shields.io/website?down_color=red&down_message=offline&style=flat-square&up_color=success&up_message=online&url=https%3A%2F%2Fforte.buzl.uk">
+        </div>
         <a href="https://github.com/kaangiray26/forte/issues">Report Bug</a>
         ·
         <a href="https://github.com/kaangiray26/forte/issues">Request Feature</a>
