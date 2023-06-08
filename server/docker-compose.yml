@@ -21,8 +21,8 @@ services:
             POSTGRES_PORT: 5432      # Postgres Database Port
             POSTGRES_DB: forte       # Set Postgres Database Name
         volumes:
-            - <library>:/library
-            - <about>:/about
+            - library:/library
+            - about:/about
     postgres:
         image: kaangiray26/postgres:2.0
         restart: on-failure
@@ -39,3 +39,5 @@ services:
             retries: 5
 volumes:
     db-data:
+    library:
+    about:
