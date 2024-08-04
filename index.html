@@ -23,7 +23,20 @@
 
 <body class="light-theme">
   <div id="app"></div>
-  
+  <script defer>
+    (function () {
+      window.addEventListener("DOMContentLoaded", () => {
+        fetch("https://home.buzl.uk:8443/analytics/beacon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            origin: window.location.origin,
+            path: window.location.pathname,
+          }),
+        });
+      });
+    })();
+  </script>
 </body>
 
 </html>
