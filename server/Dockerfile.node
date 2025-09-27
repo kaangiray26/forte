@@ -1,0 +1,20 @@
+FROM node:19-alpine
+WORKDIR /forte
+
+# Copy files
+ADD dist ./dist
+ADD about ./about
+ADD js ./js
+ADD package.json ./
+ADD server.js ./
+
+# Create directories
+RUN mkdir -p ./uploads
+
+# RUN npm install
+# If you are building your code for production
+RUN npm install
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
